@@ -1,0 +1,224 @@
+GB-01 COMMAND EVIDENCE
+Repository: D:\Work\LTVN\Website
+Tested HEAD: 3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+Timezone: UTC+07:00
+
+Each block records the command, resolved executable when applicable, raw stdout,
+raw stderr, exit code, and timestamps. The literal marker <empty> means the
+corresponding stream contained no output.
+
+===== COMMAND: git rev-parse --show-toplevel =====
+started_at: 2026-07-25T21:12:05.6874658+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+D:/Work/LTVN/Website
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:05.7820338+07:00
+
+===== COMMAND: git status --short --branch =====
+started_at: 2026-07-25T21:12:05.7820338+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+## main...origin/main
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:05.8615429+07:00
+
+===== COMMAND: git branch --show-current =====
+started_at: 2026-07-25T21:12:05.8615429+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+main
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:05.9254399+07:00
+
+===== COMMAND: git rev-parse HEAD =====
+started_at: 2026-07-25T21:12:05.9274487+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:05.9761225+07:00
+
+===== COMMAND: git rev-parse origin/main =====
+started_at: 2026-07-25T21:12:05.9881779+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.0206983+07:00
+
+===== COMMAND: git remote -v =====
+started_at: 2026-07-25T21:12:06.0206983+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+origin	https://github.com/ANGFLO26/website_ltvietnam.git (fetch)
+origin	https://github.com/ANGFLO26/website_ltvietnam.git (push)
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.0875604+07:00
+
+===== COMMAND: git log -5 --oneline --decorate =====
+started_at: 2026-07-25T21:12:06.0875604+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+3794caf (HEAD -> main, origin/main, origin/HEAD) chore: clean planning history and rewrite project README
+9e69469 add_doc
+3246f07 first commit
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.1578424+07:00
+
+===== COMMAND: git tag --list =====
+started_at: 2026-07-25T21:12:06.1578424+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+<empty>
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.1949860+07:00
+
+===== COMMAND: git rev-parse -q --verify refs/tags/docs-v1.2.1-approved =====
+started_at: 2026-07-25T21:13:38.4084183+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+<empty>
+stderr:
+<empty>
+exit_code: 1
+ended_at: 2026-07-25T21:13:38.4789283+07:00
+
+===== COMMAND: git rev-parse -q --verify refs/tags/implementation-plan-v1.0-approved =====
+started_at: 2026-07-25T21:13:38.4908446+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+<empty>
+stderr:
+<empty>
+exit_code: 1
+ended_at: 2026-07-25T21:13:38.5262399+07:00
+
+===== COMMAND: node --version =====
+started_at: 2026-07-25T21:12:06.1949860+07:00
+resolved_executable: C:\Program Files\nodejs\node.exe
+stdout:
+v24.18.0
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.2323904+07:00
+
+===== COMMAND: corepack --version =====
+started_at: 2026-07-25T21:12:06.2323904+07:00
+resolved_executable: C:\Program Files\nodejs\corepack.cmd
+stdout:
+0.35.0
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.3548968+07:00
+
+===== COMMAND: pnpm --version =====
+started_at: 2026-07-25T21:12:06.3548968+07:00
+resolved_executable: NOT FOUND
+stdout:
+<empty>
+stderr:
+CommandNotFoundException: The term 'pnpm' is not recognized as the name of a cmdlet, function, script file, or operable program.
+exit_code: 127
+ended_at: 2026-07-25T21:12:06.8264897+07:00
+
+===== COMMAND: git --version =====
+started_at: 2026-07-25T21:12:06.8264897+07:00
+resolved_executable: C:\Program Files\Git\cmd\git.exe
+stdout:
+git version 2.55.0.windows.3
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.8654296+07:00
+
+===== COMMAND: docker --version =====
+started_at: 2026-07-25T21:12:06.8699823+07:00
+resolved_executable: C:\Users\taiphan\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+stdout:
+Docker version 29.6.2, build dfc4efb
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:06.9967625+07:00
+
+===== COMMAND: docker compose version =====
+started_at: 2026-07-25T21:12:06.9987741+07:00
+resolved_executable: C:\Users\taiphan\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+stdout:
+Docker Compose version v5.3.1
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:12:07.1999599+07:00
+
+===== COMMAND: docker image inspect postgres:16 =====
+started_at: 2026-07-25T21:12:07.1999599+07:00
+resolved_executable: C:\Users\taiphan\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+stdout:
+[]
+stderr:
+docker.exe : failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine; check if the path is correct and if the daemon is running: 
+open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+At line:26 char:5
++     & $resolved.Source @Arguments 1> $stdoutPath 2> $stderrPath
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (failed to conne...file specified.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+exit_code: 1
+ended_at: 2026-07-25T21:12:07.4387443+07:00
+
+===== CHECK: CI AND EVIDENCE PATHS =====
+captured_at: 2026-07-25T21:12:31.1737755+07:00
+stdout:
+.github	False	missing
+.github/workflows	False	missing
+implementation	False	missing
+implementation/evidence	False	missing
+stderr:
+<empty>
+exit_code: 0
+
+===== CHECK: V1.0 SHA-256 MANIFEST =====
+working_directory: D:\Work\LTVN\website\planning\implementation\v1.0
+started_at: 2026-07-25T21:13:56.9342324+07:00
+stdout:
+manifest_entries_checked: 20
+result: PASS
+stderr:
+<empty>
+exit_code: 0
+ended_at: 2026-07-25T21:13:57.0537680+07:00
+
+===== MUTATION: git switch -c chore/gb-01-gate-b-verification =====
+stdout:
+Switched to a new branch 'chore/gb-01-gate-b-verification'
+stderr:
+<empty>
+exit_code: 0
+
+NOT RUN:
+- docker run --rm postgres:16 postgres --version
+
+Reason: docker image inspection could not reach the Docker engine. No image was
+pulled and no container, persistent volume, project database, or migration was
+created.
