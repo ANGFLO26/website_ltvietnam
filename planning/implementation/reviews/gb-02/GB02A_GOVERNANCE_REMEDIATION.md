@@ -5,75 +5,56 @@ Repository: `https://github.com/ANGFLO26/website_ltvietnam.git`
 Task branch: `chore/gb-01-gate-b-verification`  
 Task base: `3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0`
 
-GB-02A resolves Git governance, evidence preservation, plan-history provenance, remote tag inspection, ignore policy, and minimal Gate B CI. It does not claim Gate B PASS.
+GB-02A resolves Git governance, evidence preservation, plan-history provenance, remote tag inspection, ignore policy, and minimal Gate B CI. GB-02A-C1 corrects the plan-history hash basis after Claude found that the first implementation hashed a CRLF archive rendering rather than exact Git blob bytes. Neither task claims Gate B PASS.
 
 ### A. Source state
 
-Before mutation:
+Before GB-02A mutation:
 
 - current branch was `chore/gb-01-gate-b-verification`;
 - `HEAD`, `main`, and `origin/main` all resolved to `3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0`;
 - remote `origin` fetch/push URL was `https://github.com/ANGFLO26/website_ltvietnam.git`;
 - remote heads were `main` and `chore/cleanup-planning-readme`;
 - `git ls-remote --tags origin` returned no tags;
-- the working tree contained exactly the three GB-01 evidence files and the Claude GB-01 review as untracked files;
-- no unrelated tracked modification or untracked file existed.
+- the working tree contained exactly the three GB-01 evidence files and the Claude GB-01 review as untracked files.
 
-The branch had no unique commit and no upstream before GB-02A.
+GB-02A committed and pushed those files in `2e8c3821f42a1ffdb138fce530981ec6012feffc`. Claude reviewed that head and returned `REQUEST CHANGES` for GB2-01. GB-02A-C1 remains on the same branch and PR #2.
 
 ### B. Files preserved
 
-The following pre-existing untracked artifacts are retained without factual raw-output edits:
+These raw/pre-existing artifacts remain tracked without factual raw-output edits:
 
 - `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/GATE_B_VERIFICATION.md`
 - `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/commands.log`
 - `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/environment.txt`
 - `planning/implementation/reviews/gb-01/CLAUDE_GB01_REVIEW.md`
+- `planning/implementation/reviews/gb-02/CLAUDE_GB02A_REVIEW.md`
 
-Recorded SHA-256 values:
-
-| File | SHA-256 |
-|---|---|
-| `GATE_B_VERIFICATION.md` | `ba32bd54245ccf5a86a7681b17d3049232498ae0c0b49d714420fe441173ceae` |
-| `commands.log` | `a228c2e59e6949f905e5ae6b54246019b1363abfe8b9f1d5650cf7d5a277f77a` |
-| `environment.txt` | `fccac63eec0dc11d56ebdf12d85ff5e4a70c4e573c59af28c0af043fddcc7ae9` |
-| `CLAUDE_GB01_REVIEW.md` | `ccd4a83a13292d529b36d3a0702963bdcdd95cb9569bc6a663ea9041e69a05d3` |
-
-Their later evidence commit does not change the meaning of the tested subject SHA.
+GB-02A-C1 does not rewrite `commands.log` or `environment.txt`.
 
 ### C. Evidence policy
 
-`implementation/evidence/README.md` makes the evidence root intentionally tracked and defines:
+`implementation/evidence/README.md` makes the evidence root intentionally tracked and defines tested-SHA semantics, required evidence metadata, immutable storage, redaction, and append-only rerun governance.
 
-- the `<tested_commit_sha>/<gate-or-phase>/` convention;
-- the distinction between evidence subject and later evidence commit;
-- committed-and-pushed evidence or immutable CI artifact identity as a PASS prerequisite;
-- required command, stream, timestamp, environment, exit-code, and mutation metadata;
-- secret/PII restrictions;
-- CI storage for large/binary/transient artifacts;
-- append-only rerun governance.
+GB2-03 privacy decision:
 
-This closes GB-R01's preservation ambiguity and GB-R04's missing evidence policy.
+- future sanitized evidence replaces local username/home-directory segments with `<LOCAL_USER>` or `<USER_HOME>`;
+- raw evidence never contains secrets, tokens, credentials, full PII, or production credentials;
+- GB-01 contains four local Docker Desktop path occurrences;
+- those four occurrences are retained unchanged to preserve raw-evidence integrity;
+- review confirmed that the paths contain no secret, token, or credential.
 
 ### D. `.gitignore` policy
 
 The root `.gitignore` covers dependencies, pnpm cache, build output, coverage, local environment files, editor/OS files, transient caches, non-evidence logs, Docker/local database state, secrets, credentials, and private keys.
 
-It explicitly does not ignore:
-
-- `implementation/evidence/`;
-- `planning/implementation/reviews/`;
-- manifest files;
-- verification scripts;
-- `.github/workflows/`.
-
-Rule probes confirmed that representative dependency, build, environment, log, volume, and credential paths are ignored while evidence logs, reviews, and workflows remain trackable.
+It does not ignore evidence, reviews, manifests, verification scripts, or workflows.
 
 ### E. Plan-history manifest
 
 The source is commit `9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd` (`add_doc`, 2026-07-25T20:41:41+07:00).
 
-`PLAN_HISTORY_MANIFEST.sha256` hashes exact Git-object bytes for:
+Required inventory:
 
 | Directory | Files |
 |---|---:|
@@ -84,23 +65,62 @@ The source is commit `9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd` (`add_doc`, 2026
 | `planning/implementation/v0.4.1/` | 19 |
 | **Total** | **80** |
 
-The manifest uses SHA-256, original repository-relative paths, stable ordinal lexicographic path order, no timestamp lines, no duplicate path, and no entry outside the five directories.
+The corrected manifest hashes exact content bytes stored in the 80 Git blobs. Inventory comes from NUL-delimited `git ls-tree -r -z --full-tree`; each mode/type/OID/path is parsed; non-blob entries are rejected; each hash is computed directly from `git cat-file blob <blob_oid>`.
 
-Generation used `git archive` to a temporary tar, extracted exact bytes, hashed extracted files, and removed only the generated temporary directory. No historical directory was checked out or restored into the active tree.
+The manifest uses SHA-256, original repository-relative paths, stable ordinal/bytewise lexicographic path order, no timestamp lines, no duplicate path, and no entry outside the five directories.
 
-### F. Manifest verification
+### F. Manifest verification and correction history
 
-Final verification:
+Defect reproduction for the first file:
 
-- PowerShell verifier: `PASS`, 80 manifest entries, 80 archived files, exit 0.
-- Bash verifier via Git for Windows: `PASS`, 80 manifest entries, 80 archived files, exit 0.
-- v1.0 manifest: `PASS`, 20/20 entries, exit 0.
-- v1.0 exact artifact inventory: `PASS`, 21 files, exit 0.
-- active v0.x directory check: `PASS`, count 0, exit 0.
+| Field | Value |
+|---|---|
+| Path | `planning/implementation/v0.1/00_IMPLEMENTATION_PLAN_OVERVIEW.md` |
+| Blob OID | `150895657f03efce74c504f107b9aec035b4ab6b` |
+| Exact blob SHA-256 | `27b9fea8fd8f57658e9b19f750e977fd06fbb2599749c27666a95a4d3a29e917` |
+| Prior archive/export SHA-256 | `800607c49aaa4cbd81b020046f409c26f6ac43b6f09980ed7e2c78a659b13721` |
+| Prior manifest SHA-256 | `800607c49aaa4cbd81b020046f409c26f6ac43b6f09980ed7e2c78a659b13721` |
+| `core.autocrlf` origin/value | `file:C:/Program Files/Git/etc/gitconfig` / `true` |
 
-An initial draft of the Bash verifier sorted full hash lines rather than paths and correctly failed its ordering check. The verifier was corrected to sort extracted path fields; both independent implementations then passed against the same 80 exact Git objects.
+The first implementation in `2e8c3821f42a1ffdb138fce530981ec6012feffc` used `git archive`, extracted the archive, and hashed exported bytes. System `core.autocrlf=true` produced CRLF content, so the old manifest was platform/config dependent. This correction does not hide that history.
 
-The scripts reject malformed, duplicate, out-of-order, out-of-scope, missing, extra, or hash-mismatched entries.
+Corrected implementation:
+
+- PowerShell uses `System.Diagnostics.ProcessStartInfo`, hashes `StandardOutput.BaseStream` directly with `SHA256.ComputeHash()`, and checks every `cat-file` exit code.
+- POSIX uses `git cat-file blob "$blob_oid" | sha256sum` with `set -euo pipefail`.
+- Neither implementation hashes archive, checkout, restored, or working-tree content.
+- No historical commit or file was rewritten.
+
+Final local results:
+
+- corrected first manifest hash equals the exact blob hash `27b9fea8…`;
+- PowerShell verifier: PASS, 80 manifest entries, 80 tree paths, zero missing/extra/duplicate/mismatch;
+- Bash verifier: PASS, 80/80, zero missing/extra/duplicate/mismatch;
+- PowerShell generator and Bash generator produce byte-identical manifests;
+- generated/committed manifest file SHA-256: `4dd615b26933af7617bcb9249acc5bca44df78d913ae740a2e539b98c0e22ebf`;
+- v1.0 manifest remains PASS, 20/20;
+- v1.0 artifact inventory remains 21 files;
+- active v0.x directory count remains zero.
+
+Cross-config result:
+
+- `core.autocrlf=true`: generator exit 0, verifier exit 0;
+- `core.autocrlf=false`: generator exit 0, verifier exit 0;
+- both generated hash sets are byte-identical and match the committed manifest.
+
+`core.autocrlf` does not affect `git cat-file blob` bytes.
+
+Negative tests used temporary manifest copies only:
+
+| Case | Exit | Expected |
+|---|---:|---|
+| Change one hash | 1 | FAIL |
+| Remove one entry | 1 | FAIL |
+| Add one fake entry | 1 | FAIL |
+| Duplicate one path | 1 | FAIL |
+| Swap first two entries | 1 | FAIL |
+
+All temporary test directories were removed.
 
 ### G. Tag proposal
 
@@ -110,9 +130,7 @@ The scripts reject malformed, duplicate, out-of-order, out-of-scope, missing, ex
 2. `planning-history-v0.1-v0.4.1` → `9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd`;
 3. `implementation-plan-v1.0-approved` → `3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0`.
 
-The record distinguishes the v1.0-mandated docs tag, the plan-history retained-reference tag, and the deliberate project-governance name for the v1.0 baseline tag. Every tag still requires explicit user/maintainer authorization. GB-02B must verify both local and remote tag refs and exact targets.
-
-This addresses GB-R03's local-only tag inspection and GB-R05's tag-name framing.
+All tags still require explicit user/maintainer authorization. None is created by GB-02A or GB-02A-C1.
 
 ### H. Minimal CI workflow
 
@@ -121,35 +139,32 @@ This addresses GB-R03's local-only tag inspection and GB-R05's tag-name framing.
 - runs on pull requests and manual dispatch;
 - grants only read access to contents;
 - checks out full history and tags;
-- verifies the approved v1.0 manifest;
-- verifies the 80-file plan-history manifest against source Git objects;
-- checks exact v1.0 inventory;
-- rejects active v0.x directories;
-- confirms Approved docs and evidence policy are present;
-- writes a sanitized run report with workflow metadata, tested commit, commands, results, and manifest counts;
-- uploads the report with `actions/upload-artifact@v4`;
-- uses `actions/checkout@v4`;
+- verifies v1.0 manifest 20/20;
+- invokes the corrected exact-blob Bash verifier, which reports 80/80;
+- checks exact v1.0 inventory, absence of active v0.x directories, Approved docs, and evidence policy;
+- writes and uploads a sanitized report artifact;
+- never uses `git archive` as a hash source and does not depend on checkout line endings or `core.autocrlf`;
 - does not run Node, pnpm, application build, Docker, PostgreSQL, or migrations.
 
-Local basic structural validation passed: no tab indentation, even indentation, required workflow keys/triggers/permissions/actions/checks present, balanced GitHub expressions, expected here-document closure, and exactly two supported action references.
+Remote run ID, URL, conclusion, and artifact identity are recorded in PR #2 after the corrected commit is pushed. This repository report is not amended solely to store that remote run identity.
 
 ### I. Files changed
 
-Files in GB-02A scope:
+The cumulative PR diff contains:
 
 1. `.gitignore`
 2. `.github/workflows/gate-b-baseline.yml`
 3. `implementation/evidence/README.md`
-4. `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/GATE_B_VERIFICATION.md`
-5. `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/commands.log`
-6. `implementation/evidence/3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0/gate-b/environment.txt`
-7. `planning/implementation/history/PLAN_HISTORY_PROVENANCE.md`
-8. `planning/implementation/history/PLAN_HISTORY_MANIFEST.sha256`
+4. three GB-01 Gate B evidence files
+5. `planning/implementation/history/PLAN_HISTORY_PROVENANCE.md`
+6. `planning/implementation/history/PLAN_HISTORY_MANIFEST.sha256`
+7. `planning/implementation/history/generate-plan-history-manifest.ps1`
+8. `planning/implementation/history/generate-plan-history-manifest.sh`
 9. `planning/implementation/history/verify-plan-history.ps1`
 10. `planning/implementation/history/verify-plan-history.sh`
 11. `planning/implementation/history/TAG_PROPOSAL.md`
-12. `planning/implementation/reviews/gb-01/CLAUDE_GB01_REVIEW.md`
-13. `planning/implementation/reviews/gb-02/GB02A_GOVERNANCE_REMEDIATION.md`
+12. Claude GB-01 and GB-02A reviews
+13. this GB-02A remediation report
 
 No file under `doc/` or `planning/implementation/v1.0/` changed.
 
@@ -157,39 +172,35 @@ No file under `doc/` or `planning/implementation/v1.0/` changed.
 
 | Command/check | Exit | Result |
 |---|---:|---|
-| `git status --short --branch` | 0 | Correct branch; four expected untracked artifacts |
-| `git rev-parse HEAD/main/origin/main` | 0 | All `3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0` |
-| `git ls-remote --heads origin` | 0 | Two pre-task remote branches |
-| `git ls-remote --tags origin` | 0 | No remote tags |
-| `powershell ... verify-plan-history.ps1` | 0 | PASS 80/80 |
-| `Git\bin\bash.exe ... verify-plan-history.sh` | 0 | PASS 80/80 after verifier correction |
+| exact `ls-tree` first-file lookup | 0 | Blob `150895657f03efce74c504f107b9aec035b4ab6b` |
+| binary-safe first blob hash | 0 | `27b9fea8…` |
+| prior archive/export reproduction | 0 | `800607c4…`, matching old manifest |
+| PowerShell exact-blob generator | 0 | PASS 80 entries |
+| PowerShell exact-blob verifier | 0 | PASS 80/80 |
+| Bash exact-blob generator | 0 | Byte-identical to committed manifest |
+| Bash exact-blob verifier | 0 | PASS 80/80 |
+| cross-`autocrlf` true/false test | 0 | PASS; identical hash sets |
+| five negative verifier cases | 1 each | All failed as required |
 | v1.0 SHA-256 verification | 0 | PASS 20/20 |
-| v1.0 exact inventory check | 0 | PASS 21 files |
-| active v0.x directory check | 0 | PASS, zero |
-| Approved docs/evidence policy check | 0 | PASS, 13 required files |
-| CI workflow basic structural validation | 0 | PASS, 172 lines and two supported actions |
-| `git diff <base> -- doc` | 0 | Empty |
-| `git diff <base> -- planning/implementation/v1.0` | 0 | Empty |
-| source/migration SQL scope check | 0 | PASS, none added |
-| `git tag --list` | 0 | Empty; no local tag created |
+| protected path diff checks | 0 | Empty |
+| local/remote tag checks | 0 | No tags |
 
-The GitHub CLI was not installed. No tool was installed to compensate; PR creation uses the connected GitHub integration after the branch push.
+No Git configuration file was modified. The `core.autocrlf` cross-tests used process-scoped environment overrides only.
 
 ### K. Remaining blockers
 
-GB-02A does not resolve or claim resolution of:
+GB-02A-C1 does not resolve:
 
-1. explicit authorization, creation, push, and local/remote target verification for the three proposed tags;
+1. explicit authorization, creation, push, and exact local/remote target verification for proposed tags;
 2. pinned pnpm activation and verification;
 3. Docker engine availability;
 4. PostgreSQL 16 image/runtime verification;
-5. successful remote execution and immutable run/artifact identity for the new CI workflow;
-6. a clean-main Gate B rerun after authorized governance/environment remediation.
+5. a clean-main Gate B rerun after authorized remediation.
 
-GB-R06 is clarified here: GB-01's clean `main` state was a timestamped pre-evidence observation, not the later branch state.
+Remote CI is a correction acceptance condition. Its immutable run/artifact evidence is recorded in PR #2 rather than by creating another repository commit solely for the run ID.
 
 ### L. Verdict
 
-**GB-02A READY FOR INDEPENDENT REVIEW**
+**GB-02A LOCAL CORRECTION COMPLETE — REMOTE CI REQUIRED**
 
-This is a GB-02A governance-remediation verdict only. Gate B remains NOT PASSED, P0 remains unauthorized, and no tag, dependency, Docker state, database, Approved document, or v1.0 baseline content was changed.
+The repository artifacts are locally ready for the corrected CI run. Final `GB-02A CORRECTION READY FOR CLAUDE RE-REVIEW` status is asserted only after the new PR head workflow succeeds and its run/artifact identity is recorded in PR #2. Gate B remains NOT PASSED and P0 remains unauthorized.

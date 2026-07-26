@@ -29,7 +29,11 @@ Every evidence package must include:
 - start and end timestamps;
 - mutation ledger.
 
-Evidence must not contain secrets, tokens, full personally identifiable information, production credentials, or unredacted sensitive payloads.
+Evidence must not contain secrets, tokens, credentials, full personally identifiable information, production credentials, or unredacted sensitive payloads.
+
+Future sanitized evidence must replace local username or home-directory segments with `<LOCAL_USER>` or `<USER_HOME>`.
+
+The existing GB-01 evidence contains four occurrences of a local Docker Desktop executable path whose user-home segment identifies the local OS account. Those four occurrences are retained unchanged to preserve raw-evidence integrity. They were reviewed and contain no secret, token, credential, or full PII payload. This is a governed historical exception and is not a precedent for future evidence.
 
 Large, binary, or transient artifacts belong in immutable CI artifact storage. Git stores their manifest, immutable link or run ID, checksum, and a sanitized result summary.
 
