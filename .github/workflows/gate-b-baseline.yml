@@ -7,9 +7,6 @@ on:
 permissions:
   contents: read
 
-env:
-  REPORT_PATH: ${{ runner.temp }}/gate-b-baseline-report.txt
-
 jobs:
   verify-gate-b-baseline:
     name: Verify immutable Gate B baseline
@@ -22,6 +19,10 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+
+      - name: Set report path
+        shell: bash
+        run: echo "REPORT_PATH=${RUNNER_TEMP}/gate-b-baseline-report.txt" >> "$GITHUB_ENV"
 
       - name: Initialize sanitized report
         shell: bash
