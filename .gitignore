@@ -1,0 +1,59 @@
+# Application dependencies and package-manager caches
+node_modules/
+.pnpm-store/
+
+# Build and generated output
+dist/
+build/
+.next/
+out/
+.turbo/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Local environment files; reviewed examples may be committed
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local caches and transient directories
+.cache/
+.tmp/
+tmp/
+temp/
+
+# Runtime logs generated outside committed evidence
+*.log
+logs/
+!implementation/evidence/**/*.log
+
+# Docker and local database state
+.docker-data/
+docker-data/
+postgres-data/
+pgdata/
+.volumes/
+
+# Secrets, credentials, and private keys
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+
+# Committed verification evidence and reviews are intentional.
+# Do not ignore implementation/evidence/, planning/implementation/reviews/,
+# manifest files, verification scripts, or .github/workflows/.

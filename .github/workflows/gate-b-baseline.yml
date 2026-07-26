@@ -1,0 +1,173 @@
+name: Gate B Baseline
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-gate-b-baseline:
+    name: Verify immutable Gate B baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout full history and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set report path
+        shell: bash
+        run: echo "REPORT_PATH=${RUNNER_TEMP}/gate-b-baseline-report.txt" >> "$GITHUB_ENV"
+
+      - name: Initialize sanitized report
+        shell: bash
+        run: |
+          set -euo pipefail
+          tested_commit="$(git rev-parse HEAD)"
+          {
+            echo "Gate B baseline verification"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "workflow=${GITHUB_WORKFLOW}"
+            echo "event=${GITHUB_EVENT_NAME}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "ref=${GITHUB_REF}"
+            echo "tested_commit=${tested_commit}"
+          } > "$REPORT_PATH"
+
+      - name: Verify approved v1.0 manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_text="cd planning/implementation/v1.0 && sha256sum --strict -c V1_0_FILE_MANIFEST.sha256"
+          printf '\nCOMMAND: %s\n' "$command_text" | tee -a "$REPORT_PATH"
+          if (
+            cd planning/implementation/v1.0
+            sha256sum --strict -c V1_0_FILE_MANIFEST.sha256
+          ); then
+            count="$(grep -Ec '^[0-9a-f]{64}  ' planning/implementation/v1.0/V1_0_FILE_MANIFEST.sha256)"
+            echo "RESULT: PASS; manifest_entries=${count}" | tee -a "$REPORT_PATH"
+          else
+            echo "RESULT: FAIL" | tee -a "$REPORT_PATH"
+            exit 1
+          fi
+
+      - name: Verify plan-history Git objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_text="bash planning/implementation/history/verify-plan-history.sh"
+          printf '\nCOMMAND: %s\n' "$command_text" | tee -a "$REPORT_PATH"
+          if output="$(bash planning/implementation/history/verify-plan-history.sh 2>&1)"; then
+            printf '%s\n' "$output" | tee -a "$REPORT_PATH"
+            echo "RESULT: PASS" | tee -a "$REPORT_PATH"
+          else
+            printf '%s\n' "$output" | tee -a "$REPORT_PATH"
+            echo "RESULT: FAIL" | tee -a "$REPORT_PATH"
+            exit 1
+          fi
+
+      - name: Verify required v1.0 inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_text="compare exact planning/implementation/v1.0 file inventory"
+          printf '\nCOMMAND: %s\n' "$command_text" | tee -a "$REPORT_PATH"
+          expected="$(mktemp)"
+          actual="$(mktemp)"
+          trap 'rm -f -- "$expected" "$actual"' EXIT
+          cat > "$expected" <<'EOF'
+          00_IMPLEMENTATION_PLAN_OVERVIEW.md
+          01_LOCKED_DECISIONS_AND_OPEN_QUESTIONS.md
+          02_STRATEGY_OPTIONS_AND_RECOMMENDATION.md
+          03_MODULE_DEPENDENCY_GRAPH.md
+          04_PHASES_MILESTONES_AND_CRITICAL_PATH.md
+          05_MODULE_IMPLEMENTATION_MATRIX.md
+          06_TEST_AND_QUALITY_STRATEGY.md
+          07_DEFINITION_OF_READY_AND_DONE.md
+          08_AI_COLLABORATION_AND_FILE_OWNERSHIP.md
+          09_RISK_REGISTER.md
+          10_FINAL_VERIFICATION_PACKAGE.md
+          11_ROUND3_ISSUE_DISPOSITION.md
+          12_REQUEST_ROUTING_AND_DEPLOYMENT_TOPOLOGY.md
+          13_CONTENT_MIGRATION_WORKSTREAM.md
+          14_ROUND5B_CORRECTION_DISPOSITION.md
+          15_CODEX_FINAL_AUDIT_DISPOSITION.md
+          16_V1_0_PROMOTION_CHECKLIST.md
+          17_ROUND6B_CORRECTION_DISPOSITION.md
+          18_V1_0_PROMOTION_RECORD.md
+          PLAN_CHANGELOG.md
+          V1_0_FILE_MANIFEST.sha256
+          EOF
+          find planning/implementation/v1.0 -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort > "$actual"
+          if diff -u "$expected" "$actual"; then
+            count="$(wc -l < "$actual" | tr -d '[:space:]')"
+            echo "RESULT: PASS; inventory_files=${count}" | tee -a "$REPORT_PATH"
+          else
+            echo "RESULT: FAIL" | tee -a "$REPORT_PATH"
+            exit 1
+          fi
+
+      - name: Verify no active v0.x directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_text="find planning/implementation -maxdepth 1 -mindepth 1 -type d -name 'v0.*'"
+          printf '\nCOMMAND: %s\n' "$command_text" | tee -a "$REPORT_PATH"
+          active_v0="$(find planning/implementation -maxdepth 1 -mindepth 1 -type d -name 'v0.*' -print)"
+          if [[ -n "$active_v0" ]]; then
+            printf '%s\n' "$active_v0" | tee -a "$REPORT_PATH"
+            echo "RESULT: FAIL" | tee -a "$REPORT_PATH"
+            exit 1
+          fi
+          echo "RESULT: PASS; active_v0_directories=0" | tee -a "$REPORT_PATH"
+
+      - name: Verify Approved docs and evidence policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_text="test Approved doc inventory and implementation/evidence/README.md"
+          printf '\nCOMMAND: %s\n' "$command_text" | tee -a "$REPORT_PATH"
+          required_docs=(
+            "doc/00_README_TAI_LIEU_THIET_KE.md"
+            "doc/01_PHAM_VI_CHUC_NANG_VA_MVP.md"
+            "doc/02_SITEMAP_VA_CAU_TRUC_DIEU_HUONG.md"
+            "doc/03_CHUAN_HOA_MO_HINH_DU_LIEU.md"
+            "doc/04_ERD_LOGIC_HE_THONG.md"
+            "doc/05_DATABASE_SCHEMA_POSTGRESQL.md"
+            "doc/06_KIEN_TRUC_BACKEND_VA_API.md"
+            "doc/07_WIREFRAME_GIAO_DIEN_ADMIN.md"
+            "doc/08_WIREFRAME_FRONTEND_CONG_KHAI.md"
+            "doc/09_ADR_QUYET_DINH_KIEN_TRUC.md"
+            "doc/10_CHANGELOG_DONG_BO_TAI_LIEU.md"
+            "doc/archive/releases/v1.2.1-approved/RELEASE_MANIFEST.md"
+            "implementation/evidence/README.md"
+          )
+          for path in "${required_docs[@]}"; do
+            test -f "$path"
+          done
+          echo "RESULT: PASS; required_files=${#required_docs[@]}" | tee -a "$REPORT_PATH"
+
+      - name: Finalize report
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo
+            echo "workflow_job_status=${{ job.status }}"
+            echo "completed_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          } >> "$REPORT_PATH"
+
+      - name: Upload Gate B evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-b-baseline-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/gate-b-baseline-report.txt
+          if-no-files-found: error
+          retention-days: 30
