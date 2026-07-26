@@ -1,0 +1,53 @@
+GB-02C TAG EVIDENCE
+tested_sha=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+start_utc=2026-07-26T15:28:45.6314200Z
+end_utc=2026-07-26T15:28:46.9706344Z
+executable=C:\Program Files\Git\cmd\git.exe
+
+COMMAND=git show-ref --tags
+STDOUT:
+81d765bf02bc7159005533bbd6f5db5adb038453 refs/tags/docs-v1.2.1-approved
+177596626d457394d7931857184d60a06584daa1 refs/tags/implementation-plan-v1.0-approved
+a4af12962829f4cd2286f24edd6d0acd18de167d refs/tags/planning-history-v0.1-v0.4.1
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=git for-each-ref refs/tags --format="%(refname:short) %(objecttype) %(objectname) %(*objectname)"
+STDOUT:
+docs-v1.2.1-approved tag 81d765bf02bc7159005533bbd6f5db5adb038453 9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+implementation-plan-v1.0-approved tag 177596626d457394d7931857184d60a06584daa1 3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+planning-history-v0.1-v0.4.1 tag a4af12962829f4cd2286f24edd6d0acd18de167d 9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+STDERR=<empty>
+EXIT_CODE=0
+
+TAG=docs-v1.2.1-approved
+OBJECT_TYPE=tag
+LOCAL_OBJECT=81d765bf02bc7159005533bbd6f5db5adb038453
+REMOTE_OBJECT=81d765bf02bc7159005533bbd6f5db5adb038453
+LOCAL_PEELED=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+REMOTE_PEELED=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+ANNOTATED_MESSAGE=Approved documentation baseline v1.2.1
+VALID=true
+
+TAG=planning-history-v0.1-v0.4.1
+OBJECT_TYPE=tag
+LOCAL_OBJECT=a4af12962829f4cd2286f24edd6d0acd18de167d
+REMOTE_OBJECT=a4af12962829f4cd2286f24edd6d0acd18de167d
+LOCAL_PEELED=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+REMOTE_PEELED=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+ANNOTATED_MESSAGE=Retained planning history v0.1-v0.4.1
+VALID=true
+
+TAG=implementation-plan-v1.0-approved
+OBJECT_TYPE=tag
+LOCAL_OBJECT=177596626d457394d7931857184d60a06584daa1
+REMOTE_OBJECT=177596626d457394d7931857184d60a06584daa1
+LOCAL_PEELED=3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+REMOTE_PEELED=3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0
+ANNOTATED_MESSAGE=Approved implementation plan v1.0
+VALID=true
+
+local_tag_count=3
+remote_tag_line_count=6
+additional_tag_created_by_GB02C=false
+mutation_ledger=Read-only tag verification; no tag or tag object was created, updated, or deleted.

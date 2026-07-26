@@ -1,0 +1,77 @@
+GB-02C FRESH ENVIRONMENT
+tested_sha=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+start_utc=2026-07-26T15:24:58.8968600Z
+end_utc=2026-07-26T15:27:31.3109782Z
+sanitization=<USER_HOME> replaces the local home directory
+
+fresh_process_pid=46472
+PowerShell.PSVersion=5.1.26100.8875
+PowerShell.PSEdition=Desktop
+PowerShell.BuildVersion=10.0.26100.8875
+PowerShell.CLRVersion=4.0.30319.42000
+PowerShell.WSManStackVersion=3.0
+PowerShell.PSRemotingProtocolVersion=2.3
+PowerShell.SerializationVersion=1.1.0.1
+
+PATH=<USER_HOME>\.sbx-denybin;<USER_HOME>\.codex\tmp\arg0\codex-arg0ne0d5o;<USER_HOME>\.codex\packages\standalone\releases\0.145.0-x86_64-pc-windows-msvc\codex-path;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\cloudflared\;C:\Program Files\PuTTY\;C:\Program Files\Git\cmd;C:\Program Files\nodejs\;<USER_HOME>\AppData\Local\Programs\OpenAI\Codex\bin;<USER_HOME>\AppData\Local\Microsoft\WindowsApps;<USER_HOME>\AppData\Local\Programs\Microsoft VS Code\bin;<USER_HOME>\AppData\Local\Programs\Antigravity IDE\bin;<USER_HOME>\AppData\Local\Python\bin;<USER_HOME>\.local\bin;<USER_HOME>\AppData\Roaming\npm;<USER_HOME>\AppData\Local\Programs\DockerDesktop\resources\bin
+
+COMMAND=where.exe node
+STDOUT=C:\Program Files\nodejs\node.exe
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=where.exe corepack
+STDOUT=C:\Program Files\nodejs\corepack | C:\Program Files\nodejs\corepack.cmd
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=where.exe pnpm
+STDOUT=<USER_HOME>\.local\bin\pnpm | <USER_HOME>\.local\bin\pnpm.CMD
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=Get-Command pnpm -All
+STDOUT=ExternalScript|<USER_HOME>\.local\bin\pnpm.ps1 | Application|<USER_HOME>\.local\bin\pnpm.CMD | Application|<USER_HOME>\.local\bin\pnpm
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=where.exe git
+STDOUT=C:\Program Files\Git\cmd\git.exe
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=where.exe docker
+STDOUT=<USER_HOME>\AppData\Local\Programs\DockerDesktop\resources\bin\docker | <USER_HOME>\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=node --version
+STDOUT=v24.18.0
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=corepack --version
+STDOUT=0.35.0
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=pnpm --version
+STDOUT=11.4.0
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=corepack pnpm --version
+STDOUT=11.4.0
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=git --version
+STDOUT=git version 2.55.0.windows.3
+STDERR=<empty>
+EXIT_CODE=0
+
+npm_global_prefix=<USER_HOME>\AppData\Roaming\npm
+npm_global_pnpm_shadow_count=0
+direct_and_corepack_pnpm_match=true
+
+mutation_ledger=No PATH, Corepack, pnpm, Node, Git, or Docker configuration was modified by GB-02C.

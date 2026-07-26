@@ -1,0 +1,76 @@
+GB-02C MANIFEST EVIDENCE
+tested_sha=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+
+COMMAND=powershell -ExecutionPolicy Bypass -File planning/implementation/history/verify-plan-history.ps1
+EXECUTABLE=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+START_UTC=2026-07-26T15:25:57.4901083Z
+END_UTC=2026-07-26T15:26:01.6766783Z
+STDOUT:
+PLAN_HISTORY_VERIFICATION=PASS
+source_commit=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+hash_basis=git-cat-file-blob
+manifest_entries=80
+tree_paths=80
+missing=0
+extra=0
+duplicate=0
+mismatch=0
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=bash planning/implementation/history/verify-plan-history.sh
+EXECUTABLE=C:\Program Files\Git\bin\bash.exe
+START_UTC=2026-07-26T15:26:27.8021945Z
+END_UTC=2026-07-26T15:26:34.5949875Z
+STDOUT:
+PLAN_HISTORY_VERIFICATION=PASS
+source_commit=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+hash_basis=git-cat-file-blob
+manifest_entries=80
+tree_paths=80
+missing=0
+extra=0
+duplicate=0
+mismatch=0
+STDERR=<empty>
+EXIT_CODE=0
+
+HISTORICAL_DIRECTORY_COUNTS:
+v0.1=12
+v0.2=15
+v0.3=16
+v0.4=18
+v0.4.1=19
+total=80
+
+COMMAND=sha256sum --strict -c V1_0_FILE_MANIFEST.sha256
+EXECUTABLE=C:\Program Files\Git\usr\bin\sha256sum.exe via C:\Program Files\Git\bin\bash.exe
+START_UTC=2026-07-26T15:27:10.4044843Z
+END_UTC=2026-07-26T15:27:10.8204231Z
+STDOUT:
+00_IMPLEMENTATION_PLAN_OVERVIEW.md: OK
+01_LOCKED_DECISIONS_AND_OPEN_QUESTIONS.md: OK
+02_STRATEGY_OPTIONS_AND_RECOMMENDATION.md: OK
+03_MODULE_DEPENDENCY_GRAPH.md: OK
+04_PHASES_MILESTONES_AND_CRITICAL_PATH.md: OK
+05_MODULE_IMPLEMENTATION_MATRIX.md: OK
+06_TEST_AND_QUALITY_STRATEGY.md: OK
+07_DEFINITION_OF_READY_AND_DONE.md: OK
+08_AI_COLLABORATION_AND_FILE_OWNERSHIP.md: OK
+09_RISK_REGISTER.md: OK
+10_FINAL_VERIFICATION_PACKAGE.md: OK
+11_ROUND3_ISSUE_DISPOSITION.md: OK
+12_REQUEST_ROUTING_AND_DEPLOYMENT_TOPOLOGY.md: OK
+13_CONTENT_MIGRATION_WORKSTREAM.md: OK
+14_ROUND5B_CORRECTION_DISPOSITION.md: OK
+15_CODEX_FINAL_AUDIT_DISPOSITION.md: OK
+16_V1_0_PROMOTION_CHECKLIST.md: OK
+17_ROUND6B_CORRECTION_DISPOSITION.md: OK
+18_V1_0_PROMOTION_RECORD.md: OK
+PLAN_CHANGELOG.md: OK
+v1_manifest_hashed_entries=20
+v1_total_artifacts=21
+STDERR=<empty>
+EXIT_CODE=0
+
+mutation_ledger=Read-only verification; no manifest, history, Approved, or v1.0 file was changed.

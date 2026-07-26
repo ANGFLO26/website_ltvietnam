@@ -1,0 +1,229 @@
+GB-02C FINAL COMMAND LOG
+tested_sha=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+verification_started_utc=2026-07-26T15:24:58.8968600Z
+report_generated_utc=2026-07-26T15:32:26.8147228Z
+sanitization=<USER_HOME> replaces the local home directory; no secrets or tokens recorded
+
+=== 1. Fresh PowerShell process ===
+start=2026-07-26T15:24:58.8968600Z
+end=2026-07-26T15:24:59.1350209Z
+executable=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+command=$PID; $PSVersionTable; $env:PATH; where.exe node/corepack/pnpm/git/docker
+stdout:
+  pid=46472
+  PSVersion=5.1.26100.8875
+  where node=C:\Program Files\nodejs\node.exe
+  where corepack=C:\Program Files\nodejs\corepack; C:\Program Files\nodejs\corepack.cmd
+  where pnpm=<USER_HOME>\.local\bin\pnpm; <USER_HOME>\.local\bin\pnpm.CMD
+  where git=C:\Program Files\Git\cmd\git.exe
+  where docker=<USER_HOME>\AppData\Local\Programs\DockerDesktop\resources\bin\docker; docker.exe
+stderr=<empty>
+exit_code=0
+
+=== 2. Clean main synchronization and baseline lock ===
+start=2026-07-26T15:25:19.6486152Z
+end=2026-07-26T15:25:23.3033097Z
+executable=C:\Program Files\Git\cmd\git.exe
+commands:
+  git switch main
+  git pull --ff-only origin main
+  git fetch origin --prune --tags
+  git status --short --branch
+  git rev-parse HEAD
+  git rev-parse origin/main
+  git branch --show-current
+  git remote -v
+  git log -5 --oneline --decorate
+  git ls-remote --heads origin
+  git ls-remote --tags origin
+stdout:
+  main already up to date
+  status=## main...origin/main
+  HEAD=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+  origin/main=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+  branch=main
+  origin=https://github.com/ANGFLO26/website_ltvietnam.git
+  latest=151570b Merge pull request #3 from ANGFLO26/docs/gb-02a-independent-review
+  previous=9e7cffe Merge pull request #2 from ANGFLO26/chore/gb-01-gate-b-verification
+  assertions: branch_main=True; exact_tested_head=True; local_equals_origin=True; working_tree_clean=True
+stderr:
+  informational Git switch/pull messages only
+exit_code=0
+
+=== 3. Repository governance ===
+start=2026-07-26T15:25:42.4539781Z
+end=2026-07-26T15:25:42.9490456Z
+executable=C:\Program Files\Git\cmd\git.exe; PowerShell built-ins
+commands:
+  git rev-parse --show-toplevel
+  git merge-base --is-ancestor 9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd HEAD
+  git merge-base --is-ancestor 3794cafdeb53fc350c0cdf9cb868f0264c2fc4b0 HEAD
+  git show -s --format=%H%x20%P%x20%s HEAD
+  Test-Path evidence policy/workflow/Claude review
+  active v0.x directory scan
+  git ls-tree historical inventory
+stdout:
+  root=D:/Work/LTVN/Website
+  source_history_ancestor_exit=0
+  approved_baseline_ancestor_exit=0
+  HEAD parents=9e7cffeb7075a39450bf874e0f9ae7dd6341f50e b3ff3ed8605d02b507f464997ae413992e4f03d1
+  evidence_policy_exists=True
+  workflow_exists=True
+  claude_review_exists=True
+  active_v0_directory_count=0
+  historical_tree_counts=12,15,16,18,19
+  workflow_at_tested_sha=True
+stderr=<empty>
+exit_code=0
+
+=== 4. PowerShell plan-history verifier ===
+start=2026-07-26T15:25:57.4901083Z
+end=2026-07-26T15:26:01.6766783Z
+executable=C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+command=powershell -ExecutionPolicy Bypass -File planning/implementation/history/verify-plan-history.ps1
+stdout:
+  PLAN_HISTORY_VERIFICATION=PASS
+  source_commit=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+  hash_basis=git-cat-file-blob
+  manifest_entries=80
+  tree_paths=80
+  missing=0
+  extra=0
+  duplicate=0
+  mismatch=0
+stderr=<empty>
+exit_code=0
+
+=== 5. Bash plan-history verifier ===
+start=2026-07-26T15:26:27.8021945Z
+end=2026-07-26T15:26:34.5949875Z
+executable=C:\Program Files\Git\bin\bash.exe
+command=bash planning/implementation/history/verify-plan-history.sh
+stdout:
+  PLAN_HISTORY_VERIFICATION=PASS
+  source_commit=9e694692b7f4e224b3cd8b8ff35edd6ee5afeccd
+  hash_basis=git-cat-file-blob
+  manifest_entries=80
+  tree_paths=80
+  missing=0
+  extra=0
+  duplicate=0
+  mismatch=0
+stderr=<empty>
+exit_code=0
+
+=== 6. v1.0 SHA-256 verification ===
+start=2026-07-26T15:27:10.4044843Z
+end=2026-07-26T15:27:10.8204231Z
+executable=C:\Program Files\Git\bin\bash.exe
+command=sha256sum --strict -c V1_0_FILE_MANIFEST.sha256
+stdout:
+  00_IMPLEMENTATION_PLAN_OVERVIEW.md: OK
+  01_LOCKED_DECISIONS_AND_OPEN_QUESTIONS.md: OK
+  02_STRATEGY_OPTIONS_AND_RECOMMENDATION.md: OK
+  03_MODULE_DEPENDENCY_GRAPH.md: OK
+  04_PHASES_MILESTONES_AND_CRITICAL_PATH.md: OK
+  05_MODULE_IMPLEMENTATION_MATRIX.md: OK
+  06_TEST_AND_QUALITY_STRATEGY.md: OK
+  07_DEFINITION_OF_READY_AND_DONE.md: OK
+  08_AI_COLLABORATION_AND_FILE_OWNERSHIP.md: OK
+  09_RISK_REGISTER.md: OK
+  10_FINAL_VERIFICATION_PACKAGE.md: OK
+  11_ROUND3_ISSUE_DISPOSITION.md: OK
+  12_REQUEST_ROUTING_AND_DEPLOYMENT_TOPOLOGY.md: OK
+  13_CONTENT_MIGRATION_WORKSTREAM.md: OK
+  14_ROUND5B_CORRECTION_DISPOSITION.md: OK
+  15_CODEX_FINAL_AUDIT_DISPOSITION.md: OK
+  16_V1_0_PROMOTION_CHECKLIST.md: OK
+  17_ROUND6B_CORRECTION_DISPOSITION.md: OK
+  18_V1_0_PROMOTION_RECORD.md: OK
+  PLAN_CHANGELOG.md: OK
+  v1_manifest_hashed_entries=20
+  v1_total_artifacts=21
+stderr=<empty>
+exit_code=0
+
+=== 7. Toolchain verification ===
+start=2026-07-26T15:27:28.9289353Z
+end=2026-07-26T15:27:31.3109782Z
+executable=resolved paths in environment.txt
+commands=node --version; corepack --version; pnpm --version; corepack pnpm --version; git --version
+stdout:
+  node=v24.18.0
+  corepack=0.35.0
+  pnpm_direct=11.4.0
+  pnpm_via_corepack=11.4.0
+  git=2.55.0.windows.3
+  npm_global_pnpm_shadow_count=0
+stderr=<empty>
+exit_code=0 for every command
+
+=== 8. Docker and PostgreSQL ===
+start=2026-07-26T15:28:03.0629786Z
+end=2026-07-26T15:28:05.6065960Z
+executable=<USER_HOME>\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe
+commands=docker context show; docker version; docker info; docker compose version; docker image inspect postgres:16; docker run --rm --network none postgres:16 postgres --version; docker ps -a; docker volume ls
+stdout:
+  context=desktop-linux
+  client=29.6.2
+  server=29.6.2
+  server_os_arch=linux/amd64
+  compose=v5.3.1
+  postgres=16.14
+  image_id=sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
+  new_container_count=0
+  new_volume_count=0
+stderr=<empty>
+exit_code=0 for every command
+
+=== 9. Tag verification ===
+start=2026-07-26T15:28:45.6314200Z
+end=2026-07-26T15:28:46.9706344Z
+executable=C:\Program Files\Git\cmd\git.exe
+commands=git show-ref --tags; git for-each-ref refs/tags; git ls-remote --tags origin
+stdout:
+  local_tag_count=3
+  remote_tag_line_count=6
+  docs-v1.2.1-approved valid=True
+  planning-history-v0.1-v0.4.1 valid=True
+  implementation-plan-v1.0-approved valid=True
+stderr=<empty>
+exit_code=0
+
+=== 10. CI baseline API/artifact ===
+retrieved_before=2026-07-26T15:31:58.9661039Z
+provider=Authenticated GitHub App; read-only Actions API
+commands=fetch commit workflow runs; fetch jobs; fetch artifacts; download and inspect sanitized artifact report
+stdout:
+  workflow=Gate B Baseline
+  run_id=30204560727
+  head_sha=b3ff3ed8605d02b507f464997ae413992e4f03d1
+  tested_commit=f088f5db6400f50ffa75569ef02c6203761bb614
+  status=completed
+  conclusion=success
+  artifact=gate-b-baseline-30204560727-1
+  artifact_id=8632662724
+  artifact_digest=sha256:616b12c031575ecbb95d7b9d76cb0a7bd464935fbc482dcdfe3ec810fa24aadd
+  expired=false
+stderr=<empty>
+exit_code=0
+
+=== 11. P0 DoR review ===
+completed_before=2026-07-26T15:31:58.9661039Z
+executable=C:\Program Files\Git\cmd\git.exe (rg) and PowerShell Get-Content
+commands=read approved v1.0 overview/phases/DoR/topology; count D1-D20; inspect exact spike matrix
+stdout:
+  D1-D20 rows=20
+  exact HTTP 301 spike cases=15
+  spike_plan_is_P0_DoR=True
+  spike_PASS_is_P0_DoD=True
+  B23_B24_B25_outside_Gate_B=True
+stderr=<empty>
+exit_code=0
+
+=== Mutation ledger through evidence generation ===
+- Git synchronization commands changed no repository content and did not advance main.
+- One ephemeral PostgreSQL version container was created with --rm and left no container or volume.
+- No environment/toolchain mutation occurred.
+- Evidence branch created from the exact tested SHA only after all checks passed.
+- Seven evidence files and one Codex report added; no other repository file changed.

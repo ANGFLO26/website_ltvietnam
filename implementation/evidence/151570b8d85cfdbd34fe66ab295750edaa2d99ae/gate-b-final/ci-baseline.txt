@@ -1,0 +1,58 @@
+GB-02C CI BASELINE EVIDENCE
+tested_sha=151570b8d85cfdbd34fe66ab295750edaa2d99ae
+retrieved_before_utc=2026-07-26T15:31:58.9661039Z
+provider=Authenticated GitHub App Actions API
+repository=ANGFLO26/website_ltvietnam
+
+COMMAND=verify workflow file at tested SHA
+EXECUTABLE=C:\Program Files\Git\cmd\git.exe
+STDOUT=workflow_at_tested_sha=true
+STDERR=<empty>
+EXIT_CODE=0
+
+COMMAND=fetch workflow runs associated with merged review-record head
+WORKFLOW=Gate B Baseline
+RUN_ID=30204560727
+RUN_NUMBER=4
+EVENT=pull_request
+HEAD_SHA=b3ff3ed8605d02b507f464997ae413992e4f03d1
+TESTED_PR_MERGE_REF_SHA=f088f5db6400f50ffa75569ef02c6203761bb614
+STATUS=completed
+CONCLUSION=success
+EXIT_CODE=0
+
+COMMAND=fetch workflow run jobs
+JOB_ID=89800269809
+JOB_NAME=Verify immutable Gate B baseline
+JOB_STATUS=completed
+JOB_CONCLUSION=success
+ALL_REPORTED_STEPS=success
+EXIT_CODE=0
+
+COMMAND=fetch workflow run artifacts
+ARTIFACT_NAME=gate-b-baseline-30204560727-1
+ARTIFACT_ID=8632662724
+ARTIFACT_SIZE_BYTES=767
+ARTIFACT_DIGEST=sha256:616b12c031575ecbb95d7b9d76cb0a7bd464935fbc482dcdfe3ec810fa24aadd
+ARTIFACT_EXPIRED=false
+ARTIFACT_CREATED_AT=2026-07-26T13:41:46Z
+ARTIFACT_EXPIRES_AT=2026-08-25T13:41:46Z
+EXIT_CODE=0
+
+SANITIZED ARTIFACT REPORT:
+repository=ANGFLO26/website_ltvietnam
+workflow=Gate B Baseline
+event=pull_request
+run_id=30204560727
+run_attempt=1
+ref=refs/pull/3/merge
+tested_commit=f088f5db6400f50ffa75569ef02c6203761bb614
+v1_manifest=PASS entries=20
+plan_history=PASS entries=80 missing=0 extra=0 duplicate=0 mismatch=0
+v1_inventory=PASS files=21
+active_v0_directories=0
+required_docs_and_policy=13
+workflow_job_status=success
+
+NOTE=This is the latest successful supporting governance-baseline run. It does not by itself prove GB-02C final acceptance. The exact evidence-PR head run and artifact are recorded in PR metadata after push, without another repository commit.
+mutation_ledger=Read-only CI metadata/artifact retrieval; temporary artifact files were deleted safely.
