@@ -38,6 +38,7 @@ temp/
 *.log
 logs/
 !implementation/evidence/**/*.log
+!doc/verify/**/*.log
 
 # Docker and local database state
 .docker-data/
