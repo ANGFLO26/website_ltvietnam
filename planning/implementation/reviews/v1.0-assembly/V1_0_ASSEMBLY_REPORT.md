@@ -146,6 +146,17 @@ Recover any of them with:
 git show pre-cleanup-2026-07-29:planning/implementation/reviews/claude-final-v0.4.1/<file>
 ```
 
+Two sibling documents produced by this same assembly round, referenced in §3 and
+§10 above, were also removed from the active tree on 2026-07-29:
+
+- `PRE_P0_GIT_REMEDIATION.md` — the Git restoration runbook. Restoration
+  completed and was independently verified at Gate B.
+- `SAFE_CLEANUP_PLAN.md` — marked `PREPARED ONLY - NOT EXECUTED`. It planned an
+  archive of `planning/implementation/v0.1`–`v0.4.1`, directories that are no
+  longer in the active tree, and all ten of its preconditions have since been met.
+
+Recover either with `git show pre-cleanup-2026-07-29:planning/implementation/reviews/v1.0-assembly/<file>`.
+
 The `codex-round3/` and `codex-final-v0.3/` review sets were removed in the same
 operation and are recoverable the same way. Their dispositions are normative in
 `v1.0/11_ROUND3_ISSUE_DISPOSITION.md` and `v1.0/15_CODEX_FINAL_AUDIT_DISPOSITION.md`.
