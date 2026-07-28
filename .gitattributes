@@ -1,0 +1,15 @@
+# Line-ending policy.
+#
+# Development happens on Windows; CI runs on ubuntu-latest and verifies
+# artifacts with sha256sum. Any CRLF drift silently breaks those hash checks,
+# so every text file is normalized to LF in the working tree and in Git.
+* text=auto eol=lf
+
+# Binary artifacts must never be normalized.
+*.zip  binary
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
