@@ -46,10 +46,12 @@ website_ltvietnam/
 └── planning/
     └── implementation/
         ├── README.md                 # Chỉ mục kế hoạch triển khai
+        ├── GATE_STATUS.md            # Trạng thái gate hiện hành (nguồn sự thật)
         ├── v1.0/                     # Kế hoạch triển khai hoạt động duy nhất
         ├── history/                  # Manifest, verifier và tag governance
         └── reviews/
-            └── gb-02/                # Hồ sơ Gate B cuối
+            ├── gb-02/                # Hồ sơ Gate B cuối
+            └── v1.0-assembly/        # Báo cáo assembly (v1.0 liên kết trực tiếp)
 ```
 
 Các ứng viên kế hoạch `v0.1`–`v0.4.1` không thuộc cây hoạt động sau khi v1.0 được phê duyệt. Lịch sử vẫn được bảo toàn trong Git và tag `planning-history-v0.1-v0.4.1`. Thư mục `reviews/v1.0-assembly/` được giữ lại như tài liệu hỗ trợ không hoạt động vì tài liệu v1.0 được bảo vệ còn liên kết trực tiếp đến các báo cáo assembly.
@@ -130,6 +132,8 @@ Không coi một phase hoàn tất nếu thiếu raw test/evidence artifact theo
 - Mọi PR phải kèm test, evidence và rollback/forward-fix phù hợp.
 
 ## Tình trạng triển khai
+
+> Trạng thái gate hiện hành nằm ở [`planning/implementation/GATE_STATUS.md`](planning/implementation/GATE_STATUS.md). Các file trong `planning/implementation/v1.0/` bị khóa hash nên vẫn mang header `Gate B: NOT MET` của ngày phát hành 2026-07-25; khi mâu thuẫn, `GATE_STATUS.md` thắng.
 
 | Hạng mục | Trạng thái |
 |---|---|
