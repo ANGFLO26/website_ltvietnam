@@ -2,7 +2,7 @@
 
 Website doanh nghiệp B2B của **Công ty TNHH Công nghệ LT Việt Nam**, phục vụ giới thiệu năng lực, hãng đối tác, sản phẩm, dịch vụ kỹ thuật, dự án, tài liệu và tiếp nhận yêu cầu liên hệ từ khách hàng.
 
-> **Trạng thái hiện tại:** Implementation Plan v1.0 đã được phê duyệt. Source code ứng dụng chưa bắt đầu triển khai; dự án đang ở bước chuẩn bị Gate B và P0.
+> **Trạng thái hiện tại:** Gate A: **PASSED**; Gate B: **PASSED**; P0: **AUTHORIZED**. Implementation Plan v1.0 là kế hoạch triển khai đang hoạt động. P0 implementation: **NOT YET STARTED**; repository chưa có application scaffold.
 
 ## Mục tiêu MVP
 
@@ -38,13 +38,21 @@ website_ltvietnam/
 │   ├── 10_CHANGELOG_DONG_BO_TAI_LIEU.md
 │   ├── archive/
 │   └── verify/                       # SQL verification PostgreSQL 16
+├── implementation/
+│   └── evidence/
+│       ├── README.md
+│       └── 151570b8d85cfdbd34fe66ab295750edaa2d99ae/
+│           └── gate-b-final/         # Bằng chứng Gate B cuối
 └── planning/
     └── implementation/
-        ├── v1.0/                     # Baseline triển khai hiện hành
-        └── reviews/                  # Bằng chứng review/promotion cuối
+        ├── README.md                 # Chỉ mục kế hoạch triển khai
+        ├── v1.0/                     # Kế hoạch triển khai hoạt động duy nhất
+        ├── history/                  # Manifest, verifier và tag governance
+        └── reviews/
+            └── gb-02/                # Hồ sơ Gate B cuối
 ```
 
-Các thư mục kế hoạch nháp `v0.x` đã được loại khỏi nhánh hiện hành sau khi v1.0 được phê duyệt. Lịch sử vẫn được bảo toàn trong Git.
+Các ứng viên kế hoạch `v0.1`–`v0.4.1` không thuộc cây hoạt động sau khi v1.0 được phê duyệt. Lịch sử vẫn được bảo toàn trong Git và tag `planning-history-v0.1-v0.4.1`. Thư mục `reviews/v1.0-assembly/` được giữ lại như tài liệu hỗ trợ không hoạt động vì tài liệu v1.0 được bảo vệ còn liên kết trực tiếp đến các báo cáo assembly.
 
 ## Nguồn sự thật
 
@@ -108,13 +116,7 @@ Pre-P0 → P0 → P1 → P2 → P3 → P4 → P5 → P6A → P6B → P8 → P10 
 
 ## Điều kiện trước khi bắt đầu code
 
-Implementation Plan đã qua Gate A. Trước khi P0 bắt đầu, Gate B phải được xác minh đầy đủ:
-
-- Git repository, nhánh `main`, remote, baseline commit và tag tài liệu hợp lệ.
-- Node.js LTS và pnpm khả dụng.
-- Docker và PostgreSQL 16 khả dụng.
-- CI và thư mục evidence sẵn sàng.
-- P0 đạt Definition of Ready, bao gồm kế hoạch spike HTTP 301.
+Implementation Plan đã qua Gate A và Gate B. P0 đã được cho phép triển khai nhưng chưa bắt đầu; repository chưa có application scaffold. Khi P0 bắt đầu, implementer phải tuân thủ baseline, Definition of Ready và các điều kiện evidence đã được Gate B xác minh.
 
 Không coi một phase hoàn tất nếu thiếu raw test/evidence artifact theo [Test and Quality Strategy](planning/implementation/v1.0/06_TEST_AND_QUALITY_STRATEGY.md).
 
@@ -135,6 +137,9 @@ Không coi một phase hoàn tất nếu thiếu raw test/evidence artifact theo
 | PostgreSQL 16 verification | Passed |
 | Implementation Plan v1.0 | Approved — Planning Complete |
 | Gate A | Passed |
-| Gate B | Chưa xác minh đầy đủ |
+| Gate B | Passed |
+| P0 | Authorized |
+| P0 implementation | Not yet started |
+| Application scaffold | Chưa tồn tại |
 | Source code ứng dụng | Chưa triển khai |
 | Production | Chưa triển khai |
