@@ -125,3 +125,32 @@ No Git write command was run. See `PRE_P0_GIT_REMEDIATION.md`.
 ## 10. Mutation boundary
 
 No source code, migration SQL, dependency install, Docker/database action, Git mutation, Approved-document edit, cleanup, archive, delete or historical-plan move was performed.
+
+---
+
+## Editorial annexe — 2026-07-29 post-Gate-B cleanup
+
+**The report text above is unaltered.** This annexe only resolves references
+that would otherwise dangle after the post-Gate-B repository cleanup.
+
+The three Claude reports listed in §1 were removed from the **active working
+tree** — not from history — once v1.0 was promoted and Gate B closed:
+
+- `reviews/claude-final-v0.4.1/CLAUDE_FINAL_VERIFICATION.md`
+- `reviews/claude-final-v0.4.1/FINAL_ISSUE_REGISTER.md`
+- `reviews/claude-final-v0.4.1/V1_0_PROMOTION_RECOMMENDATION.md`
+
+Recover any of them with:
+
+```bash
+git show pre-cleanup-2026-07-29:planning/implementation/reviews/claude-final-v0.4.1/<file>
+```
+
+The `codex-round3/` and `codex-final-v0.3/` review sets were removed in the same
+operation and are recoverable the same way. Their dispositions are normative in
+`v1.0/11_ROUND3_ISSUE_DISPOSITION.md` and `v1.0/15_CODEX_FINAL_AUDIT_DISPOSITION.md`.
+
+**Note on §9.** That section records "Gate B: NOT MET", which was correct at the
+time of assembly (2026-07-25). Gate B subsequently **PASSED** on 2026-07-26 at
+tested commit `151570b8d85cfdbd34fe66ab295750edaa2d99ae`. See
+`planning/implementation/GATE_STATUS.md`.

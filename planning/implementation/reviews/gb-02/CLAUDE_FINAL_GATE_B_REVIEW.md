@@ -177,3 +177,27 @@ B23 and B24 must close before P2; B25 before P3; product concurrency strategy be
 ---
 
 **Reviewer scope statement.** This review executed read-only commands plus unauthenticated public GitHub API reads for PR, run, job and artifact metadata. The one Docker invocation was the exact recorded ephemeral probe `docker run --rm --network none postgres:16 postgres --version`, bracketed by container and volume snapshots that confirm zero delta; no image was pulled, no container or volume persisted, and no existing Docker resource was modified. No file was edited, no merge or push performed, no tag created, no dependency installed. The only file written is this report at `planning/implementation/reviews/gb-02/CLAUDE_FINAL_GATE_B_REVIEW.md`, which is untracked and leaves the working tree dirty until committed or removed.
+
+---
+
+## Editorial annexe — 2026-07-29 post-Gate-B cleanup
+
+**The review text above is unaltered.** This annexe only resolves references that
+would otherwise dangle after the post-Gate-B repository cleanup.
+
+Section 6 states that `CLAUDE_GB02A_REVIEW.md` and `CLAUDE_GB02A_C1_REVIEW.md`
+were "preserved unaltered". That statement was true when written and remains
+true: both files were preserved unaltered up to and including commit
+`05c7778`. They were subsequently removed from the **active working tree** —
+not from history — because Gate B had closed and the intermediate GB-02A
+rounds were superseded by this final record.
+
+Recover either file with:
+
+```bash
+git show pre-cleanup-2026-07-29:planning/implementation/reviews/gb-02/CLAUDE_GB02A_REVIEW.md
+git show pre-cleanup-2026-07-29:planning/implementation/reviews/gb-02/CLAUDE_GB02A_C1_REVIEW.md
+```
+
+Also removed from the active tree in the same operation, and recoverable the
+same way: `GB02A_GOVERNANCE_REMEDIATION.md` and `gb-01/CLAUDE_GB01_REVIEW.md`.
