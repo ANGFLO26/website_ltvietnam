@@ -786,7 +786,51 @@ CREATE TABLE ltv.content_media_refs (
 CREATE INDEX idx_cmr_media ON ltv.content_media_refs(media_id);
 CREATE INDEX idx_cmr_entity ON ltv.content_media_refs(entity_type, entity_id);
 
--- === 037 trigger updated_at ===
+-- === 037 index cho khoa ngoai ===
+-- === INDEX CHO KHOA NGOAI (PostgreSQL khong tu tao) ===
+CREATE INDEX idx_fk_applications_icon_id ON ltv.applications(icon_id);
+CREATE INDEX idx_fk_banners_image_id ON ltv.banners(image_id);
+CREATE INDEX idx_fk_banners_mobile_image_id ON ltv.banners(mobile_image_id);
+CREATE INDEX idx_fk_brands_cover_image_id ON ltv.brands(cover_image_id);
+CREATE INDEX idx_fk_brands_created_by ON ltv.brands(created_by);
+CREATE INDEX idx_fk_brands_logo_id ON ltv.brands(logo_id);
+CREATE INDEX idx_fk_brands_updated_by ON ltv.brands(updated_by);
+CREATE INDEX idx_fk_customers_logo_id ON ltv.customers(logo_id);
+CREATE INDEX idx_fk_document_brands_brand_id ON ltv.document_brands(brand_id);
+CREATE INDEX idx_fk_document_posts_post_id ON ltv.document_posts(post_id);
+CREATE INDEX idx_fk_document_services_service_id ON ltv.document_services(service_id);
+CREATE INDEX idx_fk_industries_featured_image_id ON ltv.industries(featured_image_id);
+CREATE INDEX idx_fk_industries_icon_id ON ltv.industries(icon_id);
+CREATE INDEX idx_fk_inquiries_handled_by ON ltv.inquiries(handled_by);
+CREATE INDEX idx_fk_media_uploaded_by ON ltv.media(uploaded_by);
+CREATE INDEX idx_fk_menu_items_icon_id ON ltv.menu_items(icon_id);
+CREATE INDEX idx_fk_offices_featured_image_id ON ltv.offices(featured_image_id);
+CREATE INDEX idx_fk_pages_created_by ON ltv.pages(created_by);
+CREATE INDEX idx_fk_pages_featured_image_id ON ltv.pages(featured_image_id);
+CREATE INDEX idx_fk_pages_updated_by ON ltv.pages(updated_by);
+CREATE INDEX idx_fk_post_brands_brand_id ON ltv.post_brands(brand_id);
+CREATE INDEX idx_fk_post_projects_project_id ON ltv.post_projects(project_id);
+CREATE INDEX idx_fk_post_services_service_id ON ltv.post_services(service_id);
+CREATE INDEX idx_fk_posts_author_id ON ltv.posts(author_id);
+CREATE INDEX idx_fk_posts_featured_image_id ON ltv.posts(featured_image_id);
+CREATE INDEX idx_fk_product_categories_featured_image_id ON ltv.product_categories(featured_image_id);
+CREATE INDEX idx_fk_product_categories_icon_id ON ltv.product_categories(icon_id);
+CREATE INDEX idx_fk_products_created_by ON ltv.products(created_by);
+CREATE INDEX idx_fk_products_featured_image_id ON ltv.products(featured_image_id);
+CREATE INDEX idx_fk_products_updated_by ON ltv.products(updated_by);
+CREATE INDEX idx_fk_project_brands_brand_id ON ltv.project_brands(brand_id);
+CREATE INDEX idx_fk_project_services_service_id ON ltv.project_services(service_id);
+CREATE INDEX idx_fk_projects_created_by ON ltv.projects(created_by);
+CREATE INDEX idx_fk_projects_featured_image_id ON ltv.projects(featured_image_id);
+CREATE INDEX idx_fk_projects_updated_by ON ltv.projects(updated_by);
+CREATE INDEX idx_fk_related_products_related_product_id ON ltv.related_products(related_product_id);
+CREATE INDEX idx_fk_service_brands_brand_id ON ltv.service_brands(brand_id);
+CREATE INDEX idx_fk_service_industries_industry_id ON ltv.service_industries(industry_id);
+CREATE INDEX idx_fk_services_created_by ON ltv.services(created_by);
+CREATE INDEX idx_fk_services_featured_image_id ON ltv.services(featured_image_id);
+CREATE INDEX idx_fk_services_updated_by ON ltv.services(updated_by);
+
+-- === 038 trigger updated_at ===
 DO $$
 DECLARE t TEXT;
 BEGIN

@@ -202,30 +202,41 @@ GET /admin/inquiries          ?status=&handled=&type=&page=
 GET /admin/inquiries/:id
 PATCH /admin/inquiries/:id/handled     { handled: true }
 ```
-Lý do bổ sung: ADR-003 lưu yêu cầu vào DB **trước** khi gửi email để chống mất lead. Nhưng nếu email thất bại sau khi hết số lần thử mà không có màn hình nào xem được, yêu cầu nằm trong DB và **không ai biết** — lưới an toàn không có người nhìn. Màn hình này chỉ liệt kê và đánh dấu đã liên hệ; **không** phải CRM: không trạng thái xử lý nhiều bước, không phân công, không ghi chú, không báo giá. **Không có** endpoint cho P1/Future (bulk, duplicate ngoài `products/:id/duplicate` là P1, scheduled publishing, facet, attachment).
+Lý do bổ sung: ADR-003 lưu yêu cầu vào DB **trước** khi gửi email để chống mất lead. Nhưng nếu email thất bại sau khi hết số lần thử mà không có màn hình nào xem được, yêu cầu nằm trong DB và **không ai biết** — lưới an toàn không có người nhìn. Màn hình này chỉ liệt kê và đánh dấu đã liên hệ; **không** phải CRM: không trạng thái xử lý nhiều bước, không phân công, không ghi chú, không báo giá.
+
+**Không có** endpoint cho P1/Future (bulk, duplicate ngoài `products/:id/duplicate` là P1, scheduled publishing, facet, attachment).
 
 ## Publish (ví dụ sản phẩm)
 ```text
 POST /admin/products/:id/publish
 ```
-Kiểm (transaction): VI translation đủ điều kiện; brand/category chưa xóa; đúng 1 primary category; slug không trùng → set `products.status=published, published_at=NOW()` và `product_translations(vi).status=published`. Thiếu → 422 với mã lỗi (vd `PRODUCT_MISSING_PRIMARY_CATEGORY`). Publish EN riêng qua cập nhật translation EN.
+**Sản phẩm là entity một ngôn ngữ (ADR-014)** — không có bảng translation.
+Kiểm (transaction): name, slug, short_description, overview; brand/category chưa xóa; ≥1 category và đúng 1 `is_primary`; featured_image; slug không trùng → set `products.status='published'`, `published_at=NOW()`, và `first_published_at=NOW()` nếu đang NULL. Thiếu → 422 kèm mã lỗi (vd `PRODUCT_MISSING_PRIMARY_CATEGORY`).
+
+**Bốn entity có bản dịch** (`pages`, `posts`, `services`, `projects`) publish theo từng ngôn ngữ:
+```text
+POST /admin/posts/:id/publish            → publish entity
+PATCH /admin/posts/:id/translations/:locale  { status: 'published' }
+```
+Không ngôn ngữ nào là điều kiện của ngôn ngữ nào. Điều kiện đủ trường xem `05` PHẦN IV.
 
 ## PATCH & quan hệ (ADR-008)
 Trường mảng (categories, standards, applications, industries, media, related_products, …) **xuất hiện → thay thế toàn bộ tập**; **không xuất hiện → giữ nguyên**. Toàn bộ trong một transaction.
 ```text
 BEGIN
-  UPDATE products ...
+  UPDATE products ...   -- entity một ngôn ngữ: nội dung nằm thẳng trên bảng
   (nếu 'categories' có mặt) DELETE product_category_links WHERE product_id=?; INSERT ...
   (nếu 'standards' có mặt)  DELETE product_standards ...;                     INSERT ...
-  (translations có mặt)     UPSERT product_translations ...
+  (nội dung có mặt)         UPDATE products SET name/slug/overview/... 
+  (nếu content block đổi)   đồng bộ content_media_refs
 COMMIT   -- lỗi → ROLLBACK
 ```
 
 ## SlugService & redirect (ADR-002, cập nhật v1.2)
 `SlugService` kiểm tra **public path đầy đủ** (vd `/products/pac-optidist-2`, không chỉ chuỗi slug) trên **3 nguồn** trước khi chấp nhận slug/path mới:
-1. **(A)** slug hiện tại trong bảng translation tương ứng;
+1. **(A)** slug hiện tại — trên bảng entity (entity một ngôn ngữ) hoặc bảng translation (bốn entity có bản dịch);
 2. **(B)** `redirects.source_path` (namespace URL đã từng dùng — không cấp lại);
-3. **(C)** route hệ thống bảo lưu: `/admin, /api, /, /login, /search, /health, /media, /products, /services, /projects, /news, /resources, /contact`.
+3. **(C)** tập route hệ thống bảo lưu — **sinh tự động từ bảng route ở `02` PHẦN II lúc build, không viết tay** (ADR-002 §8). Bắt buộc có test đối chiếu tập bảo lưu với bảng route; test fail khi hai bên lệch nhau.
 
 Publish lần đầu một translation → set `first_published_at` (một lần, không ghi đè).
 Đổi slug nội dung đã publish (transaction): xác định path cũ → kiểm 3 nguồn cho path mới → cập nhật slug → tạo `redirects(source=path cũ, target=path mới, 301)` → kiểm tránh chain/loop → COMMIT (lỗi → ROLLBACK).
@@ -236,14 +247,14 @@ Publish lần đầu một translation → set `first_published_at` (một lần
 # PHẦN VI — MEDIA (ADR-005/009)
 
 ```text
-POST   /admin/media          (multipart; file,title,alt_text_vi,alt_text_en,caption_vi,caption_en,credit)
+POST   /admin/media          (multipart; file,title,alt_text,caption,credit)
 GET    /admin/media          ?type=&mime_type=&q=&page=
 GET    /admin/media/:id
 PATCH  /admin/media/:id
 DELETE /admin/media/:id
 ```
-Upload: kiểm **magic bytes/MIME thực**, whitelist `image/jpeg,image/png,image/webp,application/pdf` (**không SVG, không executable**), giới hạn dung lượng, đổi tên an toàn, chống path traversal, checksum chống trùng; tạo phiên bản (thumbnail/small/medium/large + WebP).
-Xóa: `MediaUsageService` quét toàn bộ tham chiếu (danh sách ở ADR-005). Đang dùng → `409 MEDIA_IN_USE` kèm `details`. Không dùng → soft delete → giữ an toàn → purge file. Query công khai loại media `deleted_at IS NOT NULL`.
+Upload: kiểm **magic bytes/MIME thực**, whitelist `image/jpeg,image/png,image/webp,application/pdf` (**không SVG, không executable**), giới hạn dung lượng, đổi tên an toàn, chống path traversal, checksum chống trùng; tạo phiên bản (thumbnail/small/medium/large + WebP) và ghi đường dẫn từng phiên bản vào `media.variants` (JSONB). Định tuyến `storage_class`: ảnh marketing → `public`, PDF/tài liệu → `protected`, tạm/cách ly → `temp`/`quarantine` (D20).
+Xóa: `MediaUsageService` quét **hai nguồn**: (a) toàn bộ cột FK tham chiếu media (danh sách ở ADR-005), và (b) bảng `content_media_refs` cho media dùng trong content block. Thiếu nguồn (b) thì ảnh chỉ dùng trong block sẽ vượt qua kiểm tra rồi bị purge vĩnh viễn. Đang dùng → `409 MEDIA_IN_USE` kèm `details`. Không dùng → soft delete → giữ an toàn → purge file. Query công khai loại media `deleted_at IS NOT NULL`.
 
 ---
 

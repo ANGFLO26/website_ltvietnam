@@ -37,3 +37,34 @@ Bản PostgreSQL trong sandbox không có `citext`, `pg_trgm`, `pgcrypto`. Khi c
 `gen_random_uuid()` là hàm dựng sẵn từ PostgreSQL 13 nên không cần `pgcrypto`.
 
 Khi chạy trên PostgreSQL 16 đầy đủ extension, file này chạy nguyên trạng.
+
+---
+
+## Vòng kiểm chứng thứ hai (2026-07-29)
+
+Rà soát đối nghịch tìm lỗi trong chính schema v1.3, phát hiện và đã sửa:
+
+**41 khóa ngoại không có index.** PostgreSQL không tự tạo index cho FK. Thiếu chúng thì mỗi lần xóa một `media` phải quét tuần tự hơn 20 bảng tham chiếu, và `MediaUsageService` — vốn tra cứu đúng những cột này — sẽ chậm dần theo dữ liệu. Đã thêm 41 index; hiện **0 FK thiếu index**.
+
+### Kết quả sau khi sửa
+
+| Hạng mục | Kết quả |
+|---|---|
+| Bảng · FK · Trigger · Index | 52 · 95 · 28 · **170** |
+| Bảng không có khóa chính | 0 |
+| Bảng có `updated_at` nhưng thiếu trigger | 0 |
+| Khóa ngoại thiếu index | **0** |
+| Chu kỳ `up → seed → down → up → seed` | PASS, dữ liệu nạp lại sạch |
+| Truy vấn cho 24 màn hình chính | **24/24 PASS** |
+| Kiểm chứng ràng buộc | **14/14 PASS** |
+| Tài liệu tham chiếu bảng/cột không tồn tại | 0 |
+
+### 24 màn hình đã chạy truy vấn thật
+
+Trang chủ (banner còn hiệu lực, sản phẩm/hãng nổi bật, khách hàng, văn phòng, section) · Landing sản phẩm (4 nhóm featured) · Chi tiết sản phẩm (join 9 bảng) · Hãng và thương hiệu con · Dịch vụ EN và VI · Bài viết EN, bài VI draft bị ẩn đúng · hreflang sinh đúng cho dịch vụ và **không** sinh cho bài có VI draft · Tài liệu public tải được, hidden không · Sitemap gộp 7 nguồn · MediaUsage phát hiện ảnh trong content block · Landing có mô tả index, không mô tả noindex.
+
+### Ba bằng chứng đáng chú ý
+
+1. **Ảnh chỉ dùng trong content block không xóa được** — `content_media_refs_media_id_fkey` chặn. Đây là lỗi A4 của v1.2.1 đã được bịt.
+2. **Bài viết có bản VI ở trạng thái draft không sinh cặp hreflang**, trong khi dịch vụ có cả hai bản published thì sinh.
+3. **Banner hết hạn bị loại khỏi trang chủ** bằng điều kiện `start_at`/`end_at`.

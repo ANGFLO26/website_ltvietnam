@@ -234,15 +234,17 @@ Baseline v1.3 đã chạy thật trên **PostgreSQL 16.2**:
 | Bảng | **52** |
 | Foreign key | **95** |
 | Trigger `updated_at` | **28** |
-| Index | **129** |
+| Index | **170** (gồm index cho **mọi** khóa ngoại) |
 | Lỗi khi chạy | **0** |
-| Chu kỳ `up → down → up` | 52 → 0 → 52, PASS |
+| Chu kỳ `up → seed → down → up → seed` | 52 → 0 → 52, dữ liệu nạp lại sạch, PASS |
+| Khóa ngoại thiếu index | **0** |
+| Truy vấn cho 24 màn hình chính | 24/24 PASS |
 | Lọc theo hãng mẹ (cách cũ) | **0 sản phẩm** ← lỗi v1.2.1 |
 | Lọc theo hãng mẹ (dùng `ancestor_ids`) | **3 sản phẩm** PASS |
 | Lọc danh mục cấp 1, sản phẩm gắn cấp 2–3 | PASS |
 | `(PAC OR Baker Hughes) AND ASTM D86` | PASS |
 | Breadcrumb 3 cấp bằng một truy vấn | PASS |
-| 8 kiểm chứng ràng buộc | 8/8 PASS |
+| Kiểm chứng ràng buộc | 14/14 PASS |
 | 10 index trigram (pglast + catalog) | 10/10 hợp lệ |
 
 Chi tiết: `doc/verify/v1.3/README_V1_3.md`.
