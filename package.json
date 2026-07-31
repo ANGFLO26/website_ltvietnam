@@ -1,0 +1,32 @@
+{
+  "name": "website-ltvietnam",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22.11.0 <25"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build && pnpm -r --filter \"./apps/*\" build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @ltv/db migrate",
+    "db:status": "pnpm --filter @ltv/db status",
+    "db:rollback": "pnpm --filter @ltv/db rollback",
+    "dev:api": "pnpm --filter @ltv/api dev",
+    "dev:web": "pnpm --filter @ltv/web dev",
+    "dev:worker": "pnpm --filter @ltv/worker dev"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}

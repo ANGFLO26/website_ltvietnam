@@ -1,0 +1,39 @@
+# Trien khai mot host (D7): proxy, Next, Nest, worker, PostgreSQL 16, volume media.
+# File nay phuc vu PHAT TRIEN LOCAL. Production dung compose rieng co proxy TLS.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ltv-postgres
+    environment:
+      POSTGRES_USER: ltv
+      POSTGRES_PASSWORD: ltv_dev_password
+      POSTGRES_DB: ltvn_dev
+      # Cho phep tim kiem khong dau chinh xac hon
+      LANG: C.UTF-8
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ltv -d ltvn_dev']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Volume media theo ranh gioi D20. Proxy CHI mount public-media/ o che do
+  # chi doc; protected-documents/ nam ngoai web root va chi Nest doc duoc.
+  media-init:
+    image: alpine:3.20
+    container_name: ltv-media-init
+    command: >
+      sh -c "mkdir -p /media/public-media/originals /media/public-media/variants
+                      /media/protected-documents /media/.tmp /media/.quarantine
+             && chmod 755 /media/public-media
+             && chmod 700 /media/protected-documents /media/.tmp /media/.quarantine
+             && echo 'media layout san sang'"
+    volumes:
+      - media-data:/media
+
+volumes:
+  postgres-data:
+  media-data:

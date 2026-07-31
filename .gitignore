@@ -58,3 +58,10 @@ secrets*.json
 # Committed verification evidence and reviews are intentional.
 # Do not ignore implementation/evidence/, planning/implementation/reviews/,
 # manifest files, verification scripts, or .github/workflows/.
+
+# Du lieu chay local
+.data/
+*.local
+
+# Turbo / build cache
+.turbo/

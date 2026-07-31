@@ -1,0 +1,3 @@
+-- Rollback cho 001_enable_extensions
+-- Extension dung chung toan database: KHONG drop tu dong.
+-- DROP EXTENSION IF EXISTS pg_trgm; DROP EXTENSION IF EXISTS citext; DROP EXTENSION IF EXISTS pgcrypto;
