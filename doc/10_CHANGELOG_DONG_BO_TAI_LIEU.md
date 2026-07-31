@@ -1,7 +1,7 @@
 # 10 — CHANGELOG ĐỒNG BỘ TÀI LIỆU — WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
-**Ngày:** 2026-07-21
+**Phiên bản:** 1.3
+**Ngày:** 2026-07-29
 **Nội dung:** Phần A–L: lịch sử **bản cũ → v1.1 → v1.2** (giữ nguyên; Phần G–L là vòng v1.1→v1.2, 6 HIGH + 5 MEDIUM, thêm ADR-010/011/012). Phần **M–N**: vòng **v1.2 → v1.2.1** (8 nhóm sửa tài liệu, thêm ADR-013). Phần **O–P**: kết quả SQL Execution Verification và kết luận phê duyệt.
 **Tham chiếu ADR:** các thay đổi toàn vẹn catalogue trước ghi "006 (data 4.x)" nay quy về **ADR-010**.
 
@@ -241,3 +241,58 @@ READY FOR IMPLEMENTATION
 
 v1.2.1 là baseline chính thức để triển khai website LT Vietnam.
 Mọi thay đổi tiếp theo phải được thực hiện bằng ADR và migration mới.
+
+
+---
+
+# PHẦN Q — PHÁT HÀNH v1.3 (2026-07-29)
+
+## Q1. Bối cảnh
+Đối chiếu bộ tài liệu v1.2.1 với website đang vận hành `ltvietnam.com.vn` và với yêu cầu thực tế của chủ dự án cho thấy ba giả định nền tảng không đúng:
+
+1. Bộ tài liệu giả định tiếng Việt là ngôn ngữ chính; website thật là **tiếng Anh**.
+2. Bộ tài liệu tạo 16 bảng translation; thực tế chỉ **bốn** nhóm sẽ có người viết bản thứ hai.
+3. Bộ tài liệu định nghĩa cây phân cấp nhưng **không quy định** lọc theo nút cha có bao gồm nhánh con — trên dữ liệu thật, lọc hãng mẹ `PAC` trả về **0 sản phẩm**.
+
+## Q2. ADR mới
+| ADR | Nội dung |
+|---|---|
+| **ADR-014** | Ngôn ngữ lưu trữ nội dung và ranh giới frontend/backend. Nhãn giao diện thuộc frontend; bảng translation chỉ tồn tại nơi thật sự có người viết bản thứ hai. 16 → 4 bảng. |
+| **ADR-015** | Lọc và duyệt theo cây phân cấp bằng `ancestor_ids UUID[]` + `depth` + index GIN. |
+
+## Q3. ADR sửa đổi
+| ADR | Thay đổi |
+|---|---|
+| ADR-001 | URL tiếng Anh ở gốc, tiếng Việt ở `/vi` và chỉ cho bốn nhóm có bản dịch. Đoạn route tiếng Anh cho cả hai ngôn ngữ. Landing phân loại chỉ index khi có mô tả. |
+| ADR-002 | Slug đơn cho entity một ngôn ngữ. Tập route bảo lưu **sinh tự động** từ bảng route, có test đối chiếu. `first_published_at` đặt cạnh `status`. |
+| ADR-004 | Viết lại theo ADR-014: bốn entity có xuất bản theo ngôn ngữ; bỏ quy tắc "tiếng Việt bắt buộc trước". |
+| ADR-011 | hreflang thu hẹp còn bốn entity. Thêm §2b: landing không có mô tả → noindex. |
+| ADR-013 | Baseline đổi sang v1.3, **52 bảng**. |
+
+## Q4. Sửa lỗi đã phát hiện trong v1.2.1
+
+| Mã | Lỗi | Sửa |
+|---|---|---|
+| S1 | Lọc theo cây không được hỗ trợ; lọc hãng mẹ trả 0 sản phẩm | `ancestor_ids` + `depth` + GIN cho 5 bảng cây (ADR-015) |
+| S2 | Thiếu index tìm kiếm cho danh mục và tiêu chuẩn dù `01` §10 đã hứa | Thêm 4 index trigram |
+| S3 | API hứa `popular_standards`/`popular_applications` nhưng không có cột đánh dấu | Thêm `is_featured` cho standards/applications/industries |
+| S4 | Bảng translation không có `updated_at` → cache cũ, sitemap sai | Thêm `updated_at` + trigger cho 4 bảng translation |
+| S5 | Hai nguồn cùng đúng cho "nội dung nổi bật" | `is_featured` là nguồn duy nhất |
+| S6 | Form bắt buộc **cả** điện thoại **và** email | Cả hai nullable + CHECK có ít nhất một |
+| S7 | Không có chỗ ghi các phiên bản ảnh | `media.variants JSONB` + `storage_class` + `purged_at` |
+| A1 | `first_published_at` trên 5 bảng translation taxonomy không có sự kiện nào set được | Đặt cột cạnh `status` |
+| A2 | `post_categories` thiếu `deleted_at` | Đã thêm |
+| A4 | `MediaUsageService` không quét JSONB → ảnh trong content block bị xóa được | Bảng `content_media_refs` |
+| A6 | `05` trỏ sang `03` PHẦN XVII cho publish rule của Trang và Tài liệu, nhưng `03` không có | Đã viết đủ trong `05` PHẦN IV |
+| — | `banners.link_type='external_url'` khác `menu_items.link_type='custom_url'` | Thống nhất `custom_url` |
+
+## Q5. Bổ sung phạm vi
+- **`GET /admin/inquiries` chỉ đọc.** ADR-003 lưu yêu cầu vào DB trước khi gửi email để chống mất lead, nhưng ADR-003 §4 lại bỏ màn hình xem — nên khi email thất bại, yêu cầu nằm trong DB mà không ai nhìn được. Bổ sung danh sách + chi tiết + đánh dấu đã liên hệ. Không phải CRM.
+- **`SearchPort`** bắt buộc từ P0 để lời hứa "đổi engine không đổi API" trở thành hiện thực.
+- **Quy tắc tầng đọc/ghi**: ghi qua Repository theo aggregate, đọc qua QueryService viết SQL riêng.
+
+## Q6. Bằng chứng
+Baseline v1.3 đã chạy trên **PostgreSQL 16.2** thật: 52 bảng, 95 FK, 28 trigger, 129 index, 0 lỗi; chu kỳ up→down→up PASS; 4 kiểm chứng chức năng PASS; 8 kiểm chứng ràng buộc PASS; 10 index trigram hợp lệ. Chi tiết `doc/verify/v1.3/README_V1_3.md`.
+
+## Q7. Quan hệ với v1.2.1
+Baseline v1.2.1 (63 bảng) **chưa từng chạy trên môi trường nào** — `05` v1.2.1 tự ghi "STATIC VALIDATION ONLY". Không có dữ liệu nào cần chuyển đổi. v1.3 thay thế hoàn toàn, không phải nâng cấp.

@@ -1,13 +1,15 @@
 # 06 — KIẾN TRÚC BACKEND VÀ API — WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
+**Phiên bản:** 1.3
 **Kiểu hệ thống:** Modular monolith · REST · prefix `/api/v1`
-**Ngày:** 2026-07-21
+**Ngày:** 2026-07-29
 **Nguồn sự thật cho:** ranh giới module, endpoint, hợp đồng request/response, luồng nghiệp vụ.
-**Áp dụng:** ADR-001 (URL phẳng), 002 (slug/SlugService), 003 (inquiry/outbox), 004 (locale), 005 (media), 007 (filter OR/AND), 008 (PATCH), 009 (upload), 010 (catalogue), 011 (canonical/robots/SEO), 012 (video).
+**Áp dụng:** ADR-001 (URL), 002 (slug/SlugService), 003 (inquiry/outbox), 004 (locale), 005 (media), 007 (filter OR/AND), 008 (PATCH), 009 (upload), 010 (catalogue), 011 (canonical/robots/SEO), 012 (video), **014 (ngôn ngữ nội dung)**, **015 (lọc theo cây)**.
+
+> **Nhật ký v1.3:** URL tiếng Anh ở gốc + `/vi` cho bốn nhóm có bản dịch · điều kiện truy vấn công khai tách hai trường hợp · bộ lọc mở rộng nhánh con trước khi áp OR/AND · thêm `SearchPort` · thêm quy tắc tầng đọc/ghi · thêm `GET /admin/inquiries` chỉ đọc.
 
 > **Nhật ký v1.2:** filter OR/AND · SlugService kiểm 3 nguồn · outbox worker (SKIP LOCKED + reaper) · health `/live` + `/ready` · SEO canonical/robots tự sinh · public API dùng slug · structured audit log · external video whitelist.
-> **Nhật ký v1.2.1:** thêm `GET /products/landing` (không dùng `/home`) · outbox **at-least-once** + Message-ID ổn định · làm rõ không fallback Brand detail · retention TBD (bỏ mặc định 24 tháng) · migration baseline 001–070 (ADR-013).
+> **Nhật ký v1.2.1:** thêm `GET /products/landing` (không dùng `/home`) · outbox **at-least-once** + Message-ID ổn định · làm rõ không fallback Brand detail · retention TBD (bỏ mặc định 24 tháng) · migration baseline 001–070 (ADR-013) — **đã thay bằng baseline v1.3, xem nhật ký v1.3 bên dưới**.
 
 ---
 
@@ -25,6 +27,36 @@ offices, navigation, redirects, search, inquiries, seo, health
 ```
 `seo` mới: sinh `sitemap.xml` theo ngôn ngữ, `robots.txt`, hỗ trợ canonical/hreflang. `redirects` gồm middleware phục vụ 301/302.
 
+## Tầng đọc và tầng ghi tách nhau
+
+```text
+ĐƯỜNG GHI                                ĐƯỜNG ĐỌC
+Controller                               Controller
+  → Service (nghiệp vụ, transaction)       → QueryService
+    → Repository theo aggregate              → SQL viết tay tối ưu cho từng màn hình
+      1 aggregate = 1 Repository             KHÔNG đi qua Repository đơn bảng
+```
+
+- **Ghi:** Repository theo aggregate. `Product` + translations + specs + links là **một** Repository, không phải năm — để giữ transaction và bất biến nghiệp vụ.
+- **Đọc:** QueryService viết SQL riêng cho từng nhu cầu, được phép join rộng và dùng raw SQL.
+
+Lý do: bộ lọc `(PAC OR Herzog) AND ASTM D86` bắc cầu qua năm bảng với OR/AND lồng nhau và mở rộng nhánh con. Ghép từ Repository đơn bảng sẽ ra N+1 — mà điều kiện chấp nhận của P5 là **no N+1** kèm ngân sách truy vấn đo được.
+
+## Cổng ra hạ tầng (port)
+
+| Port | Triển khai P0 | Đổi về sau |
+|---|---|---|
+| `StoragePort` | Local persistent volume | S3 / R2 |
+| `NotificationPort` | `SMTPNotificationAdapter` | CRM, Zalo, kênh khác |
+| `SearchPort` | `PgTrgmProductSearchAdapter` | Meilisearch / Elasticsearch |
+| `UserAuthenticationQueryPort` | Users module | — |
+
+**`SearchPort` là bắt buộc từ P0** dù chỉ có một triển khai. Không có port thì lời hứa "đổi engine không đổi API" chỉ là ý định, và logic pg_trgm sẽ lan vào QueryService.
+
+```text
+SearchPort.searchProducts(query, locale, filters, paging) → ProductSearchResult[]
+```
+
 Hạ tầng: PostgreSQL; File storage (adapter, local→S3/CDN sau); SMTP (adapter); worker nền (outbox). Redis **không bắt buộc** MVP (cache thời hạn ngắn + rate-limit in-process); khi scale ngang chuyển rate-limit/queue sang store dùng chung.
 
 ---
@@ -36,13 +68,25 @@ Hạ tầng: PostgreSQL; File storage (adapter, local→S3/CDN sau); SMTP (adapt
 - Admin: `/api/v1/admin/*` — yêu cầu đăng nhập; xem cả draft/hidden/archived/đã xóa mềm.
 - Auth: `/api/v1/auth/*`.
 
-## Ngôn ngữ & điều kiện công khai (ADR-004)
-Ưu tiên `?locale` → `Accept-Language` → mặc định `vi`. Query công khai cho 7 entity chính:
+## Ngôn ngữ & điều kiện công khai (ADR-014)
+
+Ưu tiên `?locale` → tiền tố URL → mặc định `en`.
+
+**Hai trường hợp truy vấn khác nhau:**
+
 ```sql
+-- (1) Entity MỘT NGÔN NGỮ: brands, product_categories, standards, applications,
+--     industries, products, documents, customers, offices, post_categories
 WHERE entity.status='published' AND entity.deleted_at IS NULL
-  AND translation.locale = :locale AND translation.status='published'
+
+-- (2) Entity CÓ BẢN DỊCH: pages, posts, services, projects
+WHERE entity.status='published' AND entity.deleted_at IS NULL
+  AND t.locale = :locale AND t.status='published'
 ```
-Taxonomy/config: hiển thị khi có bản dịch cho locale. **Không** auto-fallback VI cho URL EN của 7 entity chính — **đặc biệt KHÔNG fallback Brand detail** (`brand_translations.name/short_description/description/seo_*`); EN chưa publish → trang EN hãng không hiển thị nội dung VI (404/điều hướng danh sách EN). Chỉ fallback dữ liệu **độc lập ngôn ngữ**: model, SKU, mã nội bộ, mã tiêu chuẩn (`standards.organization/code`), proper name thương hiệu khi DN xác nhận dùng chung, nhãn hệ thống cấu hình chung (ADR-004).
+
+**Không auto-fallback** giữa hai bản dịch của trường hợp (2). URL `/vi/...` chỉ tồn tại khi bản tiếng Việt `published`; thiếu thì 404 hoặc điều hướng về danh sách tiếng Việt — không trộn ngôn ngữ.
+
+**Nhãn giao diện không đi qua API.** Backend không trả nhãn nút, nhãn form, thông báo hiển thị. Frontend dịch bằng file ngôn ngữ.
 
 ## Phân trang / sắp xếp / lọc
 `?page=1&page_size=20` (max 100). Response `{data, meta{page,page_size,total_items,total_pages}}`.
@@ -51,17 +95,29 @@ Taxonomy/config: hiển thị khi có bản dịch cho locale. **Không** auto-f
 ```text
 GET /api/v1/products?brand=pac&brand=herzog&standard=astm-d86&application=phan-tich-nhien-lieu&category=thiet-bi-chung-cat
 ```
-- **Cùng một dimension → OR; giữa các dimension → AND.** Ví dụ trên = `(brand=PAC OR Herzog) AND standard=ASTM D86 AND application=… AND category=…`.
+- **Bước 1 — mở rộng nhánh con (ADR-015).** Mỗi giá trị của chiều có cấu trúc cây (`brand`, `category`, `application`) được mở rộng thành nút đó **và toàn bộ nhánh con**:
+```sql
+WITH brand_set AS (
+  SELECT id FROM ltv.brands WHERE slug = ANY(:brands)
+  UNION
+  SELECT id FROM ltv.brands
+  WHERE ancestor_ids && ARRAY(SELECT id FROM ltv.brands WHERE slug = ANY(:brands))
+)
+```
+  Không có bước này, lọc theo hãng mẹ `PAC` trả về **0 sản phẩm** vì sản phẩm gắn vào thương hiệu con.
+- **Bước 2 — cùng một dimension → OR; giữa các dimension → AND.** `(brand ∈ nhánh PAC ∪ nhánh Herzog) AND standard=ASTM D86 AND …`.
 - Áp cho `category, brand, standard, application, industry, product_type`. **Không** AND giữa nhiều giá trị cùng khóa.
 - Query builder nhóm giá trị theo dimension; **parameter binding** (không ghép SQL). Pseudo:
 ```sql
 WHERE product.status='published' AND product.deleted_at IS NULL
-  AND (brand.slug = ANY(:brands))                          -- OR trong dimension
-  AND EXISTS (SELECT 1 FROM product_standards ps JOIN standards s ... WHERE s.slug = ANY(:standards))
-  AND EXISTS (SELECT 1 FROM product_applications ...)       -- AND giữa dimension
+  AND product.brand_id IN (SELECT id FROM brand_set)        -- OR trong dimension, đã gồm nhánh con
+  AND EXISTS (SELECT 1 FROM ltv.product_standards ps JOIN ltv.standards s ON s.id=ps.standard_id
+              WHERE ps.product_id=product.id AND s.slug = ANY(:standards))
+  AND EXISTS (SELECT 1 FROM ltv.product_applications pa
+              WHERE pa.product_id=product.id AND pa.application_id IN (SELECT id FROM application_set))
 ```
 - Không hỗ trợ comma hay `brand_id` ở public API. Admin API dùng UUID.
-- **Trang lọc theo hãng** = `/san-pham/tat-ca?brand={slug}` (frontend), gọi `GET /products?brand={slug}`; noindex,follow (ADR-011).
+- **Trang lọc theo hãng** = `/products/all?brand={slug}` (frontend), gọi `GET /products?brand={slug}`; noindex,follow (ADR-011).
 - **Facet count là P1** (public list MVP không trả số lượng theo giá trị).
 
 ---
@@ -85,7 +141,7 @@ GET /home                              (HomepageQueryService — CHỈ trang ch�
 GET /pages/:slug
 
 GET /brands                            ?type=&featured=&parent={parent-brand-slug}   (slug, không dùng UUID — ADR-001)
-GET /brands/:slug                      (hồ sơ hãng — /hang-doi-tac/{slug}, index self-canonical)
+GET /brands/:slug                      (hồ sơ hãng — /brands/{slug}, index self-canonical)
 GET /brands/:slug/children
 # Lọc sản phẩm theo hãng KHÔNG dùng /brands/:slug/products nữa → dùng GET /products?brand={slug} (noindex,follow)
 
@@ -96,7 +152,7 @@ GET /standards                         GET /standards/:slug          GET /standa
 GET /applications                      GET /applications/:slug       GET /applications/:slug/products
 GET /industries                        GET /industries/:slug         GET /industries/:slug/products   GET /industries/:slug/services
 
-GET /products/landing                  (v1.2.1 — dữ liệu tổng hợp trang /san-pham; KHÔNG dùng /home)
+GET /products/landing                  (v1.2.1 — dữ liệu tổng hợp trang /products; KHÔNG dùng /home)
 GET /products                          (filter theo ADR-007)
 GET /products/:slug                    (chi tiết; sản phẩm discontinued vẫn trả, kèm cờ discontinued + thay thế)
 
@@ -122,12 +178,12 @@ GET /health/ready                      (readiness: DB/storage/outbox/email — n
 Chi tiết sản phẩm trả: thông tin + brand + categories + specs + standards + applications + industries + media + documents + services/projects/related (đã lọc published + deleted_at). `customer_visibility` xử lý ở backend cho project.
 
 ## Product Landing (v1.2.1 — mới)
-`GET /api/v1/products/landing` phục vụ trang catalogue `/san-pham` bằng một `ProductLandingQueryService` **riêng** (KHÔNG dùng `HomepageQueryService`/`GET /home`).
+`GET /api/v1/products/landing` phục vụ trang catalogue `/products` bằng một `ProductLandingQueryService` **riêng** (KHÔNG dùng `HomepageQueryService`/`GET /home`).
 ```json
 { "data": { "featured_categories": [], "featured_brands": [], "popular_standards": [],
             "popular_applications": [], "featured_products": [] } }
 ```
-Có thể bổ sung `intro`, `search_suggestions`, `industry_shortcuts` nếu đã trong phạm vi hiện có (không mở rộng MVP). Quy tắc: dùng `locale`; chỉ trả nội dung `published` + chưa xóa; giới hạn số phần tử mỗi nhóm; **batch load tránh N+1**; cache ngắn. **Không** thay `GET /products`; **không** dùng `GET /home` cho `/san-pham`.
+Nguồn dữ liệu: `is_featured` trên `product_categories`, `brands`, `standards`, `applications`, `products`. **`is_featured` là nguồn duy nhất**; `homepage_sections.settings` chỉ chứa cấu hình hiển thị (số lượng, cách sắp xếp), không chứa danh sách id. Quy tắc: dùng `locale`; chỉ trả nội dung `published` + chưa xóa; giới hạn số phần tử mỗi nhóm; **batch load tránh N+1**; cache ngắn. **Không** thay `GET /products`; **không** dùng `GET /home` cho `/products`.
 
 ---
 
@@ -140,7 +196,13 @@ Mỗi module Admin hỗ trợ: `list, create, detail, update(PATCH), soft delete
 /admin/customers   /admin/projects   /admin/post-categories   /admin/posts   /admin/documents
 /admin/media   /admin/offices   /admin/menus   /admin/settings   /admin/redirects
 ```
-**Không có** `/admin/inquiries` trong MVP (ADR-003/006). **Không có** endpoint cho P1/Future (bulk, duplicate ngoài `products/:id/duplicate` là P1, scheduled publishing, facet, attachment).
+**`/admin/inquiries` — CHỈ ĐỌC (bổ sung v1.3).**
+```text
+GET /admin/inquiries          ?status=&handled=&type=&page=
+GET /admin/inquiries/:id
+PATCH /admin/inquiries/:id/handled     { handled: true }
+```
+Lý do bổ sung: ADR-003 lưu yêu cầu vào DB **trước** khi gửi email để chống mất lead. Nhưng nếu email thất bại sau khi hết số lần thử mà không có màn hình nào xem được, yêu cầu nằm trong DB và **không ai biết** — lưới an toàn không có người nhìn. Màn hình này chỉ liệt kê và đánh dấu đã liên hệ; **không** phải CRM: không trạng thái xử lý nhiều bước, không phân công, không ghi chú, không báo giá. **Không có** endpoint cho P1/Future (bulk, duplicate ngoài `products/:id/duplicate` là P1, scheduled publishing, facet, attachment).
 
 ## Publish (ví dụ sản phẩm)
 ```text
@@ -160,14 +222,14 @@ COMMIT   -- lỗi → ROLLBACK
 ```
 
 ## SlugService & redirect (ADR-002, cập nhật v1.2)
-`SlugService` kiểm tra **public path đầy đủ** (vd `/san-pham/pac-optidist-2`, không chỉ chuỗi slug) trên **3 nguồn** trước khi chấp nhận slug/path mới:
+`SlugService` kiểm tra **public path đầy đủ** (vd `/products/pac-optidist-2`, không chỉ chuỗi slug) trên **3 nguồn** trước khi chấp nhận slug/path mới:
 1. **(A)** slug hiện tại trong bảng translation tương ứng;
 2. **(B)** `redirects.source_path` (namespace URL đã từng dùng — không cấp lại);
-3. **(C)** route hệ thống bảo lưu: `/admin, /api, /en, /login, /tim-kiem, /health, /media, /san-pham, /dich-vu, /du-an, /tin-tuc, /tai-lieu, /lien-he`.
+3. **(C)** route hệ thống bảo lưu: `/admin, /api, /, /login, /search, /health, /media, /products, /services, /projects, /news, /resources, /contact`.
 
 Publish lần đầu một translation → set `first_published_at` (một lần, không ghi đè).
 Đổi slug nội dung đã publish (transaction): xác định path cũ → kiểm 3 nguồn cho path mới → cập nhật slug → tạo `redirects(source=path cũ, target=path mới, 301)` → kiểm tránh chain/loop → COMMIT (lỗi → ROLLBACK).
-**Hard-delete** chỉ khi `first_published_at IS NULL` + draft + không redirect liên quan + không phụ thuộc; ngược lại chỉ soft-delete (không giải phóng slug). Giữ `UNIQUE(locale, slug)` thường (không partial).
+**Hard-delete** chỉ khi `first_published_at IS NULL` + draft + không redirect liên quan + không phụ thuộc; ngược lại chỉ soft-delete (không giải phóng slug). Ràng buộc slug thường, không partial: `UNIQUE(slug)` cho entity một ngôn ngữ, `UNIQUE(locale, slug)` cho bốn bảng translation (ADR-002/014).
 
 ---
 
@@ -194,7 +256,7 @@ Header: Idempotency-Key: <uuid>  (hoặc body.request_id)
 Body:
 ```json
 { "inquiry_type":"quotation","full_name":"...","company_name":"...","phone":"...","email":"...",
-  "message":"...","product_id":"uuid|null","service_id":"uuid|null","source_url":"/san-pham/...",
+  "message":"...","product_id":"uuid|null","service_id":"uuid|null","source_url":"/products/...",
   "preferred_contact_method":"phone","province":"...","privacy_consent":true,"locale":"vi","captcha_token":"..." }
 ```
 Luồng (v1.2 — concurrency, ADR-003):
@@ -297,13 +359,13 @@ HTTPS · CORS origin cụ thể + credentials · CSRF token · HttpOnly cookie �
 - **Canonical & robots tự sinh** (không lưu DB, không checkbox Admin): canonical = locale + route + slug; robots suy theo trạng thái/loại trang:
 ```text
 chi tiết published + landing phân loại → index,follow, self-canonical
-query filter (?brand=…), search          → noindex,follow (canonical về path gốc, vd /san-pham/tat-ca)
+query filter (?brand=…), search          → noindex,follow (canonical về path gốc, vd /products/all)
 draft/hidden/archived/deleted, admin/api/error → noindex,nofollow / không route
 ```
 - **Social image** theo fallback chain (ADR-011): product→featured; brand→cover→logo; service/project/post/page→featured; document→thumbnail→mặc định; cuối `settings.seo.default_social_image`.
 - Sinh `sitemap.xml`/`sitemap-vi.xml`/`sitemap-en.xml` (chỉ URL published theo locale, **không** gồm URL filter/search noindex), `robots.txt`.
 - Mỗi trang: canonical; hreflang VI↔EN ghép theo entity id (**chỉ khi cả hai bản published** — ADR-004); Open Graph; structured data (Organization/LocalBusiness, Product không giá, Article/NewsArticle, BreadcrumbList, FAQPage khi FAQ hiển thị).
-- Redirect đổi slug (ADR-002, SlugService); URL cũ `/san-pham/hang/{slug}` → 301 `/san-pham/tat-ca?brand={slug}`; giữ URL sản phẩm ngừng KD (không redirect trừ khi DN duyệt); tránh chain/loop.
+- Redirect đổi slug (ADR-002, SlugService); URL cũ `/products/brand/{slug}` → 301 `/products/all?brand={slug}`; giữ URL sản phẩm ngừng KD (không redirect trừ khi DN duyệt); tránh chain/loop.
 - Checklist crawl website cũ: `URL cũ | Loại | URL mới | Trạng thái migrate | 301 | Giữ/Sửa/Bỏ | Ảnh | PDF | Backlink`.
 
 ## External video (ADR-012)
@@ -320,7 +382,7 @@ Luồng Admin ghi: `Admin FE → JWT+CSRF → Admin Controller → DTO → Servi
 ---
 
 # PHẦN XIV — TRÌNH TỰ TRIỂN KHAI BACKEND
-1. Nền tảng: cấu hình, DB connection, migration (**baseline 001–070, ADR-013** — không có 071 active), error handler, logging, request-id, auth, users, settings, media.
+1. Nền tảng: cấu hình, DB connection, migration (**baseline v1.3, ADR-013** — `doc/verify/v1.3/schema_up.sql`), error handler, logging, request-id, auth, users, settings, media.
 2. Catalogue: brands, categories, standards, applications, industries, products, product search.
 3. Nội dung: pages, homepage, services, customers, projects, posts, documents, offices, navigation.
 4. Tương tác: **inquiries + outbox worker + idempotency + email (SPF/DKIM)** + CAPTCHA + rate limit.
@@ -330,7 +392,7 @@ Luồng Admin ghi: `Admin FE → JWT+CSRF → Admin Controller → DTO → Servi
 
 # PHẦN XV — QUYẾT ĐỊNH CHỐT (API 1.2.1)
 1. Modular monolith, REST, `/api/v1`, tách public/admin.
-2. URL & API **phẳng** cho trang chi tiết (ADR-001); lọc theo hãng dùng `GET /products?brand={slug}` (bỏ `/brands/:slug/products`). **`GET /products/landing` riêng cho `/san-pham`** (không dùng `/home`).
+2. URL & API **phẳng** cho trang chi tiết (ADR-001); lọc theo hãng dùng `GET /products?brand={slug}` (bỏ `/brands/:slug/products`). **`GET /products/landing` riêng cho `/products`** (không dùng `/home`).
 3. Locale publication ở backend (ADR-004); public chỉ trả translation published; **KHÔNG fallback Brand detail** (chỉ fallback dữ liệu độc lập ngôn ngữ).
 4. Inquiry: transaction lưu DB + outbox trước, 202, worker **SKIP LOCKED + reaper**, idempotency; **semantics at-least-once + Message-ID ổn định từ `outbox.id`**; retention TBD (ADR-003).
 5. Email: From domain công ty, Reply-To khách, sanitize header, SPF/DKIM/DMARC.
@@ -342,7 +404,7 @@ Luồng Admin ghi: `Admin FE → JWT+CSRF → Admin Controller → DTO → Servi
 11. **Public API dùng slug** (`?parent={slug}`, `/documents/:slug/download`); admin API dùng UUID.
 12. **Health `/live` (public) + `/ready` (nội bộ)**; structured audit log (không bảng).
 13. **External video** whitelist youtube/vimeo qua content block (không upload video).
-14. **Migration baseline duy nhất 001–070 (ADR-013); trigger tại 070; không 071 active.**
+14. **Migration baseline duy nhất v1.3, 52 bảng (ADR-013); trigger ở migration cuối.**
 15. Không endpoint cho P1/Future. Search pg_trgm, đổi engine không đổi API.
 
 ---
@@ -362,5 +424,5 @@ brand=pac&brand=herzog&standard=astm-d86   → (PAC OR Herzog) AND ASTM D86
 **Retention:** chưa có quyết định DN → `expires_at=NULL`, không purge tự động.
 **Product landing:** `GET /products/landing` → dữ liệu catalogue landing; `GET /home` chỉ phục vụ trang chủ.
 **Migration (ADR-013):** fresh install chạy `001→070`; **không** chạy `071`; trigger `updated_at` tạo tại migration `070`; rollback `070→001`.
-**SEO (ADR-011):** brand detail → self-canonical; query filter → noindex,follow + canonical `/san-pham/tat-ca`; category landing → self-canonical index; EN chưa publish → không tạo hreflang EN.
+**SEO (ADR-011):** brand detail → self-canonical; query filter → noindex,follow + canonical `/products/all`; category landing → self-canonical index; EN chưa publish → không tạo hreflang EN.
 **Video (ADR-012):** YouTube/Vimeo hợp lệ → chấp nhận; domain lạ → reject; raw iframe/script → reject; upload MP4 → reject.

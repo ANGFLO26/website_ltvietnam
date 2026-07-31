@@ -1,7 +1,7 @@
 # 07 — WIREFRAME GIAO DIỆN ADMIN — WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
-**Ngày:** 2026-07-21
+**Phiên bản:** 1.3
+**Ngày:** 2026-07-29
 **Đối tượng:** một tài khoản Admin.
 **Nguồn sự thật cho:** luồng & bố cục màn hình quản trị (khớp API ở 06, dữ liệu ở 03/05).
 **Áp dụng:** ADR-003 (không UI inquiry), 004 (badge locale), 005 (media), 006 (P0/P1 + audit log), 008 (PATCH), 009 (upload), 010 (catalogue), 011 (SEO form không index/follow/social picker), 012 (external video, không upload video).
@@ -9,6 +9,11 @@
 > **Nhật ký v1.2:** SEO form bỏ checkbox index/follow + social image picker (canonical/robots tự sinh); external video block thay upload video; dashboard health readiness nội bộ + email_failed.
 
 **KHÔNG bao gồm MVP:** CRM, quản lý yêu cầu khách hàng, báo giá, hợp đồng, bảo hành, phân quyền nhiều nhóm.
+
+> **Nhật ký v1.3 (ADR-014):** chỉ **bốn** nhóm có tab/badge ngôn ngữ — Trang, Bài viết, Dịch vụ, Dự án. Mọi form còn lại (sản phẩm, hãng, danh mục, tiêu chuẩn, ứng dụng, ngành, tài liệu, khách hàng, văn phòng, banner, menu) chỉ có **một** bộ trường nội dung, không có tab VI/EN.
+> Bổ sung màn hình **Yêu cầu khách hàng (chỉ đọc)**: danh sách + chi tiết + nút "Đã liên hệ". Không phải CRM.
+> Bổ sung ô **Nổi bật** cho Tiêu chuẩn, Ứng dụng, Ngành (trước chỉ có ở Hãng, Danh mục, Sản phẩm).
+> Form Danh mục/Hãng/Ứng dụng: đổi cha phải cảnh báo "sẽ cập nhật lại toàn bộ nhánh con".
 
 ---
 
@@ -64,7 +69,7 @@ Email + mật khẩu + ghi nhớ + quên mật khẩu. Lỗi hiển thị chung:
 
 ```text
 Tiêu đề + [+ Tạo]        | [Tìm kiếm] [Trạng thái ▼] [Hãng ▼] [Danh mục ▼] [Lọc]
-Bảng: [ ] Ảnh Tên ... Bản dịch(VI/EN) Trạng thái Cập nhật [⋮]
+Bảng: [ ] Ảnh Tên ... Bản dịch Trạng thái Cập nhật [⋮]
 Menu ⋮: Chỉnh sửa · Xem trước · Ẩn · Lưu trữ · Xóa (mềm)
 Phân trang
 ```
@@ -77,7 +82,7 @@ Cột "Bản dịch" hiển thị badge theo ngôn ngữ (ADR-004): `VI ✓ / EN
 # PHẦN IV — SẢN PHẨM (màn phức tạp nhất)
 
 ## Danh sách
-Cột: Chọn · Ảnh · Tên VI · Model · Hãng · Danh mục chính · Bản dịch(VI/EN) · Trạng thái · Cập nhật · ⋮.
+Cột: Chọn · Ảnh · Tên VI · Model · Hãng · Danh mục chính · Bản dịch · Trạng thái · Cập nhật · ⋮.
 Lọc: trạng thái, hãng, danh mục, ngôn ngữ thiếu.
 
 ## Form — section nav trong trang
@@ -89,7 +94,7 @@ Section: ● Thông tin chung  ○ Nội dung  ○ Hãng & Danh mục  ○ Tiêu
 ```
 
 ### Thông tin chung
-`Tên VI * · Tên EN · Slug VI (tự sinh) · Slug EN · Model · Mã nội bộ · Ảnh đại diện · Mô tả ngắn VI · Mô tả ngắn EN`.
+`Tên * · Slug (tự sinh) · Model · Mã nội bộ · Ảnh đại diện · Mô tả ngắn`.
 > **Tạo nhanh & lưu nháp (ADR mục 4.7):** chỉ cần **Tên VI + Hãng + Danh mục chính** là lưu nháp được; slug tự sinh; các trường mô tả có thể trống.
 
 ### Nội dung — tab ngôn ngữ
@@ -122,7 +127,7 @@ Chọn tài liệu đã có (không upload PDF trực tiếp trong form sản ph
 Sản phẩm/dịch vụ/dự án/bài viết liên quan (component RelationSelector dùng chung).
 
 ### SEO (ADR-011 — v1.2)
-Chỉ có: **SEO Title · SEO Description · Slug VI** · URL xem trước (tự sinh) · **Canonical preview (chỉ đọc)** · **Social image preview (theo fallback chain, không picker riêng)** · Google preview.
+Chỉ có: **SEO Title · SEO Description · Slug** · URL xem trước (tự sinh) · **Canonical preview (chỉ đọc)** · **Social image preview (theo fallback chain, không picker riêng)** · Google preview.
 **Bỏ:** ô Canonical URL tùy chỉnh · checkbox "cho index" · checkbox "follow" · ô "Ảnh chia sẻ" riêng. (Canonical/robots tự sinh theo trạng thái; social image lấy từ featured/cover/logo.)
 
 ### Nâng cao (mặc định thu gọn — ADR mục 4.6)
@@ -141,13 +146,13 @@ Khi lưu: trường mảng có mặt → thay thế toàn bộ tập; vắng →
 
 ## Hãng
 Danh sách: Logo · Tên · Hãng cha · Loại · Số SP · Trạng thái · ⋮.
-Form: Tên VI * · Tên EN · Slug · Loại hãng * · Hãng cha · Quốc gia · Website · Logo · Ảnh bìa · Mô tả ngắn · Nội dung · Tài liệu · SEO · Trạng thái. Nếu Loại=Thương hiệu con → bắt buộc Hãng cha; backend kiểm vòng lặp.
+Form: Tên * · Slug · Loại hãng * · Hãng cha · Quốc gia · Website · Logo · Ảnh bìa · Mô tả ngắn · Nội dung · Tài liệu · SEO · Trạng thái. Nếu Loại=Thương hiệu con → bắt buộc Hãng cha; backend kiểm vòng lặp.
 
 ## Danh mục sản phẩm (cây)
 Cây kéo-thả (P0 cho danh mục — cần thiết vận hành), thêm con, chuyển cha, ẩn/hiện, xem số sản phẩm, cảnh báo khi có sản phẩm.
 
 ## Tiêu chuẩn / Ứng dụng / Ngành
-- Tiêu chuẩn: bảng (Mã · Tổ chức · Tên · Số SP · Trạng thái); form Tổ chức * · Mã * · Tên VI/EN · Mô tả · Slug · SEO.
+- Tiêu chuẩn: bảng (Mã · Tổ chức · Tên · Số SP · Trạng thái); form Tổ chức * · Mã * · Tên · Mô tả · Slug · SEO.
 - **Ứng dụng: danh sách PHẲNG** (ADR-006) — không kéo-thả cây trong MVP dù DB có parent_id.
 - Ngành: danh sách/card (Icon · Tên · Số SP · Số DV · Trạng thái).
 
@@ -163,7 +168,7 @@ Danh sách (Ảnh · Tên · Loại · Khách hàng · SP · Thời gian · Tr�
 Chế độ công khai: `(●) Công khai đầy đủ ( ) Ẩn tên ( ) Chỉ lĩnh vực ( ) Bảo mật hoàn toàn` (cảnh báo khi bảo mật).
 
 ## Bài viết
-Danh sách (Ảnh · Tiêu đề · Danh mục · Bản dịch · Trạng thái · Ngày đăng). Form: Tiêu đề VI * · EN · Slug · Danh mục * · Mô tả ngắn · Ảnh · Nội dung (block editor) · Album · Ngày xuất bản · Nổi bật · Quan hệ (SP/DV/Dự án/Hãng) · SEO · Trạng thái. Editor whitelist tag/block; **không** chèn script/iframe tùy ý. **Block "External Video" (ADR-012):** provider (YouTube/Vimeo) · URL · tiêu đề · chú thích — **không** upload file video, **không** video trong Media Picker.
+Danh sách (Ảnh · Tiêu đề · Danh mục · Bản dịch · Trạng thái · Ngày đăng). Form: Tiêu đề * · Slug · Danh mục * · Mô tả ngắn · Ảnh · Nội dung (block editor) · Album · Ngày xuất bản · Nổi bật · Quan hệ (SP/DV/Dự án/Hãng) · SEO · Trạng thái. Editor whitelist tag/block; **không** chèn script/iframe tùy ý. **Block "External Video" (ADR-012):** provider (YouTube/Vimeo) · URL · tiêu đề · chú thích — **không** upload file video, **không** video trong Media Picker.
 
 ---
 
@@ -180,7 +185,7 @@ Lưới file + panel chi tiết: tên, kích thước, MIME, alt VI/EN, **"Đang
 
 ## Trang chủ (ADR-006)
 Danh sách section **thứ tự cố định**, mỗi section `[Bật/tắt] [Cấu hình]` (chọn số lượng + nội dung nổi bật + layout giới hạn). **Kéo-thả thứ tự section → P1.** Không cho tự xây layout tùy ý.
-Banner: danh sách + form (Ảnh desktop * · Ảnh mobile · Tiêu đề VI/EN · Mô tả · Nhãn nút · Loại liên kết · Nội dung đích · Mở tab mới · Thời gian · Trạng thái).
+Banner: danh sách + form (Ảnh desktop * · Ảnh mobile · Tiêu đề · Mô tả · Nhãn nút · Loại liên kết · Nội dung đích · Mở tab mới · Thời gian · Trạng thái).
 
 ## Trang tĩnh (pages)
 Danh sách: Về LT Vietnam, Lịch sử, Tầm nhìn & sứ mệnh, Lĩnh vực, Năng lực KT, Năng lực gia công, Ngành, Chính sách bảo mật, Điều khoản, Cookie. Trang hệ thống nhãn "Không thể xóa" — chỉ chỉnh sửa/xem trước/xuất bản/ẩn (nếu được phép).
@@ -189,7 +194,7 @@ Danh sách: Về LT Vietnam, Lịch sử, Tầm nhìn & sứ mệnh, Lĩnh vực
 
 # PHẦN VIII — VĂN PHÒNG, MENU, FOOTER, SEO/REDIRECT, SETTINGS, HỒ SƠ
 
-- **Văn phòng:** form đầy đủ (Tên VI/EN · Loại · Địa chỉ VI/EN · ĐT/Fax/Email · Giờ · Maps · Tọa độ · Ảnh · Mô tả · Thứ tự · Trạng thái); preview bản đồ nếu tọa độ hợp lệ.
+- **Văn phòng:** form đầy đủ (Tên · Loại · Địa chỉ · ĐT/Fax/Email · Giờ · Maps · Tọa độ · Ảnh · Mô tả · Thứ tự · Trạng thái); preview bản đồ nếu tọa độ hợp lệ.
 - **Menu:** chọn menu (Header/Footer…), cây mục, form mục (Nhãn VI/EN · Loại liên kết · Nội dung đích · URL tùy chỉnh · Mục cha · Mở tab mới · Trạng thái). Backend kiểm vòng lặp/đích tồn tại/URL hợp lệ. Mega menu sản phẩm auto-generated (không nhập tay). **Kéo-thả cây menu → P1.**
 - **Footer:** giới thiệu ngắn + 4 cột chọn menu + mạng xã hội + bản quyền.
 - **SEO mặc định (site-level):** tên website · title/description mặc định · **`default_social_image`** (ảnh chia sẻ mặc định — cuối chuỗi fallback ADR-011) · URL chính · robots site-level (checkbox "cho phép index website" — bật/tắt toàn site, khác với robots per-trang tự sinh) · verification. Không cho sửa raw robots.txt tự do; **không** có canonical/index/follow per-entity (tự sinh).

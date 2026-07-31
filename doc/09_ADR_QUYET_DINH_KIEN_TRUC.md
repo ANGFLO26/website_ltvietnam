@@ -1,7 +1,7 @@
 # 09 — ADR: CÁC QUYẾT ĐỊNH KIẾN TRÚC WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
-**Ngày:** 2026-07-21
+**Phiên bản:** 1.3
+**Ngày:** 2026-07-29
 **Trạng thái bộ tài liệu:** Approved
 **Vai trò tài liệu:** Nguồn sự thật cao nhất. Khi bất kỳ tài liệu nào mâu thuẫn với ADR, ADR thắng.
 
@@ -29,72 +29,89 @@ ADR-010  Tính toàn vẹn dữ liệu Catalogue và quy tắc Draft
 ADR-011  Chiến lược Canonical, Robots và SEO Metadata
 ADR-012  Chính sách Video và External Embed
 ADR-013  Chiến lược Migration Baseline và Schema Versioning
+ADR-014  Ngôn ngữ lưu trữ nội dung và ranh giới frontend/backend
+ADR-015  Lọc và duyệt theo cây phân cấp
 ```
 
 > **Nhật ký v1.2:** ADR-001/002/003/004/005/007/009 cập nhật; thêm ADR-010/011/012.
-> **Nhật ký v1.2.1:** ADR-003 bổ sung semantics **at-least-once** + Message-ID ổn định; ADR-004 làm rõ fallback (không mơ hồ "tên hãng"); retention TBD (bỏ mặc định 24 tháng); thêm **ADR-013** (migration baseline 001–070, trigger tại 070, không 071 active). Chi tiết ở `10_CHANGELOG`.
+> **Nhật ký v1.2.1:** ADR-003 bổ sung semantics **at-least-once** + Message-ID ổn định; ADR-004 làm rõ fallback; retention TBD; thêm **ADR-013**.
+> **Nhật ký v1.3:** **ADR-014** chốt ranh giới dịch thuật frontend/backend — bỏ 12 bảng translation, giữ 4. **ADR-015** chốt lọc theo cây phân cấp (`ancestor_ids`). **ADR-001** đổi cấu trúc URL sang tiếng Anh ở gốc + tiền tố `/vi`. **ADR-002** slug đơn cho entity một ngôn ngữ, danh sách route bảo lưu sinh tự động. **ADR-004** viết lại theo ADR-014. **ADR-013** baseline v1.3 (52 bảng). Chi tiết ở `10_CHANGELOG`.
 
 ---
 
 # ADR-001 — Chiến lược URL công khai
 
-**Trạng thái:** Accepted
-**Ngày:** 2026-07-21
+**Trạng thái:** Accepted · **Ngày:** 2026-07-21 · **Sửa đổi:** 2026-07-29 (v1.3)
 
 ## Bối cảnh
-Sitemap phiên bản trước dùng URL chi tiết lồng nhau (`/dich-vu/{nhóm}/{dịch-vụ}`, `/tin-tuc/{danh-mục}/{bài}`, `/hang-doi-tac/{cha}/{con}`). Nhưng schema đặt `UNIQUE(locale, slug)` toàn module và API tra cứu bằng một slug phẳng. Hai dịch vụ "Bảo trì" thuộc hai nhóm khác nhau sẽ va chạm slug; API một slug không đủ dữ liệu để phân giải URL hai cấp; một hãng có tới hai URL chi tiết trùng nội dung.
+Bản v1.2.1 đặt tiếng Việt ở đường dẫn gốc và tiếng Anh ở tiền tố `/`. Đối chiếu với website đang vận hành `ltvietnam.com.vn` cho thấy toàn bộ nội dung hiện tại là **tiếng Anh**: menu, tiêu đề trang, meta description, tên sản phẩm. Đặt tiếng Việt ở gốc buộc phải biên soạn toàn bộ nội dung tiếng Việt trước khi ra mắt, và đẩy mọi URL đang có sang `/` kèm redirect hàng loạt.
+
+Ngoài ra, hai tập route bất đối xứng (gốc tiếng Việt + `/`) khiến danh sách route bảo lưu của SlugService chỉ phủ được một ngôn ngữ, tạo khả năng va chạm URL.
 
 ## Quyết định
-1. Trang **chi tiết** dùng URL **phẳng**, không đưa cấu trúc cha–con vào URL:
+
+### 1. Tiếng Anh ở gốc, tiếng Việt ở tiền tố `/vi`
 ```text
-/san-pham/{product-slug}
-/dich-vu/{service-slug}
-/du-an/{project-slug}
-/tin-tuc/{post-slug}
-/hang-doi-tac/{brand-slug}
-/tai-lieu/{document-slug}
+/products/{product-slug}          ← mặc định, luôn tồn tại
+/vi/services/{service-slug}       ← chỉ tồn tại khi có nội dung tiếng Việt
 ```
-2. Trang **danh sách / phân loại** vẫn dùng URL theo nhóm:
+Tiền tố `/vi` **chỉ áp dụng cho bốn nhóm có bản dịch thật** (ADR-014): `pages`, `posts`, `services`, `projects`.
+
+### 2. Đoạn đường dẫn dùng tiếng Anh cho cả hai ngôn ngữ
+`/vi/news/{slug}` chứ **không** phải `/vi/news/{slug}`. Từ khóa SEO nằm ở slug, không nằm ở đoạn route. Đổi lại chỉ còn **một** tập route phải bảo vệ.
+
+### 3. Trang chi tiết dùng URL phẳng
 ```text
-/san-pham/danh-muc/{category-slug}
-/san-pham/tieu-chuan/{standard-slug}
-/san-pham/ung-dung/{application-slug}
-/tin-tuc/danh-muc/{post-category-slug}
+/products/{product-slug}      /services/{service-slug}    /projects/{project-slug}
+/news/{post-slug}             /brands/{brand-slug}        /resources/{document-slug}
 ```
-3. **KHÔNG** dùng URL chi tiết lồng nhau: `/dich-vu/{parent}/{child}`, `/tin-tuc/{category}/{post}`, `/hang-doi-tac/{parent-brand}/{child-brand}`.
-4. API công khai khớp URL phẳng:
+Không dùng URL lồng cha–con: `/services/{parent}/{child}`, `/news/{category}/{post}`, `/brands/{parent}/{child}`.
+
+### 4. Trang danh sách / phân loại dùng URL theo nhóm
 ```text
-GET /api/v1/products/:slug
-GET /api/v1/services/:slug
-GET /api/v1/projects/:slug
-GET /api/v1/posts/:slug
-GET /api/v1/brands/:slug
-GET /api/v1/documents/:slug
+/products/category/{category-slug}
+/products/standard/{standard-slug}
+/products/application/{application-slug}
+/news/category/{post-category-slug}
 ```
-5. **Cập nhật v1.2 — Trang hồ sơ hãng vs trang lọc sản phẩm theo hãng (hai loại trang khác nhau, không canonical sang nhau):**
-   - **Hồ sơ hãng** `/hang-doi-tac/{brand-slug}`: trang giới thiệu hãng/đối tác (giới thiệu, thương hiệu con, dịch vụ, dự án, tài liệu). **`robots=index,follow`, self-canonical.**
-   - **Lọc sản phẩm theo hãng** = **`/san-pham/tat-ca?brand={brand-slug}`** — chỉ là **trạng thái lọc** của trang danh sách sản phẩm. **`robots=noindex,follow`, `rel=canonical` về `/san-pham/tat-ca`.** KHÔNG canonical sang hồ sơ hãng.
-   - **KHÔNG** dùng `/san-pham/hang/{brand-slug}` làm landing indexable trong MVP. Nếu URL này còn tồn tại/tham chiếu → **redirect 301** sang `/san-pham/tat-ca?brand={brand-slug}`.
-   - Hai trang liên kết qua lại (nút "Xem hồ sơ hãng" ↔ "Xem sản phẩm của hãng") nhưng không canonical sang nhau.
-6. Thương hiệu con là một `brand` độc lập với slug riêng, cũng dùng `/hang-doi-tac/{child-slug}`; quan hệ cha–con thể hiện qua `parent_id` và điều hướng nội trang, không qua URL.
-7. **Landing phân loại có nội dung biên tập riêng** (`/san-pham/danh-muc/{slug}`, `/san-pham/tieu-chuan/{slug}`, `/san-pham/ung-dung/{slug}`): **self-canonical, index,follow**. (Quy tắc robots/canonical chi tiết ở ADR-011.)
+
+### 5. API công khai khớp URL phẳng
+```text
+GET /api/v1/products/:slug     GET /api/v1/services/:slug    GET /api/v1/projects/:slug
+GET /api/v1/posts/:slug        GET /api/v1/brands/:slug      GET /api/v1/documents/:slug
+```
+
+### 6. Hồ sơ hãng vs trang lọc sản phẩm theo hãng
+Hai loại trang khác nhau, **không canonical sang nhau**:
+- **Hồ sơ hãng** `/brands/{brand-slug}`: `robots=index,follow`, self-canonical.
+- **Lọc theo hãng** `/products/all?brand={brand-slug}`: `robots=noindex,follow`, canonical về `/products/all`.
+- Không dùng `/products/brand/{slug}` làm landing indexable. Nếu tồn tại → **301** sang `/products/all?brand={slug}`.
+
+### 7. Thương hiệu con là brand độc lập
+Có slug riêng, cũng dùng `/brands/{child-slug}`. Quan hệ cha–con thể hiện qua `parent_id` + `ancestor_ids`, không qua URL (ADR-015).
+
+### 8. Landing phân loại chỉ index khi có nội dung biên tập
+`/products/category|standard|application/{slug}` chỉ `index,follow` + self-canonical **khi mô tả không rỗng**. Nếu rỗng → `noindex,follow` + canonical về trang danh sách cha. Quy tắc này ngăn trang mỏng trùng lặp với URL lọc (chi tiết ADR-011).
+
+### 9. Đường dẫn gốc `/`
+Phục vụ trang chủ tiếng Anh. Không tự chuyển hướng theo `Accept-Language` để tránh ảnh hưởng crawler.
 
 ## Các phương án đã xem xét
-- **A. URL hai cấp + `UNIQUE(locale, parent_id, slug)` + API nhận đủ path.** Giữ URL "đẹp" theo phân cấp nhưng tăng phức tạp routing, API, redirect, và slug không ổn định khi đổi nhóm cha.
-- **B. URL phẳng + slug duy nhất theo module (chọn).** Đơn giản, ổn định, khớp API và schema hiện có, slug không phụ thuộc cha.
+- **A. Tiếng Việt ở gốc + `/` (v1.2.1).** Buộc biên soạn tiếng Việt trước khi ra mắt; đẩy toàn bộ URL đang có sang `/`; hai tập route bất đối xứng — **bị thay thế**.
+- **B. Cả hai đều có tiền tố (`/` + `/vi`).** Đối xứng hoàn toàn, nhưng đổi mọi URL đang có và mất URL gốc sạch cho thị trường chính — bị loại.
+- **C. Tiếng Anh ở gốc + `/vi` cho nội dung có bản dịch (chọn).** Giữ dấu vết SEO đang có, một tập route, cộng thêm ngôn ngữ sau này không phải sửa URL cũ.
 
 ## Lý do lựa chọn
-Phương án B loại bỏ va chạm slug do trùng nhóm cha, giữ slug ổn định khi nội dung đổi danh mục, đơn giản hóa routing/redirect/sitemap, và khớp trực tiếp với `UNIQUE(locale, slug)` cùng API một-slug.
+Phương án C khớp hiện trạng nội dung, không phát sinh redirect hàng loạt, và **cộng thêm được**: muốn thêm `/vi/products/{slug}` sau này thì URL tiếng Anh không đổi.
 
 ## Hệ quả
-- Sitemap, API, frontend wireframe, mục SEO/redirect phải dùng URL phẳng.
-- Public API bỏ `GET /brands/:slug/products`; lọc sản phẩm theo hãng dùng `GET /products?brand={slug}` (nhất quán ADR-007).
-- Trang lọc theo hãng noindex,follow + canonical `/san-pham/tat-ca`; hồ sơ hãng index self-canonical.
-- URL cũ `/san-pham/hang/{slug}` → 301 sang `/san-pham/tat-ca?brand={slug}`.
-- Đổi nhóm cha của dịch vụ/bài viết không đổi URL chi tiết ⇒ không phát sinh redirect.
+- `02` viết lại bảng URL công khai.
+- ADR-002 §8: danh sách route bảo lưu sinh tự động từ bảng route.
+- Entity một ngôn ngữ dùng `UNIQUE(slug)` thay vì `UNIQUE(locale, slug)` (ADR-014).
+- hreflang chỉ sinh cho bốn nhóm có bản dịch (ADR-011).
 
 ## Tài liệu bị ảnh hưởng
-00, 01, 02, 06, 08, 10. (Robots/canonical: xem ADR-011.)
+00, 01, 02, 03, 05, 06, 08, 10.
 
 ---
 
@@ -107,7 +124,9 @@ Phương án B loại bỏ va chạm slug do trùng nhóm cha, giữ slug ổn �
 Vòng audit chỉ ra `UNIQUE(locale, slug)` không lọc `deleted_at` nên slug của nội dung xóa mềm vẫn chiếm namespace. Có đề xuất dùng partial unique index để tái sử dụng slug. Tuy nhiên tái sử dụng slug đã từng công khai gây nhầm lẫn SEO (một URL từng trỏ nội dung A nay trỏ nội dung B) và phá lịch sử liên kết.
 
 ## Quyết định
-1. Giữ ràng buộc `UNIQUE(locale, slug)` **thường** trên từng bảng translation. **Không** dùng partial unique index để cho phép tái sử dụng slug của nội dung đã xóa mềm.
+1. Ràng buộc slug **thường** (không partial), không cho tái sử dụng slug của nội dung đã xóa mềm:
+   - Entity **một ngôn ngữ** (ADR-014): `UNIQUE(slug)` trên chính bảng entity.
+   - Entity **có bản dịch** (`pages`, `posts`, `services`, `projects`): `UNIQUE(locale, slug)` trên bảng translation.
 2. Slug **đã từng xuất bản không được tái sử dụng** cho nội dung khác.
 3. Nội dung **xóa mềm vẫn giữ slug** (slug bị "khóa" vĩnh viễn ở trạng thái đã xóa mềm).
 4. **Đổi slug** ⇒ hệ thống tự tạo redirect 301 từ slug cũ sang slug mới.
@@ -116,17 +135,41 @@ Vòng audit chỉ ra `UNIQUE(locale, slug)` không lọc `deleted_at` nên slug 
 
 ## Cập nhật v1.2 — cơ chế thực thi (không chỉ nguyên tắc)
 
-### 7. Thêm cột `first_published_at`
-Thêm `first_published_at TIMESTAMPTZ NULL` vào **12 bảng translation có slug công khai**: `page, brand, product_category, standard, application, industry, product, service, project, post_category, post, document` translations.
+### 7. Cột `first_published_at` (cập nhật v1.3)
+`first_published_at TIMESTAMPTZ NULL` đặt **cùng nơi với `status` điều khiển việc công khai**:
+- **Trên bảng entity** cho entity một ngôn ngữ: `brands, product_categories, standards, applications, industries, products, documents, post_categories`.
+- **Trên bảng translation** cho entity có bản dịch: `page_translations, post_translations, service_translations, project_translations`.
+
+> **Sửa lỗi v1.2.1:** bản cũ đặt cột này trên 5 bảng translation taxonomy vốn **không có `status`**, nên không có sự kiện publish nào set được nó. Cột vĩnh viễn NULL khiến điều kiện hard-delete ở §9 luôn đúng và slug đã công khai có thể bị cấp lại. v1.3 đặt cột cạnh `status` nên PublishService luôn set được.
 - `first_published_at`: thời điểm URL của bản dịch **lần đầu** công khai; **set một lần**, **không** ghi đè khi hide/archive/unpublish/republish; dùng để xác định "đã từng xuất bản".
 - `published_at`: thời điểm phiên bản hiện tại được publish/republish (có thể cập nhật lại).
 - `scheduled_publish_at`: **chỉ P1** khi làm scheduled publishing. **Không** dùng `published_at` để lưu lịch tương lai.
 
 ### 8. SlugService kiểm 3 nguồn theo **public path đầy đủ**
-Trước khi chấp nhận slug/public path mới, kiểm **public path hoàn chỉnh của module** (vd `/san-pham/pac-optidist-2`, không chỉ chuỗi `pac-optidist-2`) trên:
-- **(A)** slug hiện tại trong bảng translation tương ứng.
-- **(B)** `redirects.source_path` (namespace URL đã từng dùng — không được cấp lại).
-- **(C)** danh sách route hệ thống bảo lưu: `/admin, /api, /en, /login, /tim-kiem, /health, /media, /san-pham, /dich-vu, /du-an, /tin-tuc, /tai-lieu, /lien-he`.
+Trước khi chấp nhận slug/public path mới, kiểm **public path hoàn chỉnh** (vd `/products/optidist`, không chỉ chuỗi `optidist`) trên:
+- **(A)** slug hiện tại trong bảng tương ứng (entity hoặc translation);
+- **(B)** `redirects.source_path` — namespace URL đã từng dùng, không được cấp lại;
+- **(C)** tập route hệ thống bảo lưu.
+
+**Tập (C) phải được SINH TỰ ĐỘNG từ bảng route ở `02` PHẦN II lúc build, không viết tay.** Quy tắc sinh:
+1. Lấy mọi đoạn cấp 1 và cấp 2 của mọi route hệ thống.
+2. Nhân với mọi tiền tố locale đang hoạt động (`""` và `/vi`).
+3. Cộng thêm tiền tố kỹ thuật: `/api`, `/admin`, `/media`, `/health`, `/_next`, `/static`.
+
+Tập sinh ra tại thời điểm v1.3:
+```text
+/          /about      /products   /brands     /services   /projects
+/news      /resources  /contact    /search     /request-success
+/privacy-policy   /terms-of-use   /cookie-policy
+/products/all  /products/category  /products/standard  /products/application
+/news/category
+/vi + toàn bộ danh sách trên
+/api  /admin  /media  /health  /_next  /static
+```
+
+**Bắt buộc có test đối chiếu tập bảo lưu với bảng route; test fail khi hai bên lệch nhau.**
+
+> **Sửa lỗi v1.2.1:** danh sách cũ viết tay và chỉ có tiếng Việt, thiếu `/brands`, `/about` và **toàn bộ** đoạn route tiếng Anh — một slug tên `products` có thể tạo ra `/products` đè lên trang landing sản phẩm.
 
 ### 9. Quy tắc hard-delete
 Chỉ hard-delete (theo luồng thường) khi: `first_published_at IS NULL` **AND** entity ở trạng thái draft **AND** không có redirect liên quan **AND** không có dữ liệu phụ thuộc cần giữ.
@@ -161,8 +204,9 @@ Bảo toàn giá trị SEO và tính minh bạch của URL quan trọng hơn kh�
 ## Hệ quả
 - Không thể đặt slug trùng slug của một nội dung đã xóa mềm; nếu cần, dùng slug biến thể (vd thêm hậu tố) và redirect.
 - PublishService/SlugService phải tự tạo redirect khi đổi slug và kiểm 3 nguồn.
-- 05 thêm `first_published_at` × 12 bảng translation (cập nhật migration/rollback).
+- 05 đặt `first_published_at` cạnh `status` (8 bảng entity + 4 bảng translation).
 - SlugService set `first_published_at` lần đầu publish; không ghi đè về sau.
+- Tập route bảo lưu là artifact sinh ra, có test đối chiếu.
 
 ## Tài liệu bị ảnh hưởng
 03, 04, 05, 06, 08 (SEO), 10.
@@ -272,63 +316,74 @@ Chỉ lưu mã lỗi + thông báo SMTP kỹ thuật đã sanitize. Không chứ
 
 # ADR-004 — Chiến lược xuất bản đa ngôn ngữ
 
-**Trạng thái:** Accepted
-**Ngày:** 2026-07-21
+**Trạng thái:** Accepted · **Ngày:** 2026-07-21 · **Viết lại:** 2026-07-29 (v1.3, theo ADR-014)
 
 ## Bối cảnh
-`status` trước đây chỉ nằm ở entity cha, không có publish theo từng ngôn ngữ. Không thể publish bản Việt trong khi bản Anh chưa xong; URL tiếng Anh sẽ 404 hoặc trộn ngôn ngữ. Scope yêu cầu tiếng Anh không bắt buộc hoàn thiện trong ngày ra mắt.
+Bản v1.2.1 cho **cả 16 nhóm nội dung** có bảng translation và bắt tiếng Việt phải `published` trước khi entity được xuất bản. Đối chiếu thực tế: website hiện tại là tiếng Anh, tên thiết bị là danh từ riêng kỹ thuật không dịch, và không ai sẽ viết mô tả tiếng Việt cho 150–200 máy phân tích.
+
+ADR-014 chốt lại ranh giới: chỉ giữ bảng translation ở nơi **thật sự sẽ có người viết bản thứ hai**.
 
 ## Quyết định
-1. Thêm `status` + `published_at` vào bảng translation của **7 entity nội dung chính**:
-```text
-product_translations
-service_translations
-project_translations
-post_translations
-brand_translations
-page_translations
-document_translations
-```
-2. Các bảng translation **taxonomy/config KHÔNG** có locale-status: `standard_translations, application_translations, industry_translations, product_category_translations, post_category_translations, office_translations, menu_item_translations, banner_translations, customer_translations`. Với nhóm này: **hiển thị khi có bản dịch**. Fallback chỉ áp dụng cho **dữ liệu độc lập ngôn ngữ** (mã tiêu chuẩn `standards.organization+code`, nhãn hệ thống cấu hình chung); **KHÔNG** fallback nội dung Brand detail (xem mục fallback bên dưới).
-3. Quy tắc:
-   - Tiếng Việt là ngôn ngữ mặc định, **bắt buộc `published`** trước khi entity được xuất bản.
-   - Tiếng Anh **không bắt buộc** hoàn thiện lúc ra mắt; mỗi bản dịch xuất bản độc lập.
-   - **Không auto-fallback** nội dung tiếng Việt cho URL tiếng Anh của product/service/project/post/brand/page/document (7 entity chính).
-4. Điều kiện truy vấn công khai:
-```text
-entity.status = 'published'
-AND entity.deleted_at IS NULL
-AND translation.locale = requested_locale
-AND translation.status = 'published'
-```
-5. API công khai chỉ trả translation `published`.
 
-## Quy tắc fallback ngôn ngữ (cập nhật v1.2.1 — không mơ hồ)
-- **KHÔNG fallback Brand detail** từ VI sang EN đối với: `brand_translations.name`, `brand_translations.short_description`, `brand_translations.description`, `brand_translations.seo_title`, `brand_translations.seo_description`. Khi bản EN của hãng chưa `published`: `/en/brands-partners/{slug}` **không** hiển thị nội dung VI — trả 404/trạng thái không tồn tại theo quy tắc frontend, hoặc điều hướng về danh sách hãng EN; **không trộn** nội dung tiếng Việt.
-- **Chỉ fallback dữ liệu thực sự độc lập ngôn ngữ:** `model`, `SKU`, mã nội bộ, mã tiêu chuẩn (`standards.organization`, `standards.code`), **proper name chính thức của thương hiệu khi doanh nghiệp xác nhận tên đó dùng chung cho mọi locale**, nhãn hệ thống được cấu hình dùng chung. *Proper name dùng chung KHÔNG có nghĩa fallback toàn bộ Brand translation.*
-- **hreflang:** chỉ sinh cặp `vi`↔`en` khi **cả hai** bản dịch của entity đều `published`. EN chưa publish → không tạo alternate hreflang EN.
-
-## `status` trên translation (7 entity chính)
+### 1. Chỉ bốn entity có xuất bản theo ngôn ngữ
 ```text
-draft      (mặc định)
-published
-hidden
+pages · posts · services · projects
 ```
-(Không cần `archived` ở tầng translation; vòng đời archive nằm ở entity cha.)
+Bảng translation của bốn entity này có `status` + `published_at` + `first_published_at`, xuất bản độc lập từng ngôn ngữ.
+
+### 2. Mọi entity còn lại lưu nội dung một ngôn ngữ trên chính bảng entity
+```text
+brands · product_categories · standards · applications · industries
+products · documents · customers · offices · banners · menu_items · post_categories
+```
+Ngôn ngữ lưu trữ là **tiếng Anh** (ADR-014). Không có bảng translation, không có `locale`, không có trạng thái theo ngôn ngữ.
+
+### 3. Không có "ngôn ngữ bắt buộc"
+Bỏ quy tắc "tiếng Việt phải published trước". Với bốn entity có bản dịch, **mỗi bản dịch xuất bản độc lập**; không bản nào là điều kiện của bản nào. Entity `published` + ít nhất một translation `published` là đủ để có trang công khai.
+
+### 4. Không auto-fallback giữa hai bản dịch
+Với bốn entity có bản dịch: `/vi/news/{slug}` chỉ tồn tại khi bản tiếng Việt `published`. Không hiển thị nội dung tiếng Anh dưới URL tiếng Việt. Khi thiếu → 404 hoặc điều hướng về danh sách tiếng Việt; **không trộn ngôn ngữ**.
+
+### 5. Điều kiện truy vấn công khai
+```sql
+-- Entity một ngôn ngữ
+WHERE entity.status='published' AND entity.deleted_at IS NULL
+
+-- Entity có bản dịch
+WHERE entity.status='published' AND entity.deleted_at IS NULL
+  AND t.locale = :locale AND t.status='published'
+```
+
+### 6. Nhãn giao diện không nằm trong database
+Nhãn menu, nút, nhãn form, thông báo lỗi do **frontend** dịch bằng file ngôn ngữ (ADR-014). `menu_items.label` lưu nhãn mặc định; `menu_items.label_i18n_key` (nullable) cho phép frontend tra khóa dịch riêng.
+
+### 7. hreflang
+Chỉ sinh cặp `en`↔`vi` cho bốn entity có bản dịch, và **chỉ khi cả hai bản `published`**. Entity một ngôn ngữ không sinh hreflang.
+
+## `status` trên translation (4 entity)
+```text
+draft (mặc định) · published · hidden
+```
+Vòng đời `archived` nằm ở entity cha.
 
 ## Các phương án đã xem xét
-- **A. Status chỉ ở entity cha.** Không tách được VI/EN — bị loại.
-- **B. Locale-status cho MỌI translation (16 bảng).** Nhất quán tuyệt đối nhưng over-engineering cho taxonomy/config — bị loại.
-- **C. Locale-status cho 7 entity nội dung chính, taxonomy dùng fallback (chọn).** Cân bằng giữa nhu cầu thật và độ phức tạp.
+- **A. Locale-status cho mọi translation (16 bảng).** Nhất quán tuyệt đối, over-engineering — bị loại từ v1.2.
+- **B. Locale-status cho 7 entity chính (v1.2.1).** Vẫn buộc dịch tên 200 thiết bị và toàn bộ taxonomy — **bị thay thế**.
+- **C. Locale-status cho 4 entity thật sự sẽ có bản dịch (chọn).** Khớp thực tế biên soạn nội dung; giảm 16 bảng translation còn 4.
+
+## Lý do lựa chọn
+Bảng translation chỉ tạo giá trị khi có người viết bản thứ hai. Ở đâu không có, nó chỉ thêm join, thêm trạng thái, thêm khả năng sai — mà không thêm nội dung nào.
 
 ## Hệ quả
-- 03/04/05 thêm `status`+`published_at` vào 7 bảng translation.
-- 06 dùng điều kiện truy vấn công khai đầy đủ cả locale-status.
-- 07 hiển thị badge trạng thái theo từng ngôn ngữ (VI ✓ / EN Thiếu / EN Nháp).
-- 08 trang tiếng Anh chưa publish trả trạng thái đúng (404/empty theo quy tắc), không trộn ngôn ngữ.
+- 05: bỏ 12 bảng translation, gộp trường vào bảng cha; 63 bảng → 52.
+- 03: cập nhật danh sách bảng và nhóm trường dùng chung.
+- 06: điều kiện truy vấn công khai tách hai trường hợp.
+- 07: badge trạng thái theo ngôn ngữ chỉ hiện ở bốn entity có bản dịch.
+- 08: trang `/vi/...` chỉ tồn tại cho bốn nhóm đó.
+- ADR-011: hreflang thu hẹp phạm vi tương ứng.
 
 ## Tài liệu bị ảnh hưởng
-01, 03, 04, 05, 06, 07, 08, 10.
+01, 02, 03, 04, 05, 06, 07, 08, 10.
 
 ---
 
@@ -504,7 +559,7 @@ WHERE product.status = 'published'
 - **KHÔNG** hiển thị số lượng (`PAC (20)`) trong P0. Facet count → **P1**.
 
 ## Hệ quả
-01/06/08 mô tả nhất quán semantics; trang lọc theo hãng dùng `/san-pham/tat-ca?brand={slug}` (ADR-001), noindex,follow (ADR-011).
+01/06/08 mô tả nhất quán semantics; trang lọc theo hãng dùng `/products/all?brand={slug}` (ADR-001), noindex,follow (ADR-011).
 
 ## Tài liệu bị ảnh hưởng
 01, 06, 08, 10.
@@ -608,14 +663,20 @@ Không lưu `canonical_url` trong database. Canonical được tạo từ: local
 ### 2. Robots tự suy ra (không lưu DB ở P0)
 Không lưu `robots_index`/`robots_follow` theo entity. Quy tắc:
 ```text
-Published entity + published translation + canonical route → index,follow
+Entity published (+ translation published nếu có)          → index,follow, self-canonical
 Draft / hidden / archived / deleted                        → không có public route / noindex,nofollow
-Query filter URL (?brand=, ?standard=, ...)                → noindex,follow, canonical về path gốc (vd /san-pham/tat-ca)
+Query filter URL (?brand=, ?standard=, ...)                → noindex,follow, canonical về /products/all
 Search result                                              → noindex,follow
 Admin / API / system / error page                          → noindex,nofollow
-Landing category/standard/application (nội dung riêng)     → index,follow, self-canonical
-Hồ sơ hãng /hang-doi-tac/{slug}                            → index,follow, self-canonical
+Landing category/standard/application CÓ mô tả              → index,follow, self-canonical
+Landing category/standard/application KHÔNG có mô tả        → noindex,follow, canonical về /products/all
+Hồ sơ hãng /brands/{slug}                                  → index,follow, self-canonical
 ```
+
+### 2b. Landing phân loại chỉ index khi có nội dung biên tập (mới v1.3)
+`/products/category|standard|application/{slug}` và URL lọc `/products/all?standard={slug}` trả **cùng một tập sản phẩm**. Cho phép index cả hai là nội dung trùng lặp.
+
+Quy tắc: landing chỉ `index,follow` + self-canonical **khi trường mô tả không rỗng**. Nếu rỗng → `noindex,follow` + canonical về `/products/all`. Quy tắc này tự đúng theo thời gian, không cần ai nhớ bật/tắt.
 
 ### 3. Social image không lưu riêng theo translation (P0)
 **Xóa `social_image_id`** khỏi `page_translations` và `product_translations`. Dùng **fallback chain**:
@@ -694,10 +755,10 @@ v1.1 có `documents.document_type='video'` và một số màn hình yêu cầu 
 Tài liệu từng mô tả đồng thời hai chiến lược: cấu trúc nằm inline trong migration 001–070, **và** một migration `071_v1_2_columns` (ALTER) cho DB đã có v1.1. Đồng thời trigger `updated_at` có nơi ghi migration 068, nơi ghi 070. Dự án **chưa bắt đầu code, chưa có database production/shared environment** ⇒ không cần migration nâng cấp giả định.
 
 ## Quyết định
-1. **Dùng v1.2.1 làm baseline đầu tiên.** Migration **001–070 chứa cấu trúc cuối cùng của v1.2.1**.
+1. **Dùng v1.3 làm baseline đầu tiên.** Baseline chứa cấu trúc cuối cùng của v1.3 (**52 bảng**), thay cho baseline v1.2.1 (63 bảng) vốn **chưa từng chạy trên môi trường nào**.
 2. **KHÔNG có migration `071_v1_2_columns` trong chuỗi active.** Nội dung 071 chỉ là **ghi chú lịch sử** trong Changelog/archive. Không chạy `071` trên fresh database.
-3. **Trigger `set_updated_at` được gắn tại migration `070_updated_at_triggers`.** Thứ tự chốt: `067 foreign_key_indexes`, `068 search_indexes`, `069 partial_indexes`, `070 updated_at_triggers`. Không ghi migration 068 cho trigger.
-4. **Rollback fresh baseline: `070 → 001`.** Không có rollback `071` trong chuỗi active.
+3. **Trigger `set_updated_at` gắn ở migration cuối của baseline**, sau toàn bộ index. Trigger được sinh tự động cho mọi bảng có cột `updated_at`.
+4. **Rollback fresh baseline: chạy ngược tới migration đầu.** Baseline v1.3 tham chiếu `doc/verify/v1.3/schema_up.sql` và `schema_down.sql`.
 5. Khi bắt đầu code, migration 001–070 được tạo từ baseline v1.2.1. **Sau khi chạy trên shared environment đầu tiên, các migration phải được đóng băng** (không sửa lại — thay đổi sau dùng migration mới).
 6. **Upgrade tương lai:** nếu tồn tại một database v1.1 thật bên ngoài dự án, tạo **upgrade migration riêng sau khi xác nhận schema thực tế**; upgrade migration đó **không** thuộc baseline v1.2.1 hiện tại. Không viết sẵn migration 071 giả định.
 
@@ -706,12 +767,142 @@ Tài liệu từng mô tả đồng thời hai chiến lược: cấu trúc nằ
 - **B. Baseline v1.2.1 duy nhất, 071 chỉ là lịch sử (chọn).** Một nguồn sự thật migration, rõ ràng cho lần đầu triển khai.
 
 ## Hệ quả
-- 05 mô tả một baseline 001–070; trigger tại 070; bỏ 071 khỏi mô tả active (chuyển note lịch sử).
-- 00/10 ghi baseline v1.2.1; 10 giữ 071 như ghi chú lịch sử.
-- Tổng số bảng vẫn 63; không đổi cấu trúc bảng ở v1.2.1.
+- 05 mô tả baseline v1.3; trigger ở migration cuối.
+- 00/10 ghi baseline v1.3.
+- **Tổng số bảng: 52** (63 − 12 bảng translation + 1 bảng `content_media_refs`).
+- Baseline v1.3 đã được chạy và kiểm chứng trên PostgreSQL 16.2 thật; bằng chứng ở `doc/verify/v1.3/README_V1_3.md`.
 
 ## Tài liệu bị ảnh hưởng
 00, 05, 06, 10.
+
+---
+
+# ADR-014 — Ngôn ngữ lưu trữ nội dung và ranh giới frontend/backend
+
+**Trạng thái:** Accepted · **Ngày:** 2026-07-29
+
+## Bối cảnh
+Bản v1.2.1 tạo 16 bảng translation, coi mọi văn bản hiển thị là dữ liệu đa ngôn ngữ của backend. Thực tế có hai loại văn bản rất khác nhau bị gộp làm một:
+
+- **Nhãn giao diện** — "Products", "View details", "Send request", thông báo lỗi, nhãn form. Cố định, do lập trình viên viết, không thay đổi theo dữ liệu.
+- **Nội dung do admin nhập** — mô tả sản phẩm, bài viết, giới thiệu công ty. Thay đổi liên tục, chỉ tồn tại nếu có người viết.
+
+Gộp hai loại khiến backend phải gánh cả việc dịch nhãn giao diện, và khiến mọi bảng nội dung phải có bản dịch dù không ai định viết.
+
+## Quyết định
+
+### 1. Nhãn giao diện thuộc về frontend
+Toàn bộ nhãn giao diện nằm trong file ngôn ngữ của frontend. Backend **không** lưu, **không** phục vụ nhãn giao diện. Người xem đổi ngôn ngữ hiển thị bằng công tắc trên giao diện.
+
+### 2. Nội dung do admin nhập thuộc về backend
+Không thể khác: frontend không sinh ra được nội dung mà admin chưa nhập.
+
+### 3. Quy tắc quyết định một bảng translation có đáng tồn tại không
+
+> **Một bảng translation chỉ đáng tồn tại nếu sẽ có người ngồi xuống viết bản thứ hai.**
+
+Áp dụng tại thời điểm v1.3:
+
+| Nội dung | Quy mô | Sẽ có bản tiếng Việt do người viết? | Bảng translation |
+|---|---|---|---|
+| Sản phẩm | 150–200 | Không — tên thiết bị là danh từ riêng kỹ thuật | ❌ |
+| Hãng | ~18 | Không | ❌ |
+| Danh mục · Tiêu chuẩn · Ứng dụng · Ngành | ~50 | Không — chỉ là tên | ❌ |
+| Tài liệu (metadata) | — | Không | ❌ |
+| Khách hàng · Văn phòng · Banner · Menu | — | Nhãn giao diện | ❌ |
+| **Trang giới thiệu** | ~10 | **Có** | ✅ |
+| **Tin tức** | tăng dần | **Có** — nơi SEO tiếng Việt có giá trị thật | ✅ |
+| **Dịch vụ** | 4–10 | **Có** — bán cho nhà máy trong nước | ✅ |
+| **Dự án** | — | **Có** | ✅ |
+
+Kết quả: **16 bảng translation → 4**.
+
+### 4. Ngôn ngữ lưu trữ mặc định là tiếng Anh
+Khớp nội dung hiện có và khớp việc tên thiết bị/hãng/tiêu chuẩn vốn là tiếng Anh.
+
+### 5. Tên model thiết bị không dịch
+`products.name` và `products.model` là danh từ riêng kỹ thuật (`OptiDist Atmospheric Distillation`, `HVM 472`), dùng chung mọi ngôn ngữ. Đây là mở rộng có chủ đích của nhóm "dữ liệu độc lập ngôn ngữ" mà ADR-004 v1.2.1 đã định nghĩa (`model`, `SKU`, mã tiêu chuẩn, tên riêng thương hiệu).
+
+### 6. Thêm ngôn ngữ về sau là thao tác cộng thêm
+Muốn có bản tiếng Việt cho sản phẩm sau này: tạo bảng `product_translations` bằng migration mới, thêm route `/vi/products/{slug}`. **URL tiếng Anh không đổi, không phát sinh redirect.**
+
+## Các phương án đã xem xét
+- **A. Giữ 16 bảng translation (v1.2.1).** Nhất quán trên giấy, nhưng 12 bảng sẽ vĩnh viễn chỉ có một hàng mỗi entity — **bị thay thế**.
+- **B. Bỏ toàn bộ translation, dịch máy phía frontend.** Schema đơn giản nhất, nhưng mất hẳn SEO tiếng Việt kể cả cho tin tức — bị loại.
+- **C. Giữ translation ở nơi thật sự có người viết (chọn).**
+
+## Hệ quả
+- 05: 63 bảng → 52; gộp trường của 12 bảng translation vào bảng cha.
+- 05: `product_specifications`, `product_standards`, `project_products`, `project_media`, `media` bỏ cặp cột `*_vi`/`*_en`, còn một cột.
+- ADR-004 viết lại theo quyết định này.
+- ADR-001: URL tiếng Anh ở gốc, `/vi` chỉ cho bốn nhóm có bản dịch.
+- 06: điều kiện truy vấn công khai tách hai trường hợp.
+- 07: badge locale chỉ hiện ở bốn entity có bản dịch.
+
+## Tài liệu bị ảnh hưởng
+01, 02, 03, 04, 05, 06, 07, 08, 10.
+
+---
+
+# ADR-015 — Lọc và duyệt theo cây phân cấp
+
+**Trạng thái:** Accepted · **Ngày:** 2026-07-29
+
+## Bối cảnh
+Năm nhóm dữ liệu có cấu trúc cây: `brands`, `product_categories`, `applications`, `services`, `post_categories`. Bản v1.2.1 chỉ có `parent_id` và **không tài liệu nào quy định** lọc theo nút cha có bao gồm nhánh con hay không.
+
+Hậu quả đo được trên dữ liệu thật: PAC là hãng mẹ, sản phẩm gắn vào các thương hiệu con HERZOG/ISL/ALCOR. Truy vấn `WHERE brand.slug='pac'` trả về **0 sản phẩm**. Tương tự, cây danh mục 3–4 cấp trở nên vô dụng vì lọc cấp 1 không lấy được sản phẩm gắn ở cấp 3.
+
+ADR-007 định nghĩa rất kỹ ngữ nghĩa OR/AND **giữa các chiều lọc** nhưng bỏ trống **chiều dọc của cây**.
+
+## Quyết định
+
+### 1. Lọc theo một nút luôn bao gồm toàn bộ nhánh con
+Chọn "PAC" trả về sản phẩm của PAC và của mọi thương hiệu con. Chọn danh mục cấp 1 trả về sản phẩm của mọi danh mục con. Đây là kỳ vọng mặc định của người dùng.
+
+### 2. Cơ chế: mảng tổ tiên vật chất hóa
+Mỗi bảng cây có thêm:
+```sql
+ancestor_ids UUID[] NOT NULL DEFAULT '{}',   -- từ gốc xuống cha trực tiếp, đúng thứ tự
+depth        INTEGER NOT NULL DEFAULT 0,
+CHECK (NOT (id = ANY(ancestor_ids)))          -- chặn vòng lặp
+CREATE INDEX ... USING GIN (ancestor_ids);
+```
+
+### 3. Truy vấn chuẩn cho nhánh con
+```sql
+WHERE id = :node_id OR ancestor_ids @> ARRAY[:node_id]::uuid[]
+```
+Dùng index GIN, không đệ quy, không N+1.
+
+### 4. Breadcrumb bằng một truy vấn
+`ancestor_ids` đã chứa đủ chuỗi tổ tiên theo thứ tự, lấy bằng một câu `WHERE id = ANY(...)` rồi sắp theo `depth`.
+
+### 5. Bảo toàn tính đúng khi đổi cha
+Khi `parent_id` của một nút đổi, `ancestor_ids` và `depth` của **nút đó và toàn bộ nhánh con** phải được tính lại **trong cùng transaction**. Bắt buộc có test đồng thời cho thao tác này.
+
+### 6. Ngữ nghĩa lọc kết hợp với ADR-007
+Mở rộng nhánh con xảy ra **trước** khi áp ngữ nghĩa OR/AND. Cùng một chiều vẫn OR, khác chiều vẫn AND:
+```text
+?brand=pac&brand=baker-hughes&standard=astm-d86
+  → (nhánh PAC OR nhánh Baker Hughes) AND standard = ASTM D86
+```
+
+## Các phương án đã xem xét
+- **A. Chỉ `parent_id` + recursive CTE.** Không thêm cột, luôn đúng, nhưng mỗi truy vấn lọc phải chạy đệ quy — khó đạt ngân sách truy vấn mà chiến lược kiểm thử đặt ra.
+- **B. Closure table.** Mạnh nhất, nhưng thêm 5 bảng và chi phí ghi cao cho dữ liệu ít thay đổi.
+- **C. Mảng tổ tiên vật chất hóa + GIN (chọn).** Không thêm bảng, đọc rất nhanh, chỉ phải cập nhật khi đổi cha — việc hiếm.
+
+## Hệ quả
+- 05: thêm `ancestor_ids`, `depth`, index GIN, CHECK chống vòng lặp cho 5 bảng cây.
+- 06: query builder mở rộng nhánh con trước khi áp OR/AND; bổ sung test.
+- 01/08: mô tả bộ lọc nói rõ chọn nút cha bao gồm nhánh con.
+
+## Bằng chứng
+Đã kiểm chứng trên PostgreSQL 16.2 với dữ liệu mô phỏng đúng cấu trúc website hiện tại: cách cũ trả 0 sản phẩm, cách mới trả 3. Chi tiết ở `doc/verify/v1.3/README_V1_3.md`.
+
+## Tài liệu bị ảnh hưởng
+01, 03, 05, 06, 08, 10.
 
 ---
 
@@ -732,3 +923,5 @@ Tài liệu từng mô tả đồng thời hai chiến lược: cấu trúc nằ
 | 011 SEO |  |  | ● | ● | ● | ● | ● | ● | ● |
 | 012 Video |  | ● |  | ● | ● | ● | ● | ● | ● |
 | 013 Migration | ● |  |  |  |  | ● | ● |  |  |
+| 014 Ngôn ngữ nội dung | ● | ● | ● | ● | ● | ● | ● | ● | ● |
+| 015 Lọc theo cây |  | ● |  | ● |  | ● | ● |  | ● |

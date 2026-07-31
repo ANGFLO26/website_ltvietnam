@@ -1,13 +1,17 @@
 # 08 — WIREFRAME FRONTEND CÔNG KHAI — WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
+**Phiên bản:** 1.3
 **Mô hình:** Website doanh nghiệp B2B.
-**Ngày:** 2026-07-21
+**Ngày:** 2026-07-29
 **Nguồn sự thật cho:** bố cục & luồng trang công khai (khớp URL ở 02, API ở 06).
 **Áp dụng:** ADR-001 (URL phẳng + canonical hãng), 002 (slug/discontinued), 003 (form/idempotency), 004 (locale/không fallback brand), 007 (filter OR/AND), 011 (canonical/robots/social), 012 (external video).
 
-> **Nhật ký v1.2:** lọc theo hãng dùng `/san-pham/tat-ca?brand={slug}` (noindex,follow); filter OR/AND; canonical/robots tự sinh; social image fallback; download tài liệu dùng slug; external video render từ block đã validate.
-> **Nhật ký v1.2.1:** trang `/san-pham` gọi `GET /products/landing` (không `GET /home`); làm rõ Brand detail không fallback VI→EN.
+> **Nhật ký v1.2:** lọc theo hãng dùng `/products/all?brand={slug}` (noindex,follow); filter OR/AND; canonical/robots tự sinh; social image fallback; download tài liệu dùng slug; external video render từ block đã validate.
+> **Nhật ký v1.2.1:** trang `/products` gọi `GET /products/landing` (không `GET /home`); làm rõ Brand detail không fallback VI→EN.
+
+> **Nhật ký v1.3:** URL tiếng Anh ở gốc, tiếng Việt ở tiền tố `/vi` và **chỉ tồn tại** cho Trang, Bài viết, Dịch vụ, Dự án (ADR-001/014). Công tắc ngôn ngữ trên giao diện đổi nhãn giao diện; với bốn nhóm trên nó chuyển sang URL `/vi/...`, với các nhóm còn lại chỉ đổi nhãn.
+> Bộ lọc: chọn hãng mẹ hoặc danh mục cha **bao gồm toàn bộ nhánh con** (ADR-015).
+> Landing danh mục/tiêu chuẩn/ứng dụng không có mô tả biên tập → `noindex,follow` (ADR-011 §2b).
 
 ---
 
@@ -53,20 +57,20 @@ Mobile: Header · Hero · Tìm kiếm · Danh mục · Sản phẩm · Dịch v�
 
 # PHẦN IV — SẢN PHẨM
 
-## Landing `/san-pham`
+## Landing `/products`
 Cửa vào catalogue: thanh tìm kiếm · tìm theo nhóm (danh mục) · theo hãng · theo nhu cầu (tiêu chuẩn/ứng dụng/ngành) · sản phẩm nổi bật · CTA "không tìm thấy → gửi yêu cầu tư vấn".
 Dữ liệu tổng hợp từ **`GET /api/v1/products/landing`** (v1.2.1) — **KHÔNG** dùng `GET /home` (dành riêng trang chủ).
 
-## Danh sách & lọc `/san-pham/tat-ca` (+ `?brand=&standard=&…`), `/san-pham/danh-muc/{slug}`
+## Danh sách & lọc `/products/all` (+ `?brand=&standard=&…`), `/products/category/{slug}`
 Filter sidebar (desktop) / drawer (mobile): Danh mục · Hãng · Thương hiệu con · Tiêu chuẩn · Ứng dụng.
 Chip "Đang lọc: [PAC ×] [ASTM D86 ×] [Xóa tất cả]"; bỏ một chip chỉ xóa đúng giá trị đó. **URL cập nhật theo filter** dùng slug key-lặp (ADR-007): `?brand=pac&brand=herzog&standard=astm-d86`.
 **Ngữ nghĩa (ADR-007):** checkbox **cùng một nhóm = OR**; các **nhóm khác nhau = AND**. Ví dụ: `(PAC OR Herzog) AND ASTM D86`. Sắp xếp: mặc định/mới cập nhật/A–Z/Z–A.
 Empty state: "Không tìm thấy sản phẩm" + `[Xóa bộ lọc] [Gửi yêu cầu tư vấn]`.
 
-**Lọc theo hãng (v1.2 — ADR-001/011):** dùng URL `/san-pham/tat-ca?brand={slug}` (KHÔNG dùng `/san-pham/hang/{slug}`). Trang này **`robots=noindex,follow`**, `rel=canonical` **về `/san-pham/tat-ca`** (KHÔNG canonical sang hồ sơ hãng). Có nút "Xem hồ sơ hãng" → `/hang-doi-tac/{slug}`. URL cũ `/san-pham/hang/{slug}` → 301.
-Landing `/san-pham/danh-muc|tieu-chuan|ung-dung/{slug}`: self-canonical, index (nội dung biên tập riêng).
+**Lọc theo hãng (v1.2 — ADR-001/011):** dùng URL `/products/all?brand={slug}` (KHÔNG dùng `/products/brand/{slug}`). Trang này **`robots=noindex,follow`**, `rel=canonical` **về `/products/all`** (KHÔNG canonical sang hồ sơ hãng). Có nút "Xem hồ sơ hãng" → `/brands/{slug}`. URL cũ `/products/brand/{slug}` → 301.
+Landing `/products/danh-muc|tieu-chuan|ung-dung/{slug}`: self-canonical, index (nội dung biên tập riêng).
 
-## Chi tiết `/san-pham/{product-slug}` (trang quan trọng nhất)
+## Chi tiết `/products/{product-slug}` (trang quan trọng nhất)
 Đầu trang (không cần cuộn): ảnh + thumbnail · hãng · tên · model · mô tả ngắn · tiêu chuẩn nổi bật · `[YÊU CẦU BÁO GIÁ] [NHẬN TƯ VẤN]` · Tải catalogue.
 Menu nội dung: Tổng quan · Tính năng · Ứng dụng · Tiêu chuẩn · Thông số · Tài liệu.
 Khu vực: Tổng quan · Tính năng · Ứng dụng · Tiêu chuẩn (Compliance/Specification) · Thông số (bảng) · Tài liệu (tải) · Dịch vụ liên quan · Dự án thực tế · Sản phẩm liên quan · Form yêu cầu (tự điền sản phẩm).
@@ -80,31 +84,31 @@ Nếu API trả cờ `discontinued`: hiển thị nhãn **"Sản phẩm đã ng�
 # PHẦN V — HÃNG, DỊCH VỤ, DỰ ÁN, TIN TỨC, TÀI LIỆU
 
 ## Hãng
-Danh sách `/hang-doi-tac`. Hồ sơ hãng `/hang-doi-tac/{brand-slug}` (**index, self-canonical**): ảnh bìa/logo/tên · giới thiệu · quốc gia/website · thương hiệu con (mỗi con là brand slug riêng, link `/hang-doi-tac/{child-slug}`) · nhóm sản phẩm · sản phẩm của hãng · dịch vụ liên quan · tài liệu & tin từ hãng · dự án · CTA. (Không dùng URL lồng cha/con.)
-- Nút **"Xem tất cả sản phẩm của hãng"** → `/san-pham/tat-ca?brand={slug}` (trang lọc, noindex,follow — không canonical sang hồ sơ hãng).
+Danh sách `/brands`. Hồ sơ hãng `/brands/{brand-slug}` (**index, self-canonical**): ảnh bìa/logo/tên · giới thiệu · quốc gia/website · thương hiệu con (mỗi con là brand slug riêng, link `/brands/{child-slug}`) · nhóm sản phẩm · sản phẩm của hãng · dịch vụ liên quan · tài liệu & tin từ hãng · dự án · CTA. (Không dùng URL lồng cha/con.)
+- Nút **"Xem tất cả sản phẩm của hãng"** → `/products/all?brand={slug}` (trang lọc, noindex,follow — không canonical sang hồ sơ hãng).
 - **Tiếng Anh (ADR-004):** hồ sơ hãng **không fallback** VI; nếu bản EN của hãng chưa publish thì trang EN của hãng **không tồn tại** (không hiển thị nội dung VI trên URL EN).
 
 ## Dịch vụ
-Tổng `/dich-vu`: giới thiệu năng lực · nhóm dịch vụ · quy trình tiếp nhận · dự án tiêu biểu · CTA.
-Chi tiết **`/dich-vu/{service-slug}`** (phẳng): tên/mô tả/ảnh · `[YÊU CẦU HỖ TRỢ]` · vấn đề khách gặp · phạm vi · quy trình · thiết bị/hãng · dự án liên quan · FAQ · form (tự điền dịch vụ).
+Tổng `/services`: giới thiệu năng lực · nhóm dịch vụ · quy trình tiếp nhận · dự án tiêu biểu · CTA.
+Chi tiết **`/services/{service-slug}`** (phẳng): tên/mô tả/ảnh · `[YÊU CẦU HỖ TRỢ]` · vấn đề khách gặp · phạm vi · quy trình · thiết bị/hãng · dự án liên quan · FAQ · form (tự điền dịch vụ).
 
 ## Dự án
-Danh sách `/du-an` (lọc theo loại/sản phẩm/hãng/năm). Chi tiết **`/du-an/{project-slug}`**: banner · tên/loại · thông tin (khách hàng theo `customer_visibility` — backend quyết định) · phạm vi · triển khai · hình ảnh · kết quả · sản phẩm/dịch vụ liên quan · CTA. Nếu khách hàng đặt bảo mật: không hiển thị tên/logo.
+Danh sách `/projects` (lọc theo loại/sản phẩm/hãng/năm). Chi tiết **`/projects/{project-slug}`**: banner · tên/loại · thông tin (khách hàng theo `customer_visibility` — backend quyết định) · phạm vi · triển khai · hình ảnh · kết quả · sản phẩm/dịch vụ liên quan · CTA. Nếu khách hàng đặt bảo mật: không hiển thị tên/logo.
 
 ## Tin tức
-Tổng `/tin-tuc` + danh mục `/tin-tuc/danh-muc/{post-category-slug}`. Chi tiết **`/tin-tuc/{post-slug}`** (phẳng): danh mục/tiêu đề/ngày · ảnh · mục lục · nội dung · sản phẩm/bài liên quan.
+Tổng `/news` + danh mục `/news/category/{post-category-slug}`. Chi tiết **`/news/{post-slug}`** (phẳng): danh mục/tiêu đề/ngày · ảnh · mục lục · nội dung · sản phẩm/bài liên quan.
 
 ## Tài liệu
-Danh sách `/tai-lieu` (lọc loại/hãng/sản phẩm/ngôn ngữ) chỉ hiển thị tài liệu công khai; tải trực tiếp qua **`GET /documents/{slug}/download`** (dùng slug — ADR-001, M4). Chi tiết `/tai-lieu/{document-slug}`. **Không** có tài liệu loại video (video ngoài dùng block external_video — ADR-012).
+Danh sách `/resources` (lọc loại/hãng/sản phẩm/ngôn ngữ) chỉ hiển thị tài liệu công khai; tải trực tiếp qua **`GET /documents/{slug}/download`** (dùng slug — ADR-001, M4). Chi tiết `/resources/{document-slug}`. **Không** có tài liệu loại video (video ngoài dùng block external_video — ADR-012).
 
 ---
 
 # PHẦN VI — TÌM KIẾM, LIÊN HỆ, FORM YÊU CẦU
 
-## Tìm kiếm `/tim-kiem?q=`
+## Tìm kiếm `/search?q=`
 MVP: kết quả sản phẩm. **P1:** gộp nhóm (Sản phẩm/Dịch vụ/Bài viết/Dự án/Tài liệu). Không kết quả → thông báo + gợi ý + danh mục phổ biến + nút tư vấn.
 
-## Liên hệ `/lien-he`
+## Liên hệ `/contact`
 Form liên hệ (trái) + thông tin công ty/văn phòng (phải) + bản đồ. Form P0 **không có** file đính kèm (attachment → P1).
 
 ## Form yêu cầu dùng chung (modal) — ADR-003
@@ -128,7 +132,7 @@ Vị trí mở form: Header · trang chủ · danh sách/chi tiết sản phẩm
 
 # PHẦN VII — ĐA NGÔN NGỮ (ADR-004)
 
-- VI tại đường dẫn gốc, EN tại `/en`.
+- VI tại đường dẫn gốc, EN tại `/`.
 - Trang tiếng Anh của product/service/project/post/**brand**/page/document **chỉ hiển thị khi bản dịch EN `published`**. Nếu EN chưa publish: trả trạng thái đúng (trang không tồn tại ở EN / điều hướng về danh sách EN), **không trộn** nội dung VI vào trang EN. **Đặc biệt Brand detail KHÔNG fallback VI** (ADR-004, v1.2).
 - Chỉ fallback dữ liệu **độc lập ngôn ngữ**: model, SKU/mã, mã tiêu chuẩn, proper name hãng (nếu DN xác nhận), nhãn hệ thống — hiển thị nhất quán.
 - **hreflang** chỉ khi cả hai bản published (ADR-004).
@@ -140,7 +144,7 @@ Vị trí mở form: Header · trang chủ · danh sách/chi tiết sản phẩm
 
 Footer: logo + giới thiệu ngắn · cột Công ty/Sản phẩm/Dịch vụ/Liên hệ · chính sách (bảo mật/điều khoản/cookie) · mạng xã hội · bản quyền. **Không** liên kết ngoài không liên quan, không nhồi từ khóa.
 
-Trang hệ thống: 404 (tìm kiếm + về trang chủ + nhóm sản phẩm) · lỗi hệ thống (thân thiện, không stack trace) · yêu cầu thành công (`/yeu-cau-thanh-cong`, không lộ dữ liệu nhạy cảm).
+Trang hệ thống: 404 (tìm kiếm + về trang chủ + nhóm sản phẩm) · lỗi hệ thống (thân thiện, không stack trace) · yêu cầu thành công (`/request-success`, không lộ dữ liệu nhạy cảm).
 
 ---
 
@@ -165,7 +169,7 @@ Trang hệ thống: 404 (tìm kiếm + về trang chủ + nhóm sản phẩm) ·
 ---
 
 # PHẦN XI — QUYẾT ĐỊNH CHỐT (Frontend 1.2)
-1. URL chi tiết **phẳng** (ADR-001); hồ sơ hãng `/hang-doi-tac/{slug}` (index, self-canonical); lọc theo hãng `/san-pham/tat-ca?brand={slug}` (noindex,follow, canonical `/san-pham/tat-ca`); bỏ `/san-pham/hang/{slug}` (301).
+1. URL chi tiết **phẳng** (ADR-001); hồ sơ hãng `/brands/{slug}` (index, self-canonical); lọc theo hãng `/products/all?brand={slug}` (noindex,follow, canonical `/products/all`); bỏ `/products/brand/{slug}` (301).
 2. Nút báo giá nổi bật ở Header + đầu/cuối trang sản phẩm; mobile CTA cố định.
 3. Form tự nhận sản phẩm/dịch vụ nguồn; **idempotency** (Idempotency-Key); **không attachment** ở P0.
 4. Backend lưu yêu cầu trước khi email → 202 (ADR-003); frontend hiển thị "đã tiếp nhận".
@@ -181,7 +185,7 @@ Trang hệ thống: 404 (tìm kiếm + về trang chủ + nhóm sản phẩm) ·
 
 # PHẦN XII — TEST CASE UI BẮT BUỘC
 - **Filter:** chọn PAC + Herzog (cùng nhóm) → OR; thêm ASTM D86 (nhóm khác) → AND; bỏ chip PAC chỉ xóa PAC. URL `?brand=herzog&standard=astm-d86`.
-- **SEO:** hồ sơ hãng self-canonical/index; trang lọc `?brand=` noindex,follow canonical `/san-pham/tat-ca`; landing danh mục self-canonical/index; EN chưa publish → không có hreflang EN.
+- **SEO:** hồ sơ hãng self-canonical/index; trang lọc `?brand=` noindex,follow canonical `/products/all`; landing danh mục self-canonical/index; EN chưa publish → không có hreflang EN.
 - **Video:** block external_video YouTube/Vimeo → render embed an toàn; nội dung chứa raw iframe/domain lạ → không render.
 - **Form:** gửi hai lần cùng Idempotency-Key → chỉ một yêu cầu; SMTP lỗi vẫn nhận "đã tiếp nhận" (đã lưu DB).
-- **Brand EN:** chưa publish EN → `/en/brands-partners/{slug}` không tồn tại (không hiện nội dung VI).
+- **Brand EN:** chưa publish EN → `/brands/{slug}` không tồn tại (không hiện nội dung VI).

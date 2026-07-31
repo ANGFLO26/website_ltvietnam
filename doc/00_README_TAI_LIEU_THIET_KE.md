@@ -1,6 +1,6 @@
 # 00 — README BỘ TÀI LIỆU THIẾT KẾ WEBSITE LT VIETNAM
 
-**Phiên bản bộ tài liệu:** 1.2.1
+**Phiên bản bộ tài liệu:** 1.3
 **Ngày cập nhật:** 2026-07-21
 **Trạng thái:** Approved — READY FOR IMPLEMENTATION
 **Sản phẩm:** Website doanh nghiệp B2B — Công ty TNHH Công nghệ LT Việt Nam.
@@ -9,7 +9,7 @@
 
 ## 1. Mục đích
 
-Bộ tài liệu này là **nguồn sự thật duy nhất** để lập trình website LT Vietnam phiên bản đầu (MVP). Toàn bộ tài liệu đã được đồng bộ theo **13 ADR** chính thức (v1.2.1). Không tài liệu nào được mâu thuẫn với ADR. Bản v1.1 và v1.2 được lưu trong gói lịch sử tại `archive/legacy/ltvn-documentation-history-v1.1-v1.2.zip`.
+Bộ tài liệu này là **nguồn sự thật duy nhất** để lập trình website LT Vietnam phiên bản đầu (MVP). Toàn bộ tài liệu đã được đồng bộ theo **15 ADR** chính thức (v1.3). Không tài liệu nào được mâu thuẫn với ADR. Bản v1.1 và v1.2 được lưu trong gói lịch sử tại `archive/legacy/ltvn-documentation-history-v1.1-v1.2.zip`.
 
 ## 2. Thứ tự đọc
 
@@ -45,12 +45,12 @@ Thứ tự ưu tiên khi mâu thuẫn: **ADR (09) > Phạm vi (01) > Schema (05)
 
 ## 4. Các quyết định lớn đã chốt (tóm tắt — chi tiết ở 09)
 
-| ADR | Quyết định cuối cùng (v1.2.1) |
+| ADR | Quyết định cuối cùng (v1.3) |
 |---|---|
-| 001 | URL chi tiết **phẳng**; hồ sơ hãng `/hang-doi-tac/{slug}` (index, self-canonical); lọc theo hãng `/san-pham/tat-ca?brand={slug}` (noindex,follow, canonical `/san-pham/tat-ca`); bỏ `/san-pham/hang/{slug}` (301) |
-| 002 | Slug đã publish **không tái dùng**; `UNIQUE(locale, slug)` thường; **`first_published_at`** (12 translation); SlugService kiểm 3 nguồn (translation + redirects + route bảo lưu); hard-delete chỉ khi chưa từng publish; đổi slug tạo redirect 301 |
+| 001 | URL chi tiết **phẳng**; hồ sơ hãng `/brands/{slug}` (index, self-canonical); lọc theo hãng `/products/all?brand={slug}` (noindex,follow, canonical `/products/all`); bỏ `/products/brand/{slug}` (301) |
+| 002 | Slug đã publish **không tái dùng**; `UNIQUE(slug)` cho entity một ngôn ngữ, `UNIQUE(locale, slug)` cho 4 bảng translation; **`first_published_at` đặt cạnh `status`**; SlugService kiểm 3 nguồn, **tập route bảo lưu sinh tự động**; hard-delete chỉ khi chưa từng publish; đổi slug tạo redirect 301 |
 | 003 | **Lưu inquiry vào DB (`inquiries` + `inquiry_outbox`) trước khi gửi email**; outbox concurrency (`processing`/lock/SKIP LOCKED/reaper, `UNIQUE(inquiry_id,channel,recipient)`, `email_status` bỏ `received`); **semantics at-least-once + Message-ID ổn định**; idempotency; không có UI quản lý inquiry MVP; retention TBD |
-| 004 | Publish **theo từng ngôn ngữ** cho 7 entity chính; EN không bắt buộc lúc ra mắt; **KHÔNG fallback Brand detail** VI→EN; hreflang chỉ khi cả hai published |
+| 004 | Publish **theo từng ngôn ngữ** cho **4 entity** (pages/posts/services/projects); không có ngôn ngữ bắt buộc; **không auto-fallback**; hreflang chỉ khi cả hai published |
 | 005 | Media FK **RESTRICT**; không xóa media đang dùng (409); **không SVG** |
 | 006 | Khóa phạm vi P0/P1/Future; audit log structured (không bảng `audit_logs` trong P0) |
 | 007 | Bộ lọc slug key lặp; **cùng dimension OR, khác dimension AND**; facet count P1 |
@@ -59,7 +59,7 @@ Thứ tự ưu tiên khi mâu thuẫn: **ADR (09) > Phạm vi (01) > Schema (05)
 | 010 | Toàn vẹn catalogue + draft: bỏ `primary_category_id`/`service_documents`/`media_role=featured`; `brand_id NOT NULL`; applications phẳng; ecommerce fields ẩn |
 | 011 | Canonical/robots **tự sinh** (không lưu DB, không checkbox); bỏ `social_image_id` translation; social image fallback chain |
 | 012 | Video: bỏ `document_type=video`; external video block YouTube/Vimeo; không upload video; `product_videos` là P1 |
-| 013 | **Migration baseline duy nhất 001–070 (v1.2.1)**; trigger `updated_at` tại 070; không `071` active; rollback 070→001; đóng băng migration sau shared env đầu tiên |
+| 013 | **Baseline duy nhất v1.3 (52 bảng)**; trigger `updated_at` ở migration cuối; rollback ngược; đóng băng sau shared env đầu tiên |
 
 Quyết định dữ liệu quan trọng: **bỏ** `products.primary_category_id` (dùng `product_category_links.is_primary`) · **bỏ** `service_documents` (dùng `document_services`) · **bỏ** `product_media.media_role='featured'` · **bỏ** `social_image_id` khỏi page/product translation · giữ `products.brand_id NOT NULL` · applications phẳng trong Admin (DB giữ parent_id) · draft cho phép thiếu (chỉ `name`/`slug` bắt buộc) · thêm `first_published_at` × 12 translation.
 
@@ -105,7 +105,7 @@ Không sửa một file rồi để file khác nói khác. Mọi thay đổi quy
 - `Reviewed` → đã đồng bộ. Sau vòng sửa kỹ thuật v1.2: **READY FOR FINAL VERIFICATION** (chờ một vòng xác minh độc lập).
 - `Approved` / `READY FOR IMPLEMENTATION` → chỉ đặt sau khi vòng xác minh độc lập đạt.
 
-Bộ tài liệu v1.2.1 đã hoàn thành:
+Bộ tài liệu v1.3 đã hoàn thành:
 - kiểm tra chéo tài liệu;
 - static validation;
 - SQL Execution Verification trên PostgreSQL 16;

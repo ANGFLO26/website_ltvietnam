@@ -1,9 +1,9 @@
 # 01 — PHẠM VI CHỨC NĂNG VÀ MVP — WEBSITE LT VIETNAM
 
-**Phiên bản:** 1.2.1
-**Ngày:** 2026-07-21
+**Phiên bản:** 1.3
+**Ngày:** 2026-07-29
 **Nguồn sự thật cho:** phạm vi nghiệp vụ, phân loại P0/P1/Future.
-**Áp dụng:** ADR-001..012 (xem `09_ADR_QUYET_DINH_KIEN_TRUC.md`).
+**Áp dụng:** ADR-001..015 (xem `09_ADR_QUYET_DINH_KIEN_TRUC.md`).
 
 ---
 
@@ -53,7 +53,7 @@ Product Filters (KHÔNG facet count)
 Inquiry persistence + email retry (inquiries + inquiry_outbox)  ← P0
 Redirect (301, quản lý URL cũ)
 SEO nền tảng (canonical, hreflang, sitemap.xml theo ngôn ngữ, robots.txt, structured data)
-Tiếng Việt + Tiếng Anh (publish theo ngôn ngữ — ADR-004)
+Tiếng Anh mặc định; tiếng Việt cho pages/posts/services/projects (ADR-014)
 ```
 
 ## 3. P1 — Nên có ngay sau MVP
@@ -115,8 +115,8 @@ Mỗi trang là một `page` (bảng `pages`) quản lý được tiêu đề, n
 Cấu trúc: `Hãng mẹ → Thương hiệu con → Sản phẩm`. Ví dụ PAC → Herzog/ISL/Alcor/Antek/Phase/AC Analytical Controls. Hãng không có thương hiệu con thì sản phẩm gắn trực tiếp vào hãng.
 
 **URL & canonical (ADR-001/011, v1.2):**
-- Hồ sơ hãng canonical: `/hang-doi-tac/{brand-slug}` (cả hãng mẹ và thương hiệu con) — index, self-canonical.
-- Lọc sản phẩm theo hãng = **`/san-pham/tat-ca?brand={brand-slug}`** — noindex,follow, canonical về `/san-pham/tat-ca`. **Không** dùng `/san-pham/hang/{brand-slug}` (nếu còn → 301).
+- Hồ sơ hãng canonical: `/brands/{brand-slug}` (cả hãng mẹ và thương hiệu con) — index, self-canonical.
+- Lọc sản phẩm theo hãng = **`/products/all?brand={brand-slug}`** — noindex,follow, canonical về `/products/all`. **Không** dùng `/products/brand/{brand-slug}` (nếu còn → 301).
 - Quan hệ cha–con thể hiện qua `parent_id` và điều hướng nội trang, **không** qua URL lồng.
 
 Thông tin hãng: tên, logo, VI/EN, quốc gia, mô tả, website chính thức, hãng mẹ (nếu có), thương hiệu con, ảnh, catalogue, danh sách sản phẩm, dịch vụ liên quan, trạng thái, thứ tự.
@@ -125,7 +125,7 @@ Thông tin hãng: tên, logo, VI/EN, quốc gia, mô tả, website chính thức
 
 Danh mục nhiều cấp (cây), khuyến nghị tối đa 3–4 cấp. Admin tạo/sửa/sắp xếp/ẩn/hiện; không viết cứng.
 
-URL danh sách theo danh mục: `/san-pham/danh-muc/{category-slug}` (ADR-001).
+URL danh sách theo danh mục: `/products/category/{category-slug}` (ADR-001).
 
 # 9. Sản phẩm
 
@@ -148,40 +148,41 @@ Khi có `discontinued_at`: **giữ trang công khai**, hiển thị nhãn "Sản
 
 # 10. Danh sách, tìm kiếm và lọc sản phẩm
 
-- **Trang landing sản phẩm `/san-pham`** (cửa vào catalogue) dùng endpoint riêng **`GET /api/v1/products/landing`** (v1.2.1) — **không** dùng `GET /home`.
-- Danh sách phân trang. URL: `/san-pham/tat-ca`, `/san-pham/danh-muc/{slug}`, `/san-pham/tat-ca?brand={slug}` (lọc theo hãng — v1.2).
+- **Trang landing sản phẩm `/products`** (cửa vào catalogue) dùng endpoint riêng **`GET /api/v1/products/landing`** (v1.2.1) — **không** dùng `GET /home`.
+- Danh sách phân trang. URL: `/products/all`, `/products/category/{slug}`, `/products/all?brand={slug}` (lọc theo hãng — v1.2).
 - Tìm kiếm sản phẩm P0 (pg_trgm): tên, model, hãng, danh mục, tiêu chuẩn, mô tả ngắn.
-- Bộ lọc P0: danh mục, hãng, thương hiệu con, tiêu chuẩn, ứng dụng. **Không** facet count trong P0 (→ P1).
+- Bộ lọc P0: danh mục, hãng, tiêu chuẩn, ứng dụng, ngành. **Không** facet count trong P0 (→ P1).
+- **Chọn một nút bao gồm toàn bộ nhánh con (ADR-015).** Chọn hãng mẹ `PAC` trả về cả sản phẩm của HERZOG/ISL/ALCOR; chọn danh mục cấp 1 trả về sản phẩm của mọi danh mục con. Thương hiệu con không còn là chiều lọc riêng — nó là một `brand` trong cây.
 - **Ngữ nghĩa (ADR-007):** cùng một dimension = **OR**, giữa các dimension = **AND**. Bộ lọc dùng **slug**, query key lặp: `?brand=pac&brand=herzog&standard=astm-d86` = `(brand=PAC OR Herzog) AND standard=ASTM D86`.
-- Trang lọc sản phẩm theo hãng dùng URL `/san-pham/tat-ca?brand={slug}` (noindex,follow — ADR-001/011), **không** dùng `/san-pham/hang/{slug}` làm landing indexable.
+- Trang lọc sản phẩm theo hãng dùng URL `/products/all?brand={slug}` (noindex,follow — ADR-001/011), **không** dùng `/products/brand/{slug}` làm landing indexable.
 
 # 11. Trang chi tiết sản phẩm
 
-URL: `/san-pham/{product-slug}` (ADR-001). Nội dung: tên/model/hãng/ảnh/mô tả, tính năng, ứng dụng, tiêu chuẩn, thông số, catalogue, video, sản phẩm/dịch vụ/dự án liên quan, nút báo giá/tư vấn, form yêu cầu.
+URL: `/products/{product-slug}` (ADR-001). Nội dung: tên/model/hãng/ảnh/mô tả, tính năng, ứng dụng, tiêu chuẩn, thông số, catalogue, video, sản phẩm/dịch vụ/dự án liên quan, nút báo giá/tư vấn, form yêu cầu.
 
 Nút "Yêu cầu báo giá" tự điền `product_id`, `inquiry_type=quotation`, `source_url`.
 
 # 12. Dịch vụ kỹ thuật
 
-Cây `Nhóm dịch vụ → Dịch vụ cụ thể`. URL chi tiết **phẳng**: `/dich-vu/{service-slug}` (ADR-001; **không** `/dich-vu/{nhóm}/{dịch-vụ}`).
+Cây `Nhóm dịch vụ → Dịch vụ cụ thể`. URL chi tiết **phẳng**: `/services/{service-slug}` (ADR-001; **không** `/services/{nhóm}/{dịch-vụ}`).
 
 Nội dung: tên, mô tả, vấn đề khách gặp, phạm vi, quy trình, thiết bị/hãng liên quan, hình ảnh, dự án đã làm, tài liệu, FAQ, form yêu cầu hỗ trợ. Form tự ghi `service_id`, `inquiry_type=technical_support`.
 
 # 13. Dự án và bàn giao
 
-URL chi tiết phẳng: `/du-an/{project-slug}`. Nội dung: tên, loại, khách hàng (theo chế độ công khai), địa điểm, thời gian, thiết bị, hãng, phạm vi, triển khai, kết quả, hình ảnh, sản phẩm/dịch vụ liên quan.
+URL chi tiết phẳng: `/projects/{project-slug}`. Nội dung: tên, loại, khách hàng (theo chế độ công khai), địa điểm, thời gian, thiết bị, hãng, phạm vi, triển khai, kết quả, hình ảnh, sản phẩm/dịch vụ liên quan.
 
 Chế độ công khai khách hàng (`customer_visibility`): `public / hide_name / industry_only / confidential`. **Backend** quyết định ẩn/hiện, không để frontend tự quyết.
 
 # 14. Tin tức và bài viết
 
-URL danh mục: `/tin-tuc/danh-muc/{post-category-slug}`. URL chi tiết **phẳng**: `/tin-tuc/{post-slug}` (ADR-001; **không** `/tin-tuc/{danh-mục}/{bài}`).
+URL danh mục: `/news/category/{post-category-slug}`. URL chi tiết **phẳng**: `/news/{post-slug}` (ADR-001; **không** `/news/{danh-mục}/{bài}`).
 
 Loại bài: tin công ty, tin sản phẩm, tin từ hãng, hội thảo/sự kiện, kiến thức kỹ thuật, thông báo. Trạng thái: draft/published/hidden. `published_at` = thời điểm xuất bản/tái xuất bản **hiện tại**. **Scheduled publishing thuộc P1** và sẽ dùng trường `scheduled_publish_at` **riêng**; **không** dùng `published_at` để lưu lịch tương lai (P0 không có `scheduled_publish_at`).
 
 # 15. Khách hàng tiêu biểu, Tài liệu, Media, Văn phòng
 - **Khách hàng tiêu biểu:** dữ liệu công khai (không phải CRM). Chỉ hiển thị khi `is_public = true`.
-- **Tài liệu:** catalogue/brochure/datasheet/… URL: `/tai-lieu/{document-slug}`. MVP `visibility ∈ {public, hidden}`; tải trực tiếp, không yêu cầu email.
+- **Tài liệu:** catalogue/brochure/datasheet/… URL: `/resources/{document-slug}`. MVP `visibility ∈ {public, hidden}`; tải trực tiếp, không yêu cầu email.
 - **Media (ADR-005):** quản lý tập trung; chỉ JPG/JPEG/PNG/WebP/PDF; **không SVG**; không xóa media đang dùng (409); FK RESTRICT.
 - **Văn phòng:** mỗi văn phòng một bản ghi; địa chỉ, điện thoại, email, giờ làm việc, bản đồ, tọa độ, trạng thái.
 
@@ -206,9 +207,23 @@ Khách nhập → Frontend validate → Backend validate → CAPTCHA + Rate limi
 ## 16.4. Email
 From = địa chỉ thuộc domain LT Vietnam; Reply-To = email khách; sanitize header (bỏ CR/LF); email nhận cấu hình trong `settings` (không viết cứng). Yêu cầu SPF/DKIM/DMARC.
 
-# 17. Đa ngôn ngữ (ADR-004)
+# 17. Đa ngôn ngữ (ADR-014)
 
-Tiếng Việt (mặc định, bắt buộc trước khi publish entity) + Tiếng Anh (publish độc lập, không bắt buộc lúc ra mắt). Mỗi bản dịch của 7 entity nội dung chính (product/service/project/post/brand/page/document) có `status` riêng. **Không** trộn ngôn ngữ; **không** auto-fallback VI cho URL EN của các entity này (đặc biệt **KHÔNG fallback Brand detail** — ADR-004). Chỉ fallback dữ liệu **độc lập ngôn ngữ**: model, SKU, mã sản phẩm, mã tiêu chuẩn, proper name chính thức của thương hiệu khi DN xác nhận dùng chung, nhãn hệ thống cấu hình chung.
+**Ngôn ngữ lưu trữ nội dung là tiếng Anh.** Nội dung nằm thẳng trên bảng entity, không có bảng translation — trừ bốn nhóm:
+
+```text
+pages · posts · services · projects
+```
+
+Bốn nhóm này có bảng translation, xuất bản độc lập từng ngôn ngữ, và có URL `/vi/...`.
+
+**Nhãn giao diện do frontend dịch**, không nằm trong database. Người xem đổi ngôn ngữ hiển thị bằng công tắc trên giao diện.
+
+**Tên thiết bị không dịch.** `products.name` và `products.model` là danh từ riêng kỹ thuật (`OptiDist Atmospheric Distillation`, `HVM 472`), dùng chung mọi ngôn ngữ.
+
+**Không auto-fallback** giữa hai bản dịch của bốn nhóm trên: `/vi/news/{slug}` chỉ tồn tại khi bản tiếng Việt `published`; thiếu thì 404 hoặc về danh sách tiếng Việt, không trộn ngôn ngữ.
+
+**hreflang** chỉ sinh cho bốn nhóm đó và chỉ khi cả hai bản `published`.
 
 # 18. Menu, điều hướng và SEO
 
