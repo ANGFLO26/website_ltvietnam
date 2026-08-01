@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { loadConfig } from '@ltv/config';
 import pg from 'pg';
 import {
@@ -12,8 +11,10 @@ import {
   validateHistory,
 } from './migration-runner.js';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const MIGRATIONS_DIR = resolve(here, '../migrations');
+// Giai theo thu muc goi cua package (pnpm --filter dat cwd o day).
+// KHONG dung import.meta.url: file da bien dich nam trong dist/src/ nen
+// duong dan tuong doi se lech mot cap.
+const MIGRATIONS_DIR = resolve(process.cwd(), 'migrations');
 
 const log = (m: string) => process.stdout.write(`${m}\n`);
 

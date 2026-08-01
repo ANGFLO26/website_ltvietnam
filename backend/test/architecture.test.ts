@@ -112,7 +112,9 @@ describe('Luat 3 — services/ khong import cai dat DAO, chi import interface', 
       if (layerOf(f.path) !== 'services') continue;
       for (const spec of f.imports) {
         const t = resolveImport(f.path, spec);
-        if (t && /^dao\/[^/]+\/dao\.ts$/.test(t)) bad.push(`${f.path} -> ${spec}`);
+        // Import spec giu duoi `.js` sau khi bien dich, nen phai bat ca hai duoi.
+        // (Phep thu tiem loi phat hien: regex chi bat `.ts` KHONG BAO GIO khop.)
+        if (t && /^dao\/[^/]+\/dao\.(ts|js)$/.test(t)) bad.push(`${f.path} -> ${spec}`);
       }
     }
     expect(bad, `Service chi duoc phu thuoc dao.interface.ts:\n${bad.join('\n')}`).toEqual([]);
