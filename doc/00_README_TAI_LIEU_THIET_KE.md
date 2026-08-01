@@ -77,7 +77,8 @@ Quyết định dữ liệu quan trọng: **bỏ** `products.primary_category_id
 | 07_WIREFRAME_GIAO_DIEN_ADMIN.md | thiet ke wireframe va cau truc giao dien admin.md |
 | 08_WIREFRAME_FRONTEND_CONG_KHAI.md | thiet ke wireframe frontend.md |
 | 09_ADR_QUYET_DINH_KIEN_TRUC.md | — |
-| 10_CHANGELOG_DONG_BO_TAI_LIEU.md | — |
+| 10_CHANGELOG_DONG_BO_TAI_LIEU.md
+11_CONTENT_BLOCK_SCHEMA.md | — |
 
 Các file cũ (tên tiếng Việt có dấu cách: `schema.md`, `ERD.md`, `sitemap.md`, …) **đã được xóa** sau khi chuyển toàn bộ nội dung sang các file đánh số ở trên. Chỉ dùng bộ 00–10 để lập trình. **Bản v1.1 (trước vòng sửa kỹ thuật này) được lưu tại `archive/v1.1/`** — chỉ tham khảo, không sửa, không dùng để code.
 

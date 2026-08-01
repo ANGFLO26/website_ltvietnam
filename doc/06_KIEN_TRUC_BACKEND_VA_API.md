@@ -442,6 +442,14 @@ draft/hidden/archived/deleted, admin/api/error → noindex,nofollow / không rou
 - Redirect đổi slug (ADR-002, SlugService); URL cũ `/products/brand/{slug}` → 301 `/products/all?brand={slug}`; giữ URL sản phẩm ngừng KD (không redirect trừ khi DN duyệt); tránh chain/loop.
 - Checklist crawl website cũ: `URL cũ | Loại | URL mới | Trạng thái migrate | 301 | Giữ/Sửa/Bỏ | Ảnh | PDF | Backlink`.
 
+## Content block (doc/11)
+
+Mọi trường `JSONB` chứa nội dung biên tập tuân theo `doc/11_CONTENT_BLOCK_SCHEMA.md`. Cài đặt có thẩm quyền ở `packages/contracts/src/blocks.ts`.
+
+**Thứ tự validate bắt buộc khi ghi:** parse → kiểm phong bì → kiểm giới hạn → kiểm allowlist theo trường → chuẩn hóa văn bản → kiểm tham chiếu `media_id`/`document_id` → kiểm scheme link → **trích media_id** → ghi nội dung **và** đồng bộ `content_media_refs` trong **một** transaction.
+
+Hai bước cuối là bắt buộc. Bỏ chúng thì `MediaUsageService` không thấy ảnh dùng trong block và ảnh sẽ bị purge vĩnh viễn.
+
 ## External video (ADR-012)
 Content block `external_video {provider, url, title, caption}` trong pages/products/brands/services/projects/posts. Backend validate: `provider ∈ {youtube, vimeo}`, parse & xác thực domain, trích **video ID**, chuẩn hóa URL; **KHÔNG** lưu raw iframe/script; **từ chối** domain ngoài whitelist. Frontend tự dựng embed an toàn từ provider + video ID. **Không** upload file video (ADR-009). Lỗi → `422 VIDEO_PROVIDER_NOT_ALLOWED` / `VIDEO_URL_INVALID`.
 

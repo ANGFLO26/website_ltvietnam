@@ -296,3 +296,27 @@ Baseline v1.3 đã chạy trên **PostgreSQL 16.2** thật: 52 bảng, 95 FK, 28
 
 ## Q7. Quan hệ với v1.2.1
 Baseline v1.2.1 (63 bảng) **chưa từng chạy trên môi trường nào** — `05` v1.2.1 tự ghi "STATIC VALIDATION ONLY". Không có dữ liệu nào cần chuyển đổi. v1.3 thay thế hoàn toàn, không phải nâng cấp.
+
+
+---
+
+# PHẦN R — TÀI LIỆU 11: LƯỢC ĐỒ CONTENT BLOCK (2026-08-01)
+
+## R1. Vì sao
+Hơn 20 trường `JSONB` chứa nội dung biên tập, nhưng v1.2.1 chỉ định nghĩa **một** loại block (`external_video`). P3 phải viết validator cho lược đồ chưa tồn tại; P9 dựng editor; P10 render; CM1 map nội dung cũ — bốn phase cùng phụ thuộc một hợp đồng trống.
+
+## R2. Nội dung
+`doc/11_CONTENT_BLOCK_SCHEMA.md` định nghĩa **10 loại block**: heading, paragraph, list, image, gallery, table, external_video, file, callout, divider. Kèm phong bì có `version`, allowlist theo từng trường, cấu trúc FAQ riêng, giới hạn xử lý (đóng quyết định B25), hợp đồng validate và hợp đồng render.
+
+## R3. Ba nguyên tắc không được phá
+1. **Không bao giờ lưu HTML.** Backend lưu dữ liệu có cấu trúc; frontend dựng HTML. Mở rộng nguyên tắc ADR-012 ra toàn bộ nội dung.
+2. **Media chỉ tham chiếu bằng `media_id`**, không bao giờ bằng URL — điều kiện để `content_media_refs` hoạt động.
+3. **Mảng phẳng, không lồng nhau.**
+
+## R4. Kiểm chứng
+Cài đặt ở `packages/contracts/src/blocks.ts`, **22 test PASS**, trong đó phép thử chính là dựng lại nguyên trang sản phẩm OptiDist của website hiện tại bằng lược đồ này — 9 block, gồm cả danh sách 15 tính năng và video YouTube.
+
+Test bảo mật chặn: `javascript:`, `http://` không mã hóa, provider ngoài whitelist, `video_id` chứa URL, `image` dùng URL thay `media_id`, `heading` level 1, `file` trỏ thẳng media.
+
+## R5. Ghi chú migration
+Danh sách "Methods" của site cũ (`ASTM D86, D1078...`) là **dữ liệu quan hệ**, phải parse vào `product_standards`, không để trong block — nếu để trong block thì mất khả năng lọc theo tiêu chuẩn (ADR-007).
