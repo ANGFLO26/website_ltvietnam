@@ -27,6 +27,17 @@ offices, navigation, redirects, search, inquiries, seo, health
 ```
 `seo` mới: sinh `sitemap.xml` theo ngôn ngữ, `robots.txt`, hỗ trợ canonical/hreflang. `redirects` gồm middleware phục vụ 301/302.
 
+## Bố cục kho lưu trữ (v1.3)
+
+```text
+backend/    Nest Core API   (D3 gọi là apps/api)
+frontend/   Next.js         (D3 gọi là apps/web)
+worker/     Outbox worker   (D3 gọi là apps/worker)
+packages/   config · contracts · db · testing
+```
+
+Tên thư mục đổi so với D3 để người đọc thấy ngay đâu là backend. Vai trò và ranh giới không đổi; ghi nhận ở `planning/implementation/PLAN_DELTA_V1_3.md`.
+
 ## Tầng đọc và tầng ghi tách nhau
 
 ```text

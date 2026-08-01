@@ -25,6 +25,6 @@ pnpm db:status
 
 echo
 echo "Xong. Chay tiep:"
-echo "  pnpm dev:api      # http://localhost:3001/health/live"
-echo "  pnpm dev:web      # http://localhost:3000"
+echo "  pnpm dev:backend      # http://localhost:3001/health/live"
+echo "  pnpm dev:frontend      # http://localhost:3000"
 echo "  pnpm dev:worker"

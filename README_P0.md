@@ -5,17 +5,41 @@ Khung monorepo cho MVP. Baseline schema **v1.3 (52 bảng)** đã được kiể
 ## Cấu trúc
 
 ```text
-apps/
-├── api/         Nest Core API — /api/v1, health Model B
-├── web/         Next.js — public + /admin (một app, D2)
-└── worker/      Tiến trình outbox riêng (D6)
+backend/     Nest Core API — bốn tầng, xem bên dưới
+frontend/    Next.js — public + /admin (một app, D2)
+worker/      Tiến trình outbox riêng (D6)
 packages/
 ├── config/      Xác thực biến môi trường (không đọc DB)
-├── contracts/   Bảng route + tập route bảo lưu sinh tự động
-├── db/          Kysely + migration runner + 33 migration
+├── contracts/   Bảng route + lược đồ content block
+├── db/          Kysely + migration runner + 33 migration + seed
 └── testing/     Tiện ích test tích hợp
 doc/verify/v1.3/ DDL có thẩm quyền
 ```
+
+## Kiến trúc backend — bốn tầng
+
+```text
+backend/src/
+├── shared/
+│   ├── domain/           lỗi nghiệp vụ. Không import gì từ ba tầng kia
+│   ├── application/      Executor (kiểu mở), TransactionPort
+│   └── infrastructure/   config, pool, Kysely, logger, exception filter
+└── modules/<tên>/
+    ├── presentation/     HTTP. Không biết SQL
+    ├── application/      use case + transaction
+    │   └── ports/        interface RA NGOÀI — module khác chỉ dùng cái này
+    ├── domain/           quy tắc thuần (chỉ khi có quy tắc thật)
+    └── infrastructure/   nơi DUY NHẤT biết SQL
+```
+
+**Bốn luật, ép tự động bằng `backend/test/architecture.test.ts`:**
+
+1. `presentation` không import `infrastructure`
+2. `domain` không import gì từ ba tầng còn lại, kể cả framework
+3. Module A chỉ được chạm `ports/` của module B
+4. Chỉ `infrastructure` được import `kysely` và `pg`
+
+Sai tầng là **build đỏ**, không phải góp ý lúc review.
 
 ## Chạy lần đầu
 
@@ -71,7 +95,7 @@ Definition of Done của P0. Bằng chứng: `implementation/evidence/p0-spike-3
 
 Hai helper của App Router vi phạm ba yêu cầu cùng lúc: sai mã trạng thái, gửi kèm HTML đã render, và vì có HTML nghĩa là trang đã render xong rồi mới redirect.
 
-**Ràng buộc:** `apps/web/src/middleware.ts` là nơi **duy nhất** phát redirect. Không thay bằng helper của App Router ở bất kỳ phase nào.
+**Ràng buộc:** `frontend/src/middleware.ts` là nơi **duy nhất** phát redirect. Không thay bằng helper của App Router ở bất kỳ phase nào.
 
 Next.js được ghim **chính xác 15.5.22** — bản 15.1.3 ban đầu dính CVE-2025-66478.
 

@@ -18,7 +18,9 @@
     "migrate": "pnpm build && node dist/cli.js up",
     "rollback": "pnpm build && node dist/cli.js down",
     "status": "pnpm build && node dist/cli.js status",
-    "verify": "pnpm build && node dist/cli.js verify"
+    "verify": "pnpm build && node dist/cli.js verify",
+    "gen:types": "pnpm build && node dist/scripts/generate-types.js",
+    "seed": "pnpm build && node dist/scripts/seed.js"
   },
   "dependencies": {
     "@ltv/config": "workspace:*",

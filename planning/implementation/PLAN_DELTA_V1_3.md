@@ -25,6 +25,7 @@ Nên plan giữ nguyên như lúc được duyệt, và file này ghi phần đ�
 |---|---|---|
 | `01` A4 | "Baseline 001–070, **63 bảng**" | Baseline v1.3, **52 bảng**, `doc/verify/v1.3/schema_up.sql` |
 | `01` A4 | "067 FK indexes, 068 search indexes, 069 partial indexes, 070 updated-at triggers" | Đánh số migration sẽ định lại khi materialize; trigger vẫn ở bước cuối |
+| `01` D3 | `apps/api`, `apps/web`, `apps/worker` | Đổi tên thành `backend/`, `frontend/`, `worker/`. Vai trò, ranh giới và số module không đổi — chỉ đổi tên thư mục để người đọc thấy ngay đâu là backend |
 | `01` A5 | "URL detail phẳng; taxonomy list URLs theo Approved routes" | Vẫn phẳng, nhưng **tiếng Anh ở gốc**, `/vi` chỉ cho 4 nhóm có bản dịch (ADR-001 v1.3) |
 | `01` A7 | "**12 translation tables** có `first_published_at`" | `first_published_at` đặt cạnh `status`: 8 bảng entity + 4 bảng translation (ADR-002 v1.3) |
 | `01` A10 | "Locale publication cho product/service/project/post/brand/page/document" (7 entity) | **4 entity**: pages, posts, services, projects (ADR-014) |
