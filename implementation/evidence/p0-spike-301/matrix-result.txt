@@ -1,0 +1,20 @@
+==============================================================================
+MA TRAN SPIKE HTTP 301 — Next.js 15.5.22
+==============================================================================
+PASS  1. Ma trang thai dung 301                        status=301 location=/products/optidist
+PASS  2. Body khong co HTML da render                  bodyLen=18 body="/products/optidist"
+PASS  3. Redirect truoc streaming (trang dich khong chay) trang that render=true, redirect body=18B, header sau 9ms
+PASS  4. Development build                             status=301 bodyLen=18
+PASS  5. Production build                              status=301
+PASS  6. Qua reverse proxy                             status=301 location=/products/optidist
+PASS  7. Cache miss                                    status=301 cache-control=no-store
+PASS  8. Cache hit (lan hai giong het)                 lan1=301//products/optidist lan2=301//products/optidist
+PASS  9. A -> B                                        -> /b
+PASS  10. A->B->C truc tiep (mot hop)                  -> /chain-c
+PASS  11. Resolver timeout -> 503 fail-safe            status=503 resolver=unavailable ms=359
+PASS  12. Resolver khong san sang -> 503               status=503 resolver=unavailable
+PASS  13. Ban cache trang cu khong de len redirect     trang that=200, duong cu=301
+PASS  14. Redirect khong bi cache (no-store)           cache-control=no-store
+PASS  15. 20 request dong thoi nhat quan               status khac nhau=1
+==============================================================================
+15/15 PASS

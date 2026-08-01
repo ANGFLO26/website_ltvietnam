@@ -1,0 +1,12 @@
+next_version=15.5.22
+react_version=19.0.0
+node_version=v22.22.3
+pnpm_version=10.34.5
+lockfile_sha256=0dd6a54ffb28210205dd81613f19d68d36b00583a8058eda47e6cb83e5010f50
+middleware_sha256=159e71dc7dd1511be89c008a695ab6baf137f7d8b8ecce4bbb883d2c942bc521
+next_config_sha256=29319861201bbbabbf2a864d98181ae79ef9a01b7d936b7012f3481c3e559265
+build_id=
+router=App Router
+middleware_runtime=
+os=Linux 6.8.0-124-generic
+verified_at_utc=2026-08-01T06:29:23Z

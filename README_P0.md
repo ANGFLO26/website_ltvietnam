@@ -57,9 +57,27 @@ Hiện thực yêu cầu CASE B của kế hoạch P1:
 
 Gộp toàn bộ 33 file `up` **bằng đúng** `doc/verify/v1.3/schema_up.sql` — điều kiện aggregate equivalence của P1.
 
+## Spike HTTP 301 — ĐÃ XONG, 15/15 PASS
+
+Definition of Done của P0. Bằng chứng: `implementation/evidence/p0-spike-301/`.
+
+**Phát hiện quyết định** — đo thật trên Next.js 15.5.22 production:
+
+| Cách | Status | Body | Thỏa D17? |
+|---|---:|---:|---|
+| `redirect()` App Router | 307 | 5.858 B **có HTML** | ❌ |
+| `permanentRedirect()` App Router | 308 | 5.861 B **có HTML** | ❌ |
+| middleware `NextResponse.redirect(url, 301)` | **301** | **18 B** | ✅ |
+
+Hai helper của App Router vi phạm ba yêu cầu cùng lúc: sai mã trạng thái, gửi kèm HTML đã render, và vì có HTML nghĩa là trang đã render xong rồi mới redirect.
+
+**Ràng buộc:** `apps/web/src/middleware.ts` là nơi **duy nhất** phát redirect. Không thay bằng helper của App Router ở bất kỳ phase nào.
+
+Next.js được ghim **chính xác 15.5.22** — bản 15.1.3 ban đầu dính CVE-2025-66478.
+
 ## Chưa có (đúng phạm vi P0)
 
-Module nghiệp vụ (P2 trở đi) · lược đồ content block · thiết kế giao diện · spike HTTP 301 ghim phiên bản Next.js (là DoD của P0, chưa làm).
+Module nghiệp vụ (P2 trở đi) · lược đồ content block · thiết kế giao diện.
 
 ## Quyết định đã áp dụng
 
