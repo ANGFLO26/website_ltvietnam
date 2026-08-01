@@ -29,7 +29,7 @@ const TYPE_MAP: Record<string, string> = {
   boolean: 'boolean',
   'timestamp with time zone': 'Timestamp',
   'timestamp without time zone': 'Timestamp',
-  date: 'DateString',
+  date: 'DateOnly',
   time: 'string',
   jsonb: 'Json',
   json: 'Json',
@@ -81,22 +81,35 @@ async function main(): Promise<void> {
     ' */',
     "import type { ColumnType, Generated } from 'kysely';",
     '',
+    '// Cot dung ColumnType san. Ban `*Gen` cho cot CO DEFAULT: kieu insert them',
+    '// `undefined` de khong phai truyen. KHONG boc `Generated<ColumnType<..>>` —',
+    '// boc hai lan lam hong kieu doc.',
     'type Timestamp = ColumnType<Date, Date | string, Date | string>;',
-    'type DateString = ColumnType<Date, Date | string, Date | string>;',
+    'type TimestampGen = ColumnType<Date, Date | string | undefined, Date | string>;',
+    'type DateOnly = ColumnType<Date, Date | string, Date | string>;',
+    'type DateOnlyGen = ColumnType<Date, Date | string | undefined, Date | string>;',
     'type Json = unknown;',
+    'type JsonGen = ColumnType<unknown, unknown | undefined, unknown>;',
     '',
   ];
 
   for (const [table, cols] of [...byTable].sort()) {
     out.push(`export interface ${pascal(table)}Table {`);
     for (const c of cols) {
-      let ts =
+      const base =
         c.data_type === 'ARRAY'
           ? `${TYPE_MAP[c.udt_name.replace(/^_/, '')] ?? 'string'}[]`
           : (TYPE_MAP[c.data_type] ?? 'string');
+      // Cot da la ColumnType thi dung ban *Gen; boc Generated<ColumnType<..>>
+      // se lam hong kieu doc.
+      const GEN: Record<string, string> = {
+        Timestamp: 'TimestampGen',
+        DateOnly: 'DateOnlyGen',
+        Json: 'JsonGen',
+      };
+      const hasDefault = c.column_default !== null;
+      let ts = hasDefault ? (GEN[base] ?? `Generated<${base}>`) : base;
       if (c.is_nullable === 'YES') ts += ' | null';
-      // Co default hoac la identity -> Generated (khong bat buoc khi insert)
-      if (c.column_default !== null) ts = `Generated<${ts}>`;
       out.push(`  ${c.column_name}: ${ts};`);
     }
     out.push('}', '');

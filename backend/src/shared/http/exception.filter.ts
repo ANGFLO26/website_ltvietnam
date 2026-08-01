@@ -6,7 +6,7 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { DomainError, type ErrorCode } from '../../domain/errors.js';
+import { DomainError, type ErrorCode } from '../errors.js';
 import { createLogger } from '../logging/logger.js';
 
 /**

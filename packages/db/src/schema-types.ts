@@ -6,9 +6,15 @@
  */
 import type { ColumnType, Generated } from 'kysely';
 
+// Cot dung ColumnType san. Ban `*Gen` cho cot CO DEFAULT: kieu insert them
+// `undefined` de khong phai truyen. KHONG boc `Generated<ColumnType<..>>` —
+// boc hai lan lam hong kieu doc.
 type Timestamp = ColumnType<Date, Date | string, Date | string>;
-type DateString = ColumnType<Date, Date | string, Date | string>;
+type TimestampGen = ColumnType<Date, Date | string | undefined, Date | string>;
+type DateOnly = ColumnType<Date, Date | string, Date | string>;
+type DateOnlyGen = ColumnType<Date, Date | string | undefined, Date | string>;
 type Json = unknown;
+type JsonGen = ColumnType<unknown, unknown | undefined, unknown>;
 
 export interface ApplicationsTable {
   id: Generated<string>;
@@ -17,7 +23,7 @@ export interface ApplicationsTable {
   depth: Generated<number>;
   name: string;
   slug: string;
-  description: Generated<Json>;
+  description: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   icon_id: string | null;
@@ -26,8 +32,8 @@ export interface ApplicationsTable {
   display_order: Generated<number>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -47,8 +53,8 @@ export interface BannersTable {
   display_order: Generated<number>;
   start_at: Timestamp | null;
   end_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface BrandsTable {
@@ -60,7 +66,7 @@ export interface BrandsTable {
   name: string;
   slug: string;
   short_description: string | null;
-  description: Generated<Json>;
+  description: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   code: string | null;
@@ -75,8 +81,8 @@ export interface BrandsTable {
   first_published_at: Timestamp | null;
   created_by: string | null;
   updated_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -87,7 +93,7 @@ export interface ContentMediaRefsTable {
   entity_id: string;
   locale: string | null;
   field_name: string;
-  created_at: Generated<Timestamp>;
+  created_at: TimestampGen;
 }
 
 export interface CustomersTable {
@@ -101,8 +107,8 @@ export interface CustomersTable {
   is_featured: Generated<boolean>;
   display_order: Generated<number>;
   status: Generated<string>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -138,14 +144,14 @@ export interface DocumentsTable {
   seo_description: string | null;
   language: Generated<string>;
   version: string | null;
-  publication_date: DateString | null;
+  publication_date: DateOnly | null;
   status: Generated<string>;
   visibility: Generated<string>;
   download_count: Generated<string>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -154,16 +160,16 @@ export interface HomepageSectionsTable {
   section_type: string;
   is_enabled: Generated<boolean>;
   display_order: Generated<number>;
-  settings: Generated<Json>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  settings: JsonGen;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface IndustriesTable {
   id: Generated<string>;
   name: string;
   slug: string;
-  description: Generated<Json>;
+  description: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   featured_image_id: string | null;
@@ -173,8 +179,8 @@ export interface IndustriesTable {
   display_order: Generated<number>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -202,7 +208,7 @@ export interface InquiriesTable {
   ip_address: string | null;
   user_agent: string | null;
   captcha_score: string | null;
-  created_at: Generated<Timestamp>;
+  created_at: TimestampGen;
   expires_at: Timestamp | null;
 }
 
@@ -214,13 +220,13 @@ export interface InquiryOutboxTable {
   status: Generated<string>;
   attempts: Generated<number>;
   last_attempt_at: Timestamp | null;
-  next_attempt_at: Generated<Timestamp>;
+  next_attempt_at: TimestampGen;
   locked_at: Timestamp | null;
   locked_by: string | null;
   last_error: string | null;
   sent_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface MediaTable {
@@ -231,7 +237,7 @@ export interface MediaTable {
   storage_class: Generated<string>;
   storage_path: string;
   public_url: string | null;
-  variants: Generated<Json>;
+  variants: JsonGen;
   mime_type: string;
   file_extension: string;
   file_size: string;
@@ -243,8 +249,8 @@ export interface MediaTable {
   caption: string | null;
   credit: string | null;
   uploaded_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
   purged_at: Timestamp | null;
 }
@@ -263,8 +269,8 @@ export interface MenuItemsTable {
   open_new_tab: Generated<boolean>;
   display_order: Generated<number>;
   status: Generated<string>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface MenusTable {
@@ -273,8 +279,8 @@ export interface MenusTable {
   name: string;
   location: string;
   status: Generated<string>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface OfficesTable {
@@ -293,8 +299,8 @@ export interface OfficesTable {
   featured_image_id: string | null;
   status: Generated<string>;
   display_order: Generated<number>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface PageTranslationsTable {
@@ -304,14 +310,14 @@ export interface PageTranslationsTable {
   title: string;
   slug: string;
   summary: string | null;
-  content: Generated<Json>;
+  content: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   status: Generated<string>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface PagesTable {
@@ -324,8 +330,8 @@ export interface PagesTable {
   published_at: Timestamp | null;
   created_by: string | null;
   updated_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -348,8 +354,8 @@ export interface PostCategoriesTable {
   display_order: Generated<number>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -381,14 +387,14 @@ export interface PostTranslationsTable {
   title: string;
   slug: string;
   excerpt: string | null;
-  content: Generated<Json>;
+  content: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   status: Generated<string>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface PostsTable {
@@ -399,8 +405,8 @@ export interface PostsTable {
   status: Generated<string>;
   is_featured: Generated<boolean>;
   published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -418,7 +424,7 @@ export interface ProductCategoriesTable {
   name: string;
   slug: string;
   short_description: string | null;
-  description: Generated<Json>;
+  description: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   code: string | null;
@@ -429,8 +435,8 @@ export interface ProductCategoriesTable {
   display_order: Generated<number>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -460,8 +466,8 @@ export interface ProductSpecificationsTable {
   value: string | null;
   unit: string | null;
   display_order: Generated<number>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface ProductStandardsTable {
@@ -479,13 +485,13 @@ export interface ProductsTable {
   name: string;
   slug: string;
   short_description: string | null;
-  overview: Generated<Json>;
-  features: Generated<Json>;
-  applications_text: Generated<Json>;
-  principle: Generated<Json>;
-  sample_types: Generated<Json>;
-  operating_conditions: Generated<Json>;
-  accessories_options: Generated<Json>;
+  overview: JsonGen;
+  features: JsonGen;
+  applications_text: JsonGen;
+  principle: JsonGen;
+  sample_types: JsonGen;
+  operating_conditions: JsonGen;
+  accessories_options: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   model: string | null;
@@ -504,8 +510,8 @@ export interface ProductsTable {
   discontinued_at: Timestamp | null;
   created_by: string | null;
   updated_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -540,17 +546,17 @@ export interface ProjectTranslationsTable {
   title: string;
   slug: string;
   short_description: string | null;
-  scope_of_work: Generated<Json>;
-  implementation: Generated<Json>;
-  result: Generated<Json>;
+  scope_of_work: JsonGen;
+  implementation: JsonGen;
+  result: JsonGen;
   customer_display_name: string | null;
   seo_title: string | null;
   seo_description: string | null;
   status: Generated<string>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface ProjectsTable {
@@ -560,16 +566,16 @@ export interface ProjectsTable {
   customer_visibility: Generated<string>;
   location_text: string | null;
   country_code: string | null;
-  started_at: DateString | null;
-  completed_at: DateString | null;
+  started_at: DateOnly | null;
+  completed_at: DateOnly | null;
   featured_image_id: string | null;
   status: Generated<string>;
   is_featured: Generated<boolean>;
   published_at: Timestamp | null;
   created_by: string | null;
   updated_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -581,8 +587,8 @@ export interface RedirectsTable {
   status: Generated<string>;
   hit_count: Generated<string>;
   last_hit_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface RelatedProductsTable {
@@ -615,19 +621,19 @@ export interface ServiceTranslationsTable {
   name: string;
   slug: string;
   short_description: string | null;
-  overview: Generated<Json>;
-  customer_problems: Generated<Json>;
-  scope_of_work: Generated<Json>;
-  process: Generated<Json>;
-  benefits: Generated<Json>;
-  faq: Generated<Json>;
+  overview: JsonGen;
+  customer_problems: JsonGen;
+  scope_of_work: JsonGen;
+  process: JsonGen;
+  benefits: JsonGen;
+  faq: JsonGen;
   seo_title: string | null;
   seo_description: string | null;
   status: Generated<string>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface ServicesTable {
@@ -643,8 +649,8 @@ export interface ServicesTable {
   published_at: Timestamp | null;
   created_by: string | null;
   updated_by: string | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -656,8 +662,8 @@ export interface SettingsTable {
   value_type: Generated<string>;
   is_public: Generated<boolean>;
   is_encrypted: Generated<boolean>;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
 }
 
 export interface StandardsTable {
@@ -674,8 +680,8 @@ export interface StandardsTable {
   display_order: Generated<number>;
   published_at: Timestamp | null;
   first_published_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 
@@ -688,8 +694,8 @@ export interface UsersTable {
   status: Generated<string>;
   last_login_at: Timestamp | null;
   password_changed_at: Timestamp | null;
-  created_at: Generated<Timestamp>;
-  updated_at: Generated<Timestamp>;
+  created_at: TimestampGen;
+  updated_at: TimestampGen;
   deleted_at: Timestamp | null;
 }
 

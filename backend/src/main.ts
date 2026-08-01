@@ -2,9 +2,9 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { loadConfig } from '@ltv/config';
 import { AppModule } from './app.module.js';
-import { requestIdMiddleware } from './shared/infrastructure/logging/request-id.middleware.js';
-import { AppExceptionFilter } from './shared/infrastructure/http/exception.filter.js';
-import { createLogger } from './shared/infrastructure/logging/logger.js';
+import { requestIdMiddleware } from './shared/logging/request-id.middleware.js';
+import { AppExceptionFilter } from './shared/http/exception.filter.js';
+import { createLogger } from './shared/logging/logger.js';
 
 async function bootstrap(): Promise<void> {
   // Doc config o day CHI de lay cong va CORS truoc khi Nest khoi tao.

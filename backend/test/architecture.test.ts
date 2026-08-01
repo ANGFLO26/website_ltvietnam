@@ -1,27 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 /**
- * TEST KIEN TRUC — ep bon luat tang tu dong.
+ * TEST KIEN TRUC — sau luat, ep tu dong.
  *
- * Kien truc do MAY canh, khong phu thuoc nguoi review nho luat.
- * Sai tang la BUILD DO, khong phai gop y luc review.
+ * Kien truc do MAY canh. Sai la BUILD DO, khong phai gop y luc review.
  *
- * Bon luat (doc/06 "Bon tang va luat di qua tang"):
- *   1. presentation KHONG duoc import infrastructure
- *   2. domain KHONG duoc import bat cu gi tu ba tang con lai
- *   3. Module A KHONG duoc import application/ hay infrastructure/ cua module B
- *      — chi duoc import ports/
- *   4. CHI infrastructure duoc import kysely va pg
+ * Ba tang:  api/  ->  services/  ->  dao/
+ * Moi thu muc bang trong dao/ phai du bon thanh phan.
  */
-
 const SRC = resolve(import.meta.dirname, '../src');
+const DAO_DIR = join(SRC, 'dao');
+
+/** Thu muc trong dao/ khong phai bang (ha tang cua chinh tang dao). */
+const NON_TABLE = new Set<string>([]);
 
 interface SourceFile {
-  readonly path: string; // duong dan tuong doi tu src/
-  readonly imports: string[]; // moi chuoi trong import ... from '...'
+  readonly path: string;
+  readonly body: string;
+  /** Than file da BO COMMENT — luat kien truc phan tich MA, khong phan tich van xuoi. */
+  readonly code: string;
+  readonly imports: string[];
 }
+
+/** Bo comment khoi va comment dong de khong bat nham chu trong chu thich. */
+const stripComments = (s: string): string =>
+  s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -34,144 +39,160 @@ function walk(dir: string, out: string[] = []): string[] {
 
 const FILES: SourceFile[] = walk(SRC).map((full) => {
   const body = readFileSync(full, 'utf8');
-  const imports = [...body.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1]!);
-  return { path: relative(SRC, full).replaceAll('\\', '/'), imports };
+  return {
+    path: relative(SRC, full).replaceAll('\\', '/'),
+    body,
+    code: stripComments(body),
+    imports: [...body.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1]!),
+  };
 });
 
-/** Chuan hoa duong dan import tuong doi ve duong dan tu src/. */
-function resolveImport(fromPath: string, spec: string): string | null {
-  if (!spec.startsWith('.')) return null; // package ngoai
-  const dir = join(SRC, fromPath, '..');
-  return relative(SRC, resolve(dir, spec)).replaceAll('\\', '/');
-}
+const resolveImport = (from: string, spec: string): string | null =>
+  spec.startsWith('.')
+    ? relative(SRC, resolve(join(SRC, from, '..'), spec)).replaceAll('\\', '/')
+    : null;
 
-const layerOf = (p: string): string | null => {
-  const m = /(?:^|\/)(presentation|application|domain|infrastructure)(?:\/|$)/.exec(p);
-  return m ? m[1]! : null;
-};
-const moduleOf = (p: string): string | null => {
-  const m = /^modules\/([^/]+)\//.exec(p);
-  return m ? m[1]! : null;
+const layerOf = (p: string): 'api' | 'services' | 'dao' | 'shared' | null => {
+  const m = /^(api|services|dao|shared)\//.exec(p);
+  return m ? (m[1] as 'api' | 'services' | 'dao' | 'shared') : null;
 };
 
-describe('Luat 1 — presentation khong duoc import infrastructure', () => {
-  it('khong co vi pham', () => {
+const tableDirs = existsSync(DAO_DIR)
+  ? readdirSync(DAO_DIR).filter(
+      (n) => statSync(join(DAO_DIR, n)).isDirectory() && !NON_TABLE.has(n),
+    )
+  : [];
+
+describe('Luat 1 — api/ khong duoc import dao/', () => {
+  it('controller phai di qua services/', () => {
     const bad: string[] = [];
     for (const f of FILES) {
-      if (layerOf(f.path) !== 'presentation') continue;
+      if (layerOf(f.path) !== 'api') continue;
       for (const spec of f.imports) {
-        const target = resolveImport(f.path, spec);
-        if (target && layerOf(target) === 'infrastructure') bad.push(`${f.path} -> ${spec}`);
+        const t = resolveImport(f.path, spec);
+        if (t && layerOf(t) === 'dao') bad.push(`${f.path} -> ${spec}`);
       }
     }
-    expect(
-      bad,
-      `Controller phai di qua service, khong goi thang repository:\n${bad.join('\n')}`,
-    ).toEqual([]);
+    expect(bad, `Tang api khong duoc cham thang tang dao:\n${bad.join('\n')}`).toEqual([]);
   });
 });
 
-describe('Luat 2 — domain khong import gi tu ba tang con lai', () => {
-  it('khong co vi pham', () => {
-    const bad: string[] = [];
-    for (const f of FILES) {
-      if (layerOf(f.path) !== 'domain') continue;
-      for (const spec of f.imports) {
-        const target = resolveImport(f.path, spec);
-        if (
-          target &&
-          ['application', 'infrastructure', 'presentation'].includes(layerOf(target) ?? '')
-        ) {
-          bad.push(`${f.path} -> ${spec}`);
-        }
-      }
-    }
-    expect(bad, `Domain phai thuan, khong biet HTTP/SQL/framework:\n${bad.join('\n')}`).toEqual([]);
-  });
-
-  it('domain khong import framework hay driver', () => {
-    const banned = ['@nestjs/', 'kysely', 'pg', 'express'];
-    const bad: string[] = [];
-    for (const f of FILES) {
-      if (layerOf(f.path) !== 'domain') continue;
-      for (const spec of f.imports) {
-        if (banned.some((b) => spec === b || spec.startsWith(b))) bad.push(`${f.path} -> ${spec}`);
-      }
-    }
-    expect(bad, `Domain khong duoc phu thuoc framework:\n${bad.join('\n')}`).toEqual([]);
-  });
-});
-
-describe('Luat 3 — module chi duoc cham ports/ cua module khac', () => {
-  it('khong co vi pham', () => {
-    const bad: string[] = [];
-    for (const f of FILES) {
-      const from = moduleOf(f.path);
-      if (!from) continue;
-      for (const spec of f.imports) {
-        const target = resolveImport(f.path, spec);
-        if (!target) continue;
-        const to = moduleOf(target);
-        if (!to || to === from) continue;
-        if (!target.includes('/ports/')) bad.push(`${from} -> ${to}: ${target}`);
-      }
-    }
-    expect(bad, `Module chi duoc giao tiep qua port:\n${bad.join('\n')}`).toEqual([]);
-  });
-});
-
-describe('Luat 4 — chi infrastructure duoc import kysely va pg', () => {
-  it('khong co vi pham', () => {
+describe('Luat 2 — chi dao/ duoc import kysely va pg', () => {
+  it('driver khong lot ra ngoai tang dao', () => {
     const drivers = ['kysely', 'pg'];
     const bad: string[] = [];
     for (const f of FILES) {
-      const layer = layerOf(f.path);
-      if (layer === 'infrastructure') continue;
+      if (layerOf(f.path) === 'dao') continue;
       for (const spec of f.imports) {
-        if (drivers.includes(spec)) bad.push(`${f.path} -> ${spec} (tang ${layer ?? 'goc'})`);
+        if (drivers.includes(spec))
+          bad.push(`${f.path} -> ${spec} (tang ${layerOf(f.path) ?? 'goc'})`);
       }
     }
-    expect(bad, `Chi tang ha tang duoc biet driver:\n${bad.join('\n')}`).toEqual([]);
+    expect(bad, `Chi tang dao duoc biet driver:\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('kieu bang cua Kysely chi xuat hien trong dao.ts va mapper.ts', () => {
+    const bad: string[] = [];
+    for (const f of FILES) {
+      const isDaoImpl = /\/(dao|mapper|connection|dao-manager)\.ts$/.test(f.path);
+      if (isDaoImpl) continue;
+      if (/\bSelectable<|Insertable<|Updateable<|\w+Table\b/.test(f.code)) bad.push(f.path);
+    }
+    expect(
+      bad,
+      `Kieu hang cua bang chi duoc dung trong dao.ts/mapper.ts:\n${bad.join('\n')}`,
+    ).toEqual([]);
   });
 });
 
-describe('Hinh dang module', () => {
-  it('moi module co dung mot file <ten>.module.ts', () => {
-    const mods = new Map<string, number>();
+describe('Luat 3 — services/ khong import cai dat DAO, chi import interface', () => {
+  it('service phu thuoc dao.interface, khong phu thuoc dao.ts', () => {
+    const bad: string[] = [];
     for (const f of FILES) {
-      const m = moduleOf(f.path);
-      if (m && /\.module\.ts$/.test(f.path)) mods.set(m, (mods.get(m) ?? 0) + 1);
+      if (layerOf(f.path) !== 'services') continue;
+      for (const spec of f.imports) {
+        const t = resolveImport(f.path, spec);
+        if (t && /^dao\/[^/]+\/dao\.ts$/.test(t)) bad.push(`${f.path} -> ${spec}`);
+      }
     }
-    for (const [name, count] of mods) expect(count, `module ${name}`).toBe(1);
-    expect(mods.size).toBeGreaterThan(0);
+    expect(bad, `Service chi duoc phu thuoc dao.interface.ts:\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+describe('Luat 4 — moi thu muc bang du bon thanh phan', () => {
+  it('co object.ts, dao.interface.ts, dao.ts, mapper.ts', () => {
+    const required = ['object.ts', 'dao.interface.ts', 'dao.ts', 'mapper.ts'];
+    const missing: string[] = [];
+    for (const dir of tableDirs) {
+      for (const f of required) {
+        if (!existsSync(join(DAO_DIR, dir, f))) missing.push(`dao/${dir}/${f}`);
+      }
+    }
+    expect(missing, `Thieu thanh phan bat buoc:\n${missing.join('\n')}`).toEqual([]);
   });
 
-  it('khong co file nam thang trong modules/<ten>/ ngoai *.module.ts', () => {
-    const bad = FILES.filter((f) => {
-      const m = /^modules\/[^/]+\/([^/]+)$/.exec(f.path);
-      return m && !m[1]!.endsWith('.module.ts');
-    }).map((f) => f.path);
-    expect(
-      bad,
-      `File phai nam trong presentation/application/domain/infrastructure:\n${bad.join('\n')}`,
-    ).toEqual([]);
+  it('co it nhat mot thu muc bang', () => {
+    expect(tableDirs.length).toBeGreaterThan(0);
+  });
+
+  it('khong co file la nam thang trong thu muc bang', () => {
+    const allowed = new Set(['object.ts', 'dao.interface.ts', 'dao.ts', 'mapper.ts', 'query.ts']);
+    const bad: string[] = [];
+    for (const dir of tableDirs) {
+      for (const f of readdirSync(join(DAO_DIR, dir))) {
+        if (f.endsWith('.ts') && !f.endsWith('.test.ts') && !allowed.has(f))
+          bad.push(`dao/${dir}/${f}`);
+      }
+    }
+    expect(bad, `Chi cho phep object/dao.interface/dao/mapper/query:\n${bad.join('\n')}`).toEqual(
+      [],
+    );
+  });
+});
+
+describe('Luat 5 — dao.ts phai implements interface trong dao.interface.ts', () => {
+  it('moi cai dat deu khai bao implements', () => {
+    const bad: string[] = [];
+    for (const dir of tableDirs) {
+      const iface = readFileSync(join(DAO_DIR, dir, 'dao.interface.ts'), 'utf8');
+      const impl = readFileSync(join(DAO_DIR, dir, 'dao.ts'), 'utf8');
+      const name = /export interface (\w+Dao)\b/.exec(iface)?.[1];
+      if (!name) {
+        bad.push(`dao/${dir}/dao.interface.ts: khong tim thay "export interface <Ten>Dao"`);
+        continue;
+      }
+      if (!new RegExp(`implements\\s+${name}\\b`).test(impl)) {
+        bad.push(`dao/${dir}/dao.ts: thieu "implements ${name}"`);
+      }
+    }
+    expect(bad, bad.join('\n')).toEqual([]);
+  });
+});
+
+describe('Luat 6 — DAO khong nhan executor lam tham so', () => {
+  /**
+   * DAO lay tu `tx` cua DaoManager da gan san transaction. Neu phuong thuc
+   * nhan them executor thi lai quay ve bay "quen truyen" ma DaoManager sinh ra
+   * de tranh.
+   */
+  it('chu ky phuong thuc khong co executor', () => {
+    const bad: string[] = [];
+    for (const dir of tableDirs) {
+      const iface = readFileSync(join(DAO_DIR, dir, 'dao.interface.ts'), 'utf8');
+      if (/\(\s*(ex|executor|trx|tx)\s*:/.test(iface)) bad.push(`dao/${dir}/dao.interface.ts`);
+    }
+    expect(bad, `DAO khong duoc nhan executor:\n${bad.join('\n')}`).toEqual([]);
   });
 });
 
 describe('Bo quet hoat dong dung', () => {
   it('doc duoc file va tim thay import', () => {
-    expect(FILES.length).toBeGreaterThan(5);
+    expect(FILES.length).toBeGreaterThan(10);
     expect(FILES.some((f) => f.imports.length > 0)).toBe(true);
   });
-
-  it('phat hien duoc vi pham gia lap', () => {
-    // Tu kiem: neu logic phat hien sai thi test nay se hong.
-    const fake: SourceFile = {
-      path: 'modules/x/presentation/x.controller.ts',
-      imports: ['../infrastructure/x.repository.js'],
-    };
-    const target = resolveImport(fake.path, fake.imports[0]!);
-    expect(layerOf(fake.path)).toBe('presentation');
-    expect(layerOf(target!)).toBe('infrastructure');
+  it('nhan dien dung tang', () => {
+    expect(layerOf('api/public/x.controller.ts')).toBe('api');
+    expect(layerOf('dao/users/dao.ts')).toBe('dao');
+    expect(layerOf('services/users/service.ts')).toBe('services');
   });
 });

@@ -53,43 +53,73 @@ Controller                               Controller
 
 Lý do: bộ lọc `(PAC OR Herzog) AND ASTM D86` bắc cầu qua năm bảng với OR/AND lồng nhau và mở rộng nhánh con. Ghép từ Repository đơn bảng sẽ ra N+1 — mà điều kiện chấp nhận của P5 là **no N+1** kèm ngân sách truy vấn đo được.
 
-## Bốn tầng và luật đi qua tầng
+## Ba tầng và luật đi qua tầng
 
 ```text
-1. Controller        HTTP, không có logic nghiệp vụ
-2. DTO / Validator   xác thực và chuẩn hóa đầu vào
-3. Application Service  nghiệp vụ + ranh giới transaction
-4. Repository / Adapter data access, nơi DUY NHẤT biết SQL và driver
+api/        HTTP — controller, DTO. Không biết SQL, không biết DAO
+services/   Nghiệp vụ + ranh giới transaction. Phụ thuộc dao.interface
+dao/        Truy cập dữ liệu — nơi DUY NHẤT biết Kysely và pg
    → PostgreSQL
 ```
 
-**Không tầng nào được nhảy cóc.** Controller không gọi Repository. Service không nhập `pg`, không viết SQL, không biết chuỗi kết nối — nó chỉ phụ thuộc **port**.
+**Bốn thành phần bắt buộc mỗi bảng** trong `dao/<bảng>/`:
 
-Tầng hạ tầng sở hữu tài nguyên dùng chung của tiến trình. Config đọc **đúng một lần**, pool tạo **đúng một cái**; module nghiệp vụ không được tự gọi `loadConfig()` hay `createPool()`.
-
-## Ranh giới transaction giữa các service
-
-Nhiều quy tắc bắt buộc nhiều service cùng nằm trong **một** transaction:
-
-| Quy tắc | Các service tham gia |
+| File | Vai trò |
 |---|---|
-| ADR-002 — đổi slug đã publish tạo redirect | EntityService + SlugService + RedirectWriter |
-| ADR-008 — PATCH thay thế tập quan hệ | EntityService + các repository quan hệ |
-| ADR-015 — đổi cha cập nhật cả nhánh con | TreeService |
-| ADR-003 — tạo inquiry và outbox | InquiryService |
-| v1.3 — ghi content block đồng bộ `content_media_refs` | EntityService + ContentMediaRefSync |
+| `object.ts` | Thực thể **nghiệp vụ**. Không phải hàng trong bảng — không `snake_case`, không `Generated<T>`, không cột chưa dùng |
+| `dao.interface.ts` | Hợp đồng truy cập dữ liệu |
+| `dao.ts` | Cài đặt Kysely |
+| `mapper.ts` | Bức tường duy nhất giữa hàng DB và thực thể nghiệp vụ |
+| `query.ts` | *(tuỳ chọn)* SQL đọc phức tạp: lọc, chi tiết, landing |
 
-**Luật:** mọi phương thức của Repository và của Service có thể tham gia transaction đều nhận **executor** làm tham số đầu tiên:
+Tầng `services/` mỗi module có `interface.ts` (hợp đồng ra ngoài) và `service.ts` (cài đặt).
+
+## DAO manager — ranh giới transaction
+
+`DaoManager` sở hữu **mọi** DAO và cả việc mở transaction:
 
 ```ts
-type Executor = Kysely<Database> | Transaction<Database>;
+await daos.transaction(async (tx) => {
+  await tx.products.update(id, data);
+  await tx.redirects.insert(redirect);
+});
+```
 
-interface SlugService {
-  rename(ex: Executor, input: RenameSlugInput): Promise<RenameSlugResult>;
+`tx` **chính là** tập DAO đã gắn transaction. Không có tham số `executor` nào để quên — muốn chạy ngoài transaction thì phải cố ý gõ `this.daos.products` thay vì `tx.products`.
+
+> Cách cũ là truyền `executor` qua từng lời gọi. Quên một chỗ thì câu đó chạy ngoài transaction và **không có gì báo** — đúng kịch bản ADR-002 sợ nhất: slug đã đổi mà redirect chưa tạo.
+
+**Luật:** chỉ service **sở hữu use case** mới được gọi `transaction`. Service được gọi nhận `tx` từ bên gọi. Cấm lồng. Cấm giữ transaction mở khi gọi mạng ra ngoài (D6).
+
+## DaoScope — giữ ranh giới module
+
+DAO manager sở hữu cả 26 bảng. Nếu mọi service nhận nguyên manager thì luật *"module không truy cập repository của module khác"* chết ngay khi có module thứ hai.
+
+```ts
+type ProductDaos = DaoScope<'products' | 'productCategoryLinks' | 'productStandards'>;
+
+class ProductService {
+  constructor(private readonly daos: ProductDaos) {}
+  // gõ this.daos.inquiries → LỖI BIÊN DỊCH
 }
 ```
 
-Service khởi tạo transaction là service **sở hữu use case**; các service được gọi **không bao giờ** tự mở transaction riêng. Cấm mở transaction lồng nhau. Cấm giữ transaction mở trong lúc gọi mạng ra ngoài (D6: provider call nằm ngoài DB transaction).
+Muốn chạm bảng của module khác thì phải thêm tên vào kiểu — và chỗ thêm đó là nơi người review nhìn thấy ngay.
+
+## Sáu luật ép bằng test kiến trúc
+
+Kiến trúc do **máy** canh. Sai là **build đỏ**, không phải góp ý lúc review. Xem `backend/test/architecture.test.ts`.
+
+| # | Luật |
+|---|---|
+| 1 | `api/` không import `dao/` — phải qua `services/` |
+| 2 | Chỉ `dao/` được import `kysely` và `pg`; kiểu hàng (`Selectable`, `*Table`) chỉ xuất hiện trong `dao.ts` và `mapper.ts` |
+| 3 | `services/` chỉ import `dao.interface.ts`, không import `dao.ts` |
+| 4 | Mỗi thư mục bảng đủ `object.ts`, `dao.interface.ts`, `dao.ts`, `mapper.ts` |
+| 5 | `dao.ts` phải `implements` interface trong `dao.interface.ts` |
+| 6 | Chữ ký DAO không nhận `executor` |
+
+Thêm bảng mới: `pnpm --filter @ltv/backend dao:new <tên_bảng>` sinh sẵn bốn file đúng khuôn.
 
 ## Shared service và ranh giới module
 
