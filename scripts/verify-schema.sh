@@ -14,7 +14,7 @@ n=$(psql -tAd "$DB" -c "SELECT count(*) FROM information_schema.tables WHERE tab
 fk=$(psql -tAd "$DB" -c "SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='ltv' AND constraint_type='FOREIGN KEY';")
 ix=$(psql -tAd "$DB" -c "SELECT count(*) FROM pg_indexes WHERE schemaname='ltv';")
 tg=$(psql -tAd "$DB" -c "SELECT count(*) FROM information_schema.triggers WHERE trigger_schema='ltv';")
-echo "    bang=$n (ky vong 52)  FK=$fk (95)  index=$ix (170)  trigger=$tg (28)"
+echo "    bang=$n (ky vong 52)  FK=$fk (95)  index=$ix (180)  trigger=$tg (28)"
 
 echo "==> Kiem khong con FK thieu index"
 miss=$(psql -tAd "$DB" -c "

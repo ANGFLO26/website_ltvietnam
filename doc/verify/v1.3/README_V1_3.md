@@ -44,13 +44,13 @@ Khi chạy trên PostgreSQL 16 đầy đủ extension, file này chạy nguyên 
 
 Rà soát đối nghịch tìm lỗi trong chính schema v1.3, phát hiện và đã sửa:
 
-**41 khóa ngoại không có index.** PostgreSQL không tự tạo index cho FK. Thiếu chúng thì mỗi lần xóa một `media` phải quét tuần tự hơn 20 bảng tham chiếu, và `MediaUsageService` — vốn tra cứu đúng những cột này — sẽ chậm dần theo dữ liệu. Đã thêm 41 index; hiện **0 FK thiếu index**.
+**41 khóa ngoại không có index.** PostgreSQL không tự tạo index cho FK. Thiếu chúng thì mỗi lần xóa một `media` phải quét tuần tự hơn 20 bảng tham chiếu, và `MediaUsageService` — vốn tra cứu đúng những cột này — sẽ chậm dần theo dữ liệu. Đã thêm 41 index; hiện **0 FK thiếu index**. Tổng index trên PostgreSQL đầy đủ extension: **180** (170 đo được trong sandbox + 10 index trigram được kiểm riêng bằng parser).
 
 ### Kết quả sau khi sửa
 
 | Hạng mục | Kết quả |
 |---|---|
-| Bảng · FK · Trigger · Index | 52 · 95 · 28 · **170** |
+| Bảng · FK · Trigger · Index | 52 · 95 · 28 · **180** |
 | Bảng không có khóa chính | 0 |
 | Bảng có `updated_at` nhưng thiếu trigger | 0 |
 | Khóa ngoại thiếu index | **0** |

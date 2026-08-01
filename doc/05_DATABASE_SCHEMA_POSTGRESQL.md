@@ -234,7 +234,7 @@ Baseline v1.3 đã chạy thật trên **PostgreSQL 16.2**:
 | Bảng | **52** |
 | Foreign key | **95** |
 | Trigger `updated_at` | **28** |
-| Index | **170** (gồm index cho **mọi** khóa ngoại) |
+| Index | **180** (gồm index cho **mọi** khóa ngoại và 10 index trigram) |
 | Lỗi khi chạy | **0** |
 | Chu kỳ `up → seed → down → up → seed` | 52 → 0 → 52, dữ liệu nạp lại sạch, PASS |
 | Khóa ngoại thiếu index | **0** |
