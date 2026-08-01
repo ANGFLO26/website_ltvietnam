@@ -68,3 +68,43 @@ Trang chủ (banner còn hiệu lực, sản phẩm/hãng nổi bật, khách h�
 1. **Ảnh chỉ dùng trong content block không xóa được** — `content_media_refs_media_id_fkey` chặn. Đây là lỗi A4 của v1.2.1 đã được bịt.
 2. **Bài viết có bản VI ở trạng thái draft không sinh cặp hreflang**, trong khi dịch vụ có cả hai bản published thì sinh.
 3. **Banner hết hạn bị loại khỏi trang chủ** bằng điều kiện `start_at`/`end_at`.
+
+---
+
+## Vòng kiểm chứng thứ ba (2026-08-01) — rollback từng bước
+
+Hai vòng trước chỉ rollback ba migration cuối. Vòng này rollback **tất cả 33** và tìm ra một lỗi thật.
+
+### 🔴 Bảng lịch sử migration nằm sai chỗ
+
+Migration `002_create_schema` có `down` là `DROP SCHEMA ltv CASCADE`. Bảng lịch sử `schema_migrations` lại nằm **bên trong** schema `ltv`, nên chính thao tác rollback đó xóa mất lịch sử — runner mất trí nhớ giữa chừng và không rollback tiếp được.
+
+```text
+rollback 33 → 32 → ... → 003 → 002  ✗ relation "ltv.schema_migrations" does not exist
+```
+
+Chỉ lộ ra khi rollback **quá** migration 003. Rollback vài bước cuối thì không bao giờ thấy.
+
+**Sửa:** bảng lịch sử chuyển sang schema riêng `ltv_meta`. Nguyên tắc: **bảng lịch sử không được nằm trong schema mà nó quản lý.**
+
+### Kết quả sau khi sửa
+
+| Phép thử | Kết quả |
+|---|---|
+| Rollback từng cái, 33 → 0 | **PASS**, còn 0 bảng và 0 dòng lịch sử |
+| Chạy lại từ đầu | **PASS**, 52 bảng, 33 dòng lịch sử |
+| Lặp lại chu kỳ lần hai | **PASS** |
+| P1 CASE B tiêu chí 6 (lấy mẫu 8 prefix) | **8/8 PASS** |
+
+```
+prefix N=30: 51 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=25: 35 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=20: 22 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=15: 12 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=10:  7 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=05:  2 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=02:  0 bảng → apply lại → 52 bảng, lịch sử 33   OK
+prefix N=00:  0 bảng → apply lại → 52 bảng, lịch sử 33   OK
+```
+
+> Đây là **lấy mẫu 8 prefix**, không phải toàn bộ 33. Phép thử đầy đủ `N=1..33` cùng với kiểm thử tiêm lỗi và khóa đồng thời là công việc của **P1**, không phải P0.

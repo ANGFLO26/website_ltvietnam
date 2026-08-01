@@ -18,6 +18,16 @@ import type { Pool, PoolClient } from 'pg';
 /** Khoa tu van dung rieng cho migration. */
 const ADVISORY_LOCK_KEY = 4_827_301_155;
 
+/**
+ * Bang lich su nam o SCHEMA RIENG, khong nam trong schema ma no quan ly.
+ *
+ * Ly do: migration 002 tao schema `ltv`, nen `down` cua no la
+ * `DROP SCHEMA ltv CASCADE`. Neu bang lich su nam trong `ltv` thi chinh thao tac
+ * rollback do se xoa mat lich su, va runner mat tri nho giua chung —
+ * do la loi da do duoc khi rollback tu 33 ve 0.
+ */
+const META_SCHEMA = 'ltv_meta';
+
 export interface Migration {
   readonly id: string; // '001'
   readonly name: string; // 'enable_extensions'
@@ -104,10 +114,10 @@ export async function loadMigrations(dir: string): Promise<Migration[]> {
   return out;
 }
 
-export async function ensureHistoryTable(client: PoolClient, schema: string): Promise<void> {
-  await client.query(`CREATE SCHEMA IF NOT EXISTS ${ident(schema)}`);
+export async function ensureHistoryTable(client: PoolClient, _schema: string): Promise<void> {
+  await client.query(`CREATE SCHEMA IF NOT EXISTS ${ident(META_SCHEMA)}`);
   await client.query(`
-    CREATE TABLE IF NOT EXISTS ${ident(schema)}.schema_migrations (
+    CREATE TABLE IF NOT EXISTS ${ident(META_SCHEMA)}.schema_migrations (
       id          VARCHAR(16)  PRIMARY KEY,
       name        VARCHAR(200) NOT NULL,
       checksum    CHAR(64)     NOT NULL,
@@ -117,13 +127,18 @@ export async function ensureHistoryTable(client: PoolClient, schema: string): Pr
     )`);
 }
 
-export async function readHistory(client: PoolClient, schema: string): Promise<AppliedMigration[]> {
+export async function readHistory(
+  client: PoolClient,
+  _schema: string,
+): Promise<AppliedMigration[]> {
   const { rows } = await client.query<{
     id: string;
     name: string;
     checksum: string;
     applied_at: Date;
-  }>(`SELECT id, name, checksum, applied_at FROM ${ident(schema)}.schema_migrations ORDER BY id`);
+  }>(
+    `SELECT id, name, checksum, applied_at FROM ${ident(META_SCHEMA)}.schema_migrations ORDER BY id`,
+  );
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -230,7 +245,7 @@ export async function migrateUp(
 export async function migrateDown(
   pool: Pool,
   dir: string,
-  schema: string,
+  schema: string, // giu trong chu ky de tuong thich; lich su nam o META_SCHEMA
   steps = 1,
   log: (msg: string) => void = () => {},
 ): Promise<string[]> {
@@ -250,7 +265,7 @@ export async function migrateDown(
       await client.query('BEGIN');
       try {
         await client.query(mig.downSql);
-        await client.query(`DELETE FROM ${ident(schema)}.schema_migrations WHERE id = $1`, [
+        await client.query(`DELETE FROM ${ident(META_SCHEMA)}.schema_migrations WHERE id = $1`, [
           mig.id,
         ]);
         await client.query('COMMIT');
@@ -272,12 +287,12 @@ export async function migrateDown(
 
 async function recordHistory(
   client: PoolClient,
-  schema: string,
+  _schema: string,
   mig: Migration,
   durationMs: number,
 ): Promise<void> {
   await client.query(
-    `INSERT INTO ${ident(schema)}.schema_migrations (id, name, checksum, duration_ms)
+    `INSERT INTO ${ident(META_SCHEMA)}.schema_migrations (id, name, checksum, duration_ms)
      VALUES ($1, $2, $3, $4)`,
     [mig.id, mig.name, mig.checksum, durationMs],
   );
