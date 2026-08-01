@@ -42,6 +42,69 @@ Controller                               Controller
 
 Lý do: bộ lọc `(PAC OR Herzog) AND ASTM D86` bắc cầu qua năm bảng với OR/AND lồng nhau và mở rộng nhánh con. Ghép từ Repository đơn bảng sẽ ra N+1 — mà điều kiện chấp nhận của P5 là **no N+1** kèm ngân sách truy vấn đo được.
 
+## Bốn tầng và luật đi qua tầng
+
+```text
+1. Controller        HTTP, không có logic nghiệp vụ
+2. DTO / Validator   xác thực và chuẩn hóa đầu vào
+3. Application Service  nghiệp vụ + ranh giới transaction
+4. Repository / Adapter data access, nơi DUY NHẤT biết SQL và driver
+   → PostgreSQL
+```
+
+**Không tầng nào được nhảy cóc.** Controller không gọi Repository. Service không nhập `pg`, không viết SQL, không biết chuỗi kết nối — nó chỉ phụ thuộc **port**.
+
+Tầng hạ tầng sở hữu tài nguyên dùng chung của tiến trình. Config đọc **đúng một lần**, pool tạo **đúng một cái**; module nghiệp vụ không được tự gọi `loadConfig()` hay `createPool()`.
+
+## Ranh giới transaction giữa các service
+
+Nhiều quy tắc bắt buộc nhiều service cùng nằm trong **một** transaction:
+
+| Quy tắc | Các service tham gia |
+|---|---|
+| ADR-002 — đổi slug đã publish tạo redirect | EntityService + SlugService + RedirectWriter |
+| ADR-008 — PATCH thay thế tập quan hệ | EntityService + các repository quan hệ |
+| ADR-015 — đổi cha cập nhật cả nhánh con | TreeService |
+| ADR-003 — tạo inquiry và outbox | InquiryService |
+| v1.3 — ghi content block đồng bộ `content_media_refs` | EntityService + ContentMediaRefSync |
+
+**Luật:** mọi phương thức của Repository và của Service có thể tham gia transaction đều nhận **executor** làm tham số đầu tiên:
+
+```ts
+type Executor = Kysely<Database> | Transaction<Database>;
+
+interface SlugService {
+  rename(ex: Executor, input: RenameSlugInput): Promise<RenameSlugResult>;
+}
+```
+
+Service khởi tạo transaction là service **sở hữu use case**; các service được gọi **không bao giờ** tự mở transaction riêng. Cấm mở transaction lồng nhau. Cấm giữ transaction mở trong lúc gọi mạng ra ngoài (D6: provider call nằm ngoài DB transaction).
+
+## Shared service và ranh giới module
+
+`SlugService`, `PublishService`, `MediaUsageService`, `ContentMediaRefSync` dùng chung cho nhiều module. Chúng **không phải module** trong danh sách 25 và **không được truy cập repository của bất kỳ module nào**.
+
+Chúng nhận port do module sở hữu dữ liệu cung cấp:
+
+```text
+SlugService          → SlugLookupPort   (mỗi module entity cung cấp)
+                     → RedirectWriterPort (module redirects cung cấp)
+MediaUsageService    → MediaReferencePort (module media cung cấp)
+ContentMediaRefSync  → ContentMediaRefPort (module media cung cấp)
+```
+
+Nhờ vậy luật "module không truy cập repository của module khác" vẫn giữ nguyên, và shared service kiểm thử được bằng port giả lập.
+
+## Đường đọc được phép bắc cầu qua module — đường ghi thì không
+
+Luật ranh giới module áp cho **đường ghi**. Đường đọc có ngoại lệ tường minh:
+
+- **QueryService được phép join thẳng bảng của module khác.** Bộ lọc `(PAC OR Herzog) AND ASTM D86` bắc cầu qua năm bảng; ghép từ nhiều lời gọi service sẽ ra N+1, mà điều kiện chấp nhận của P5 là **no N+1**.
+- Đổi lại, QueryService **chỉ được đọc**, không ghi, không gọi service nghiệp vụ, và không được dựa vào cột nằm ngoài hợp đồng công khai của module chủ.
+- Mỗi lần thêm join xuyên module phải ghi rõ trong mô tả QueryService để biết thay đổi schema ở đâu sẽ ảnh hưởng tới đâu.
+
+Đây là đánh đổi có chủ đích: **ghi thì nghiêm ngặt để giữ bất biến, đọc thì nới để giữ hiệu năng.**
+
 ## Cổng ra hạ tầng (port)
 
 | Port | Triển khai P0 | Đổi về sau |
