@@ -11,8 +11,14 @@ import type { ColumnType, Generated } from 'kysely';
 // boc hai lan lam hong kieu doc.
 type Timestamp = ColumnType<Date, Date | string, Date | string>;
 type TimestampGen = ColumnType<Date, Date | string | undefined, Date | string>;
-type DateOnly = ColumnType<Date, Date | string, Date | string>;
-type DateOnlyGen = ColumnType<Date, Date | string | undefined, Date | string>;
+// DATE doc ra la CHUOI `YYYY-MM-DD`, khong phai `Date`.
+// Mot ngay tren lich khong co mui gio. Trinh phan tich mac dinh cua `pg`
+// dung DATE thanh `Date` o NUA DEM GIO DIA PHUONG, nen may chay o UTC+7 doc
+// `2026-03-15` ra `2026-03-14T17:00Z` — lech mot ngay, im lang, va chi lo ra
+// khi trien khai o mui gio khac may phat trien.
+// `dao/connection.ts` dang ky lai trinh phan tich OID 1082 cho khop kieu nay.
+type DateOnly = ColumnType<string, Date | string, Date | string>;
+type DateOnlyGen = ColumnType<string, Date | string | undefined, Date | string>;
 type Json = unknown;
 type JsonGen = ColumnType<unknown, unknown | undefined, unknown>;
 

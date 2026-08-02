@@ -91,12 +91,26 @@ describe('Luat 2 — chi dao/ duoc import kysely va pg', () => {
     expect(bad, `Chi tang dao duoc biet driver:\n${bad.join('\n')}`).toEqual([]);
   });
 
+  /**
+   * Hai dieu da hoc duoc tu chinh luat nay khi no bao dong gia:
+   *
+   * 1. Mau PHAI bat dau bang chu HOA (`[A-Z]\w*Table`). Ban truoc dung
+   *    `\w+Table\b` va khop ca ten thuoc tinh `trTable`, `parentTable` —
+   *    dinh danh viet thuong khong bao gio la kieu hang cua Kysely.
+   * 2. Kieu la TEN BANG duoi dang chuoi phai ket thuc bang `...TableName`.
+   *    `TreeTableName` va `SluggedTableName` da theo quy uoc do tu truoc;
+   *    mot kieu moi dat ten `TranslationTable` da lam luat nay do.
+   *
+   * Ca hai lan sua deu la thu hep dung cho, khong phai noi long: luat van
+   * bat duoc `Selectable<ProductsTable>` lot ra ngoai `dao.ts`/`mapper.ts`,
+   * va phep tiem loi o duoi chung minh dieu do.
+   */
   it('kieu bang cua Kysely chi xuat hien trong dao.ts va mapper.ts', () => {
     const bad: string[] = [];
     for (const f of FILES) {
       const isDaoImpl = /\/(dao|mapper|connection|dao-manager)\.ts$/.test(f.path);
       if (isDaoImpl) continue;
-      if (/\bSelectable<|Insertable<|Updateable<|\w+Table\b/.test(f.code)) bad.push(f.path);
+      if (/\bSelectable<|Insertable<|Updateable<|\b[A-Z]\w*Table\b/.test(f.code)) bad.push(f.path);
     }
     expect(
       bad,

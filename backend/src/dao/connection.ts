@@ -11,6 +11,23 @@ import type { Database } from '@ltv/db';
  */
 export type KyselyExecutor = Kysely<Database> | Transaction<Database>;
 
+/**
+ * DATE ve nguyen dang chuoi `YYYY-MM-DD`.
+ *
+ * Mac dinh, `pg` dung kieu DATE thanh mot `Date` o NUA DEM GIO DIA PHUONG.
+ * Tren may chay UTC+7, `2026-03-15` doc ra thanh `2026-03-14T17:00:00Z` —
+ * lech mot ngay. Loi nay im lang tuyet doi: no dung tren may phat trien dat
+ * o UTC va sai tren may that dat o gio Viet Nam, hoac nguoc lai.
+ *
+ * Mot ngay tren lich (ngay ban giao du an, ngay phat hanh tai lieu) khong
+ * gan voi mui gio nao. Bieu dien no bang `Date` la sai ngay tu dau, nen o day
+ * giu nguyen chuoi va `schema-types.ts` khai bao DATE doc ra la `string`.
+ *
+ * Dat o pham vi module de moi pool deu duoc ap, ke ca pool do test tu tao.
+ */
+const PG_OID_DATE = 1082;
+pg.types.setTypeParser(PG_OID_DATE, (value: string) => value);
+
 export function createPool(cfg: AppConfig): pg.Pool {
   return new pg.Pool({
     connectionString: cfg.DATABASE_URL,

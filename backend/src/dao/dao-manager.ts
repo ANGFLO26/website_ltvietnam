@@ -22,6 +22,20 @@ import type { IndustryDao } from './industries/dao.interface.js';
 import { KyselyIndustryDao } from './industries/dao.js';
 import type { ProductDao } from './products/dao.interface.js';
 import { KyselyProductDao } from './products/dao.js';
+import type { ServiceDao } from './services/dao.interface.js';
+import { KyselyServiceDao } from './services/dao.js';
+import type { PageDao } from './pages/dao.interface.js';
+import { KyselyPageDao } from './pages/dao.js';
+import type { PostCategoryDao } from './post-categories/dao.interface.js';
+import { KyselyPostCategoryDao } from './post-categories/dao.js';
+import type { PostDao } from './posts/dao.interface.js';
+import { KyselyPostDao } from './posts/dao.js';
+import type { ProjectDao } from './projects/dao.interface.js';
+import { KyselyProjectDao } from './projects/dao.js';
+import type { DocumentDao } from './documents/dao.interface.js';
+import { KyselyDocumentDao } from './documents/dao.js';
+import type { CustomerDao } from './customers/dao.interface.js';
+import { KyselyCustomerDao } from './customers/dao.js';
 
 /**
  * Tap hop moi DAO. Them bang moi = them mot dong o day va mot dong o `buildDaos`.
@@ -37,6 +51,13 @@ export interface AllDaos {
   readonly applications: ApplicationDao;
   readonly industries: IndustryDao;
   readonly products: ProductDao;
+  readonly services: ServiceDao;
+  readonly pages: PageDao;
+  readonly postCategories: PostCategoryDao;
+  readonly posts: PostDao;
+  readonly projects: ProjectDao;
+  readonly documents: DocumentDao;
+  readonly customers: CustomerDao;
 }
 
 /** Kiem tra ket noi — dung cho `/health/ready`, khong thuoc bang nao. */
@@ -75,6 +96,13 @@ function buildDaos(db: KyselyExecutor): AllDaos {
     applications: new KyselyApplicationDao(db),
     industries: new KyselyIndustryDao(db),
     products: new KyselyProductDao(db),
+    services: new KyselyServiceDao(db),
+    pages: new KyselyPageDao(db),
+    postCategories: new KyselyPostCategoryDao(db),
+    posts: new KyselyPostDao(db),
+    projects: new KyselyProjectDao(db),
+    documents: new KyselyDocumentDao(db),
+    customers: new KyselyCustomerDao(db),
   };
 }
 
