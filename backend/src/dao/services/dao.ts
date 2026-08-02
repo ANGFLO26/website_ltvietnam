@@ -9,6 +9,7 @@ import type {
   Service,
   ServiceFilter,
   ServiceTranslation,
+  ServiceLinks,
   ServiceWithTranslation,
   UpdateServiceInput,
   UpsertServiceTranslationInput,
@@ -214,5 +215,45 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
   }
   assertLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<void> {
     return this.tr.assertLocaleSlugAvailable(locale, slug, exceptId);
+  }
+
+  // ── quan he: thay ca tap (ADR-008) ──────────────────────────────
+  async replaceLinks(id: string, links: ServiceLinks): Promise<void> {
+    if (links.productIds !== undefined) {
+      await this.db.deleteFrom('service_products').where('service_id', '=', id).execute();
+      if (links.productIds.length > 0) {
+        await this.db.insertInto('service_products')
+          .values(links.productIds.map((x, i) => ({ service_id: id, product_id: x, display_order: i })))
+          .execute();
+      }
+    }
+    if (links.brandIds !== undefined) {
+      await this.db.deleteFrom('service_brands').where('service_id', '=', id).execute();
+      if (links.brandIds.length > 0) {
+        await this.db.insertInto('service_brands')
+          .values(links.brandIds.map((x) => ({ service_id: id, brand_id: x }))).execute();
+      }
+    }
+    if (links.industryIds !== undefined) {
+      await this.db.deleteFrom('service_industries').where('service_id', '=', id).execute();
+      if (links.industryIds.length > 0) {
+        await this.db.insertInto('service_industries')
+          .values(links.industryIds.map((x) => ({ service_id: id, industry_id: x }))).execute();
+      }
+    }
+  }
+
+  async findLinks(id: string): Promise<Required<ServiceLinks>> {
+    const pr = await this.db.selectFrom('service_products').select('product_id')
+      .where('service_id', '=', id).orderBy('display_order').execute();
+    const br = await this.db.selectFrom('service_brands').select('brand_id')
+      .where('service_id', '=', id).execute();
+    const ind = await this.db.selectFrom('service_industries').select('industry_id')
+      .where('service_id', '=', id).execute();
+    return {
+      productIds: pr.map((x) => x.product_id),
+      brandIds: br.map((x) => x.brand_id),
+      industryIds: ind.map((x) => x.industry_id),
+    };
   }
 }

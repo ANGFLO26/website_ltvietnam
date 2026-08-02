@@ -6,6 +6,7 @@ import type {
   Service,
   ServiceFilter,
   ServiceTranslation,
+  ServiceLinks,
   ServiceWithTranslation,
   UpdateServiceInput,
   UpsertServiceTranslationInput,
@@ -49,4 +50,8 @@ export interface ServiceDao {
 
   isLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<boolean>;
   assertLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<void>;
+
+  /** Thay ca tap quan he trong mot lan goi (ADR-008). */
+  replaceLinks(id: string, links: ServiceLinks): Promise<void>;
+  findLinks(id: string): Promise<Required<ServiceLinks>>;
 }

@@ -241,6 +241,41 @@ describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
   });
 });
 
+/**
+ * Luat 8 — MOI bang trong so do phai duoc mot DAO nao do cham toi.
+ *
+ * Vi sao can: bay luat truoc kiem NHUNG GI DA VIET co dung hinh dang khong.
+ * Khong luat nao hoi "con bang nao chua ai dung toi khong". Ba bang lien ket
+ * cua `services` da bi bo sot dung mot vong lam viec ma khong co gi bao —
+ * chi lo ra khi doi chieu tay so do voi ma nguon.
+ *
+ * Bang lien ket khong co thu muc rieng (chung song trong DAO cua bang cha),
+ * nen phep kiem la "co xuat hien trong mot file dao.ts/query.ts nao do", chu
+ * khong phai "co thu muc rieng".
+ */
+describe('Luat 8 — khong bang nao trong so do bi bo quen', () => {
+  const SCHEMA = resolve(import.meta.dirname, '../../doc/verify/v1.3/schema_up.sql');
+
+  it('moi bang deu duoc mot DAO cham toi', () => {
+    if (!existsSync(SCHEMA)) {
+      throw new Error(`Khong tim thay so do de doi chieu: ${SCHEMA}`);
+    }
+    const ddl = readFileSync(SCHEMA, 'utf8');
+    const tables = [...ddl.matchAll(/CREATE TABLE ltv\.(\w+)/g)].map((m) => m[1]!);
+    expect(tables.length, 'khong doc duoc bang nao tu so do').toBeGreaterThan(40);
+
+    // Gop toan bo ma tang dao lai roi tim ten bang duoi dang chuoi.
+    const daoCode = FILES.filter((f) => layerOf(f.path) === 'dao')
+      .map((f) => f.code).join('\n');
+
+    const missing = tables.filter((t) => !new RegExp(`['"\`]${t}['"\`]`).test(daoCode));
+    expect(
+      missing,
+      `Bang co trong so do nhung khong DAO nao cham toi:\n${missing.join('\n')}`,
+    ).toEqual([]);
+  });
+});
+
 describe('Bo quet hoat dong dung', () => {
   it('doc duoc file va tim thay import', () => {
     expect(FILES.length).toBeGreaterThan(10);

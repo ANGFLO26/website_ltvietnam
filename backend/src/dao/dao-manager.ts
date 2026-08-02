@@ -36,6 +36,18 @@ import type { DocumentDao } from './documents/dao.interface.js';
 import { KyselyDocumentDao } from './documents/dao.js';
 import type { CustomerDao } from './customers/dao.interface.js';
 import { KyselyCustomerDao } from './customers/dao.js';
+import type { OfficeDao } from './offices/dao.interface.js';
+import { KyselyOfficeDao } from './offices/dao.js';
+import type { BannerDao } from './banners/dao.interface.js';
+import { KyselyBannerDao } from './banners/dao.js';
+import type { HomepageSectionDao } from './homepage-sections/dao.interface.js';
+import { KyselyHomepageSectionDao } from './homepage-sections/dao.js';
+import type { MenuDao } from './menus/dao.interface.js';
+import { KyselyMenuDao } from './menus/dao.js';
+import type { InquiryDao } from './inquiries/dao.interface.js';
+import { KyselyInquiryDao } from './inquiries/dao.js';
+import type { ContentMediaRefDao } from './content-media-refs/dao.interface.js';
+import { KyselyContentMediaRefDao } from './content-media-refs/dao.js';
 
 /**
  * Tap hop moi DAO. Them bang moi = them mot dong o day va mot dong o `buildDaos`.
@@ -58,6 +70,12 @@ export interface AllDaos {
   readonly projects: ProjectDao;
   readonly documents: DocumentDao;
   readonly customers: CustomerDao;
+  readonly offices: OfficeDao;
+  readonly banners: BannerDao;
+  readonly homepageSections: HomepageSectionDao;
+  readonly menus: MenuDao;
+  readonly inquiries: InquiryDao;
+  readonly contentMediaRefs: ContentMediaRefDao;
 }
 
 /** Kiem tra ket noi — dung cho `/health/ready`, khong thuoc bang nao. */
@@ -103,6 +121,12 @@ function buildDaos(db: KyselyExecutor): AllDaos {
     projects: new KyselyProjectDao(db),
     documents: new KyselyDocumentDao(db),
     customers: new KyselyCustomerDao(db),
+    offices: new KyselyOfficeDao(db),
+    banners: new KyselyBannerDao(db),
+    homepageSections: new KyselyHomepageSectionDao(db),
+    menus: new KyselyMenuDao(db),
+    inquiries: new KyselyInquiryDao(db),
+    contentMediaRefs: new KyselyContentMediaRefDao(db),
   };
 }
 

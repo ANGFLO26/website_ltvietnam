@@ -94,3 +94,16 @@ export interface ServiceWithTranslation {
   readonly service: Service;
   readonly translation: ServiceTranslation;
 }
+
+/**
+ * Quan he cua dich vu — thay ca tap (ADR-008).
+ *
+ * Ba bang nay bi bo sot o lan lam dau va chi lo ra khi doi chieu so do voi
+ * ma nguon: 52 bang trong so do, 49 bang duoc DAO cham toi. Phep doi chieu
+ * do gio nam trong `test/architecture.test.ts` (Luat 8) de khong lap lai.
+ */
+export interface ServiceLinks {
+  readonly productIds?: readonly string[];
+  readonly brandIds?: readonly string[];
+  readonly industryIds?: readonly string[];
+}
