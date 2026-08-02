@@ -20,6 +20,8 @@ import type { ApplicationDao } from './applications/dao.interface.js';
 import { KyselyApplicationDao } from './applications/dao.js';
 import type { IndustryDao } from './industries/dao.interface.js';
 import { KyselyIndustryDao } from './industries/dao.js';
+import type { ProductDao } from './products/dao.interface.js';
+import { KyselyProductDao } from './products/dao.js';
 
 /**
  * Tap hop moi DAO. Them bang moi = them mot dong o day va mot dong o `buildDaos`.
@@ -34,6 +36,7 @@ export interface AllDaos {
   readonly standards: StandardDao;
   readonly applications: ApplicationDao;
   readonly industries: IndustryDao;
+  readonly products: ProductDao;
 }
 
 /** Kiem tra ket noi — dung cho `/health/ready`, khong thuoc bang nao. */
@@ -71,6 +74,7 @@ function buildDaos(db: KyselyExecutor): AllDaos {
     standards: new KyselyStandardDao(db),
     applications: new KyselyApplicationDao(db),
     industries: new KyselyIndustryDao(db),
+    products: new KyselyProductDao(db),
   };
 }
 
