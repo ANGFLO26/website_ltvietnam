@@ -187,6 +187,46 @@ describe('Luat 6 — DAO khong nhan executor lam tham so', () => {
   });
 });
 
+/**
+ * Luat 7 — DAO viet ra ma khong noi vao manager thi khong ai goi duoc.
+ *
+ * Vi sao can luat nay: bon luat truoc kiem HINH DANG cua thu muc bang, khong
+ * kiem no co duoc DUNG hay khong. Mot thu muc du bon file, `implements` day
+ * du, bien dich sach — nhung neu quen mot dong trong `AllDaos` thi no la ma
+ * chet, va khong co gi bao. Da them sau thu muc trong mot lan lam viec nen
+ * kha nang quen la co that.
+ */
+describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
+  const manager = readFileSync(join(DAO_DIR, 'dao-manager.ts'), 'utf8');
+  const managerCode = stripComments(manager);
+
+  it('dao-manager.ts import cai dat cua moi bang', () => {
+    const missing = tableDirs.filter((d) => !managerCode.includes(`./${d}/dao.js`));
+    expect(missing, `Chua import trong dao-manager.ts:\n${missing.join('\n')}`).toEqual([]);
+  });
+
+  it('moi lop cai dat duoc khoi tao trong buildDaos', () => {
+    const build = /function buildDaos[\s\S]*?\n}/.exec(managerCode)?.[0] ?? '';
+    expect(build.length, 'Khong tim thay buildDaos').toBeGreaterThan(0);
+
+    const missing: string[] = [];
+    for (const dir of tableDirs) {
+      const daoSrc = stripComments(readFileSync(join(DAO_DIR, dir, 'dao.ts'), 'utf8'));
+      const cls = /export class (\w+)/.exec(daoSrc)?.[1];
+      if (!cls) { missing.push(`dao/${dir}/dao.ts: khong tim thay export class`); continue; }
+      if (!new RegExp(`new\\s+${cls}\\s*\\(`).test(build)) missing.push(`${cls} (dao/${dir})`);
+    }
+    expect(missing, `Chua khoi tao trong buildDaos:\n${missing.join('\n')}`).toEqual([]);
+  });
+
+  it('AllDaos khai bao dung so luong bang — khong thua, khong thieu', () => {
+    const allDaos = /export interface AllDaos \{[\s\S]*?\n}/.exec(managerCode)?.[0] ?? '';
+    const props = [...allDaos.matchAll(/readonly (\w+):/g)].map((m) => m[1]!);
+    expect(props.length, `AllDaos co ${props.length} muc, co ${tableDirs.length} thu muc bang`)
+      .toBe(tableDirs.length);
+  });
+});
+
 describe('Bo quet hoat dong dung', () => {
   it('doc duoc file va tim thay import', () => {
     expect(FILES.length).toBeGreaterThan(10);

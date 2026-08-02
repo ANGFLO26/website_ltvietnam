@@ -6,6 +6,20 @@ import type { UserDao } from './users/dao.interface.js';
 import { KyselyUserDao } from './users/dao.js';
 import type { SettingDao } from './settings/dao.interface.js';
 import { KyselySettingDao } from './settings/dao.js';
+import type { BrandDao } from './brands/dao.interface.js';
+import { KyselyBrandDao } from './brands/dao.js';
+import type { MediaDao } from './media/dao.interface.js';
+import { KyselyMediaDao } from './media/dao.js';
+import type { RedirectDao } from './redirects/dao.interface.js';
+import { KyselyRedirectDao } from './redirects/dao.js';
+import type { ProductCategoryDao } from './product-categories/dao.interface.js';
+import { KyselyProductCategoryDao } from './product-categories/dao.js';
+import type { StandardDao } from './standards/dao.interface.js';
+import { KyselyStandardDao } from './standards/dao.js';
+import type { ApplicationDao } from './applications/dao.interface.js';
+import { KyselyApplicationDao } from './applications/dao.js';
+import type { IndustryDao } from './industries/dao.interface.js';
+import { KyselyIndustryDao } from './industries/dao.js';
 
 /**
  * Tap hop moi DAO. Them bang moi = them mot dong o day va mot dong o `buildDaos`.
@@ -13,6 +27,13 @@ import { KyselySettingDao } from './settings/dao.js';
 export interface AllDaos {
   readonly users: UserDao;
   readonly settings: SettingDao;
+  readonly brands: BrandDao;
+  readonly media: MediaDao;
+  readonly redirects: RedirectDao;
+  readonly productCategories: ProductCategoryDao;
+  readonly standards: StandardDao;
+  readonly applications: ApplicationDao;
+  readonly industries: IndustryDao;
 }
 
 /** Kiem tra ket noi — dung cho `/health/ready`, khong thuoc bang nao. */
@@ -43,6 +64,13 @@ function buildDaos(db: KyselyExecutor): AllDaos {
   return {
     users: new KyselyUserDao(db),
     settings: new KyselySettingDao(db),
+    brands: new KyselyBrandDao(db),
+    media: new KyselyMediaDao(db),
+    redirects: new KyselyRedirectDao(db),
+    productCategories: new KyselyProductCategoryDao(db),
+    standards: new KyselyStandardDao(db),
+    applications: new KyselyApplicationDao(db),
+    industries: new KyselyIndustryDao(db),
   };
 }
 
