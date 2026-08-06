@@ -15,12 +15,12 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "migrate": "pnpm build && node dist/src/cli.js up",
-    "rollback": "pnpm build && node dist/src/cli.js down",
-    "status": "pnpm build && node dist/src/cli.js status",
-    "verify": "pnpm build && node dist/src/cli.js verify",
-    "gen:types": "pnpm build && node dist/scripts/generate-types.js",
-    "seed": "pnpm build && node dist/scripts/seed.js"
+    "migrate": "pnpm build && node --env-file-if-exists=../../.env dist/src/cli.js up",
+    "rollback": "pnpm build && node --env-file-if-exists=../../.env dist/src/cli.js down",
+    "status": "pnpm build && node --env-file-if-exists=../../.env dist/src/cli.js status",
+    "verify": "pnpm build && node --env-file-if-exists=../../.env dist/src/cli.js verify",
+    "gen:types": "pnpm build && node --env-file-if-exists=../../.env dist/scripts/generate-types.js",
+    "seed": "pnpm build && node --env-file-if-exists=../../.env dist/scripts/seed.js"
   },
   "dependencies": {
     "@ltv/config": "workspace:*",
