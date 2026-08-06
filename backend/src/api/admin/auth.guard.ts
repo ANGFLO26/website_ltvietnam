@@ -33,7 +33,19 @@ export interface AuthedRequest extends Request {
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    /**
+     * `@Inject(Reflector)` TUONG MINH, khong de Nest tu suy ra tu kieu.
+     *
+     * Suy ra kieu dua vao sieu du lieu `design:paramtypes` do
+     * `emitDecoratorMetadata` cua tsc sinh. Trinh chay phat trien (`tsx`,
+     * nhan la esbuild) KHONG phat sieu du lieu do, nen `reflector` thanh
+     * `undefined` va MOI yeu cau do voi mot loi kho hieu.
+     *
+     * Ban bien dich bang tsc thi chay dung — nghia la loi chi xuat hien o
+     * che do phat trien, dung noi it duoc kiem nhat. Khai bao tuong minh thi
+     * dung o ca hai.
+     */
+    @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(AUTH_SERVICE) private readonly auth: AuthService,
     @Inject(APP_CONFIG) private readonly cfg: AppConfig,
   ) {}

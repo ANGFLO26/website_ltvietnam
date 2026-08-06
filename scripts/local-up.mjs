@@ -113,8 +113,22 @@ if (!san) chet('PostgreSQL khong len. Xem nhat ky: docker compose logs postgres'
 xong('PostgreSQL san sang tren cong 5432');
 
 // ────────────────────────────────────────────────────────────────
-buoc('4/6', 'Cai dependency');
+buoc('4/6', 'Cai dependency va dung cac goi workspace');
 chay('pnpm', ['install']);
+
+/**
+ * Dung `packages/*` TRUOC khi chay bat ky thu gi.
+ *
+ * `backend` import `@ltv/config`, va `package.json` cua goi do tro toi
+ * `dist/index.js`. Tren mot ban vua clone thi `dist/` chua ton tai, nen
+ * `pnpm dev:backend` do voi ERR_MODULE_NOT_FOUND — mot thong bao khong he
+ * goi y rang thu con thieu la mot buoc bien dich.
+ *
+ * Cac lenh `dev:*` va `db:*` o `package.json` goc cung tu goi buoc nay, nen
+ * chay tay chung van dung ma khong phai nho gi. O day chi de nguoi dung thay
+ * no dang xay ra.
+ */
+chay('pnpm', ['build:packages']);
 
 // ────────────────────────────────────────────────────────────────
 buoc('5/6', 'Chay migration va du lieu khoi tao');
