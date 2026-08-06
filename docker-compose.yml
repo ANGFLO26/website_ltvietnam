@@ -11,7 +11,10 @@ services:
       # Cho phep tim kiem khong dau chinh xac hon
       LANG: C.UTF-8
     ports:
-      - '5432:5432'
+      # Cong tren MAY CHU doi duoc; cong trong container luon la 5432.
+      # Nhieu may da co PostgreSQL cai san chiem 5432 — `scripts/local-up.mjs`
+      # phat hien va tu chon cong khac, roi ghi lai vao `.env`.
+      - '${POSTGRES_HOST_PORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:

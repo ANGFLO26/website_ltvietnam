@@ -19,6 +19,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
+import { createServer } from 'node:net';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,6 +45,74 @@ function chay(cmd, args) {
 function thu(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: 'utf8', shell: process.platform === 'win32' });
   return { ok: r.status === 0, out: `${r.stdout ?? ''}${r.stderr ?? ''}`.trim() };
+}
+
+/** Cong TCP nay co dang trong khong. */
+function congTrong(port) {
+  return new Promise((resolve) => {
+    const s = createServer();
+    s.once('error', () => resolve(false));
+    s.once('listening', () => s.close(() => resolve(true)));
+    s.listen(port, '0.0.0.0');
+  });
+}
+
+/** Doc/ghi mot khoa trong `.env` ma khong dung toi cac dong khac. */
+function datEnv(khoa, giaTri) {
+  const cu = readFileSync('.env', 'utf8');
+  const mau = new RegExp(`^${khoa}=.*$`, 'm');
+  const moi = mau.test(cu) ? cu.replace(mau, `${khoa}=${giaTri}`) : `${cu.trimEnd()}\n${khoa}=${giaTri}\n`;
+  writeFileSync('.env', moi);
+}
+
+function docEnv(khoa) {
+  const m = new RegExp(`^${khoa}=(.*)$`, 'm').exec(readFileSync('.env', 'utf8'));
+  return m ? m[1].trim() : null;
+}
+
+/**
+ * Chon cong con trong cho PostgreSQL, va ghi lai vao `.env`.
+ *
+ * Rat nhieu may da co san mot ban PostgreSQL cai truc tiep tren Windows dang
+ * giu 5432. Khi do `docker compose up` do voi "port is already allocated" —
+ * mot thong bao dung nhung khong noi phai lam gi tiep.
+ *
+ * Thay vi bat nguoi dung tu go cai kia hay tu sua cau hinh, kich ban tim
+ * cong trong tiep theo va cap nhat CA HAI cho phai khop nhau:
+ * `POSTGRES_HOST_PORT` (docker gan cong nao) va `DATABASE_URL` (ung dung goi
+ * cong nao). Sua mot cai ma quen cai kia la loi kho lan ra nhat.
+ */
+async function chonCongTrong() {
+  const dangDung = Number(docEnv('POSTGRES_HOST_PORT') ?? 5432);
+
+  // Container CUA TA dang chay san thi cong bi chiem la binh thuong.
+  const ten = thu('docker', ['ps', '--filter', 'name=ltv-postgres', '--format', '{{.Names}}']);
+  if (ten.ok && ten.out.includes('ltv-postgres')) {
+    xong(`container ltv-postgres da chay tren cong ${dangDung}`);
+    return;
+  }
+
+  if (await congTrong(dangDung)) {
+    xong(`cong ${dangDung} con trong`);
+    return;
+  }
+
+  let moi = null;
+  for (let p = dangDung + 1; p <= dangDung + 20; p++) {
+    if (await congTrong(p)) { moi = p; break; }
+  }
+  if (moi === null) chet(`Cong ${dangDung} bi chiem va khong tim duoc cong trong nao gan do.`);
+
+  loi(`Cong ${dangDung} da bi mot chuong trinh khac chiem`);
+  loi('(thuong la mot ban PostgreSQL cai truc tiep tren may)');
+  xong(`Chuyen sang cong ${moi} va cap nhat .env:`);
+  datEnv('POSTGRES_HOST_PORT', String(moi));
+
+  const url = docEnv('DATABASE_URL') ?? '';
+  const urlMoi = url.replace(/(@[^/:]+):\d+\//, `$1:${moi}/`);
+  datEnv('DATABASE_URL', urlMoi);
+  xong(`  POSTGRES_HOST_PORT=${moi}`);
+  xong(`  DATABASE_URL=...@localhost:${moi}/...`);
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -96,6 +165,7 @@ if (existsSync('.env')) {
 // ────────────────────────────────────────────────────────────────
 buoc('3/6', 'Khoi dong PostgreSQL 16');
 
+await chonCongTrong();
 chay('docker', ['compose', 'up', '-d', 'postgres', 'media-init']);
 
 process.stdout.write('    cho PostgreSQL san sang');
@@ -110,7 +180,7 @@ for (let i = 0; i < 60; i++) {
 }
 console.log('');
 if (!san) chet('PostgreSQL khong len. Xem nhat ky: docker compose logs postgres');
-xong('PostgreSQL san sang tren cong 5432');
+xong(`PostgreSQL san sang tren cong ${docEnv('POSTGRES_HOST_PORT') ?? 5432}`);
 
 // ────────────────────────────────────────────────────────────────
 buoc('4/6', 'Cai dependency va dung cac goi workspace');
