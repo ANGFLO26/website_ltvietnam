@@ -18,7 +18,9 @@
     "db:rollback": "pnpm --filter @ltv/db rollback",
     "dev:worker": "pnpm --filter @ltv/worker dev",
     "dev:backend": "pnpm --filter @ltv/backend dev",
-    "dev:frontend": "pnpm --filter @ltv/frontend dev"
+    "dev:frontend": "pnpm --filter @ltv/frontend dev",
+    "smoke:auth": "node scripts/smoke-auth.mjs",
+    "db:seed": "pnpm --filter @ltv/db seed"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
