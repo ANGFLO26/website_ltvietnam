@@ -39,11 +39,25 @@ export const configSchema = z.object({
   PASSWORD_RESET_SECRET: z.string().min(32),
   PASSWORD_RESET_TTL_MINUTES: int.default(30),
   COOKIE_NAME: z.string().default('ltv_session'),
-  COOKIE_SECURE: bool.default('false'),
+  /**
+   * MAC DINH `true` — an toan cho production.
+   *
+   * Ban truoc mac dinh `false` de chay duoc tren `http://localhost`. Do la
+   * mac dinh nguy hiem: quen dat bien tren may chu that thi cookie phien di
+   * qua HTTP tran, va bat ky ai tren duong truyen deu doc duoc.
+   *
+   * Mac dinh phai la gia tri AN TOAN; muon noi long thi phai go tay. Va viec
+   * go tay do bi `assertProductionSafe()` tu choi khi `NODE_ENV=production`.
+   */
+  COOKIE_SECURE: bool.default('true'),
   COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('strict'),
+  /** Ten cookie CSRF. Doc duoc tu JavaScript — do la co y (mau double-submit). */
+  CSRF_COOKIE_NAME: z.string().default('ltv_csrf'),
+  CSRF_HEADER_NAME: z.string().default('x-csrf-token'),
   LOGIN_RATE_LIMIT: int.default(5),
   LOGIN_RATE_WINDOW_MINUTES: int.default(15),
   LOGIN_LOCK_AFTER_ATTEMPTS: int.default(10),
+  MIN_PASSWORD_LENGTH: int.default(12),
 
   MEDIA_ROOT: z.string().default('./.data/media'),
   MEDIA_PUBLIC_DIR: z.string().default('public-media'),
@@ -73,6 +87,48 @@ export const configSchema = z.object({
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
+
+/**
+ * Nhung cau hinh chay duoc tren may ca nhan nhung KHONG duoc phep len that.
+ *
+ * Goi luc khoi dong. Nem loi va dung tien trinh chu khong chi ghi canh bao:
+ * mot dong canh bao trong log khoi dong se bi cuon qua trong ba giay va
+ * khong ai doc lai.
+ */
+export function assertProductionSafe(cfg: AppConfig): void {
+  if (cfg.NODE_ENV !== 'production') return;
+
+  const loi: string[] = [];
+
+  if (!cfg.COOKIE_SECURE) {
+    loi.push('COOKIE_SECURE=false — cookie phien se di qua HTTP tran');
+  }
+  if (cfg.COOKIE_SAME_SITE === 'none') {
+    loi.push('COOKIE_SAME_SITE=none — mo duong cho CSRF tu bat ky trang nao');
+  }
+  if (cfg.CORS_ORIGINS.length === 0) {
+    loi.push('CORS_ORIGINS rong — admin se khong goi duoc API');
+  }
+  if (cfg.CORS_ORIGINS.some((o) => o.startsWith('http://'))) {
+    loi.push('CORS_ORIGINS chua origin http:// — chi cho phep https tren production');
+  }
+  if (cfg.JWT_SECRET === cfg.PASSWORD_RESET_SECRET) {
+    // Dung chung bi mat thi mot the dat lai mat khau doi duoc thanh the phien.
+    loi.push('JWT_SECRET va PASSWORD_RESET_SECRET phai KHAC nhau');
+  }
+  for (const [ten, gt] of [['JWT_SECRET', cfg.JWT_SECRET], ['PASSWORD_RESET_SECRET', cfg.PASSWORD_RESET_SECRET]] as const) {
+    if (gt.includes('thay-bang-gia-tri-that')) {
+      loi.push(`${ten} van la gia tri mau trong .env.example`);
+    }
+  }
+
+  if (loi.length > 0) {
+    throw new Error(
+      `Cau hinh khong an toan cho production:\n  - ${loi.join('\n  - ')}\n` +
+        'Sua bien moi truong roi khoi dong lai.',
+    );
+  }
+}
 
 /** Doc va xac thuc bien moi truong. Nem loi ro rang neu thieu. */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {

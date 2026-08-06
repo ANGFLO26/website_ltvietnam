@@ -39,6 +39,17 @@ export class ConflictError extends DomainError {
   }
 }
 
+/**
+ * Da xac thuc nhung KHONG duoc phep — khac `UnauthorizedError` (chua xac thuc).
+ * Tang api dich thanh 403, khong phai 401: tra 401 se lam giao dien day
+ * nguoi dung ra man hinh dang nhap trong khi ho da dang nhap dung roi.
+ */
+export class ForbiddenError extends DomainError {
+  constructor(code: string, message: string) {
+    super(code, message, 'FORBIDDEN');
+  }
+}
+
 export class UnauthorizedError extends DomainError {
   constructor(code = 'AUTH_INVALID_CREDENTIALS', message = 'Thong tin dang nhap khong dung') {
     super(code, message, 'UNAUTHORIZED');
