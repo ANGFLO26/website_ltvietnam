@@ -19,7 +19,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { createServer } from 'node:net';
+import { connect, createServer } from 'node:net';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,15 +35,31 @@ function chet(msg) {
   process.exit(1);
 }
 
+const vo = process.platform === 'win32';
+
+/**
+ * Boc dau nhay cho tham so khi phai chay qua `cmd.exe`.
+ *
+ * Tren Windows ta buoc phai dat `shell: true` vi `pnpm` va `docker` la cac tep
+ * `.cmd`. Nhung khi do Node KHONG tu boc dau nhay — no chi noi cac tham so lai
+ * bang dau cach roi dua cho `cmd.exe`. Tham so nao co san dau cach se bi tach
+ * lam hai.
+ *
+ * Da mat mot vong lap vi dieu nay: `--format "{{.Names}} {{.Ports}}"` bi tach
+ * ra, `docker ps` tra ve mot danh sach vo nghia, nen phep do cong tuong cong
+ * 5432 dang trong trong khi no dang bi chiem.
+ */
+const boc = (a) => (vo && /[\s"^&|<>()]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a);
+
 /** Chay lenh, in truc tiep ra man hinh. Nem loi neu that bai. */
 function chay(cmd, args) {
-  const r = spawnSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+  const r = spawnSync(cmd, args.map(boc), { stdio: 'inherit', shell: vo });
   if (r.status !== 0) chet(`Lenh that bai: ${cmd} ${args.join(' ')}`);
 }
 
 /** Chay lenh im lang, tra ve { ok, out }. Khong nem loi. */
 function thu(cmd, args) {
-  const r = spawnSync(cmd, args, { encoding: 'utf8', shell: process.platform === 'win32' });
+  const r = spawnSync(cmd, args.map(boc), { encoding: 'utf8', shell: vo });
   return { ok: r.status === 0, out: `${r.stdout ?? ''}${r.stderr ?? ''}`.trim() };
 }
 
@@ -54,6 +70,21 @@ function congTrong(port) {
     s.once('error', () => resolve(false));
     s.once('listening', () => s.close(() => resolve(true)));
     s.listen(port, '0.0.0.0');
+  });
+}
+
+/** Tu MAY CHU co mo duoc ket noi TCP toi cong nay khong. */
+function noiDuoc(port) {
+  return new Promise((resolve) => {
+    const s = connect({ port, host: '127.0.0.1' });
+    const xong = (kq) => {
+      s.destroy();
+      resolve(kq);
+    };
+    s.setTimeout(2000);
+    s.once('connect', () => xong(true));
+    s.once('timeout', () => xong(false));
+    s.once('error', () => xong(false));
   });
 }
 
@@ -85,26 +116,72 @@ function docEnv(khoa) {
 async function chonCongTrong() {
   const dangDung = Number(docEnv('POSTGRES_HOST_PORT') ?? 5432);
 
-  // Container CUA TA dang chay san thi cong bi chiem la binh thuong.
-  const ten = thu('docker', ['ps', '--filter', 'name=ltv-postgres', '--format', '{{.Names}}']);
-  if (ten.ok && ten.out.includes('ltv-postgres')) {
-    xong(`container ltv-postgres da chay tren cong ${dangDung}`);
+  /**
+   * Container CUA TA dang chay san thi cong bi chiem la binh thuong — nhung
+   * chi khi no THAT SU dang gan mot cong tren may chu.
+   *
+   * Mot container van bao "healthy" ma khong gan cong nao ca: khi do
+   * `pg_isready` chay BEN TRONG container van xanh, con ung dung tren may chu
+   * thi khong sao noi toi. Lan truoc kich ban bao buoc 3 thanh cong chinh vi
+   * chi hoi "container co chay khong" chu khong hoi "gan vao cong nao".
+   * Nen hoi thang docker, roi dong bo `.env` theo cau tra loi.
+   */
+  const cong = thu('docker', ['port', 'ltv-postgres', '5432/tcp']);
+  const daGan = cong.ok ? /:(\d+)\s*$/m.exec(cong.out) : null;
+  if (daGan) {
+    const p = Number(daGan[1]);
+    xong(`container ltv-postgres da chay, gan tren cong ${p}`);
+    if (p !== dangDung) {
+      datEnv('POSTGRES_HOST_PORT', String(p));
+      datEnv('DATABASE_URL', (docEnv('DATABASE_URL') ?? '').replace(/(@[^/:]+):\d+\//, `$1:${p}/`));
+      xong(`dong bo .env theo cong dang chay: ${p}`);
+    }
     return;
   }
 
-  if (await congTrong(dangDung)) {
+  /**
+   * Dò cổng bằng TCP thôi thì CHUA DU.
+   *
+   * Docker Desktop khi khoi dong lai se bat lai cac container dang chay luc
+   * tat may. Trong vai giay do, cong chua co ai nghe — dò TCP bao "trong" —
+   * nhung ngay sau do docker gan cong va `compose up` do voi "port is already
+   * allocated". Da dinh dung bay nay mot lan.
+   *
+   * Nen hoi them chinh docker: cong nao dang duoc container khac gan.
+   */
+  const congDocker = () => {
+    const r = thu('docker', ['ps', '--format', '{{.Names}} {{.Ports}}']);
+    const set = new Set();
+    if (!r.ok) return set;
+    for (const dong of r.out.split('\n')) {
+      if (dong.startsWith('ltv-postgres ')) continue; // container cua ta, xu ly o tren
+      for (const m of dong.matchAll(/:(\d+)->/g)) set.add(Number(m[1]));
+    }
+    return set;
+  };
+
+  const docker = congDocker();
+  const conTrong = async (p) => !docker.has(p) && (await congTrong(p));
+
+  if (await conTrong(dangDung)) {
     xong(`cong ${dangDung} con trong`);
     return;
   }
 
   let moi = null;
   for (let p = dangDung + 1; p <= dangDung + 20; p++) {
-    if (await congTrong(p)) { moi = p; break; }
+    if (await conTrong(p)) { moi = p; break; }
   }
   if (moi === null) chet(`Cong ${dangDung} bi chiem va khong tim duoc cong trong nao gan do.`);
 
   loi(`Cong ${dangDung} da bi mot chuong trinh khac chiem`);
-  loi('(thuong la mot ban PostgreSQL cai truc tiep tren may)');
+  if (docker.has(dangDung)) {
+    const ai = thu('docker', ['ps', '--format', '{{.Names}} {{.Ports}}']);
+    const ten = ai.out.split('\n').find((d) => d.includes(`:${dangDung}->`))?.split(' ')[0];
+    loi(`(container docker "${ten ?? '?'}" dang gan cong nay)`);
+  } else {
+    loi('(thuong la mot ban PostgreSQL cai truc tiep tren may)');
+  }
   xong(`Chuyen sang cong ${moi} va cap nhat .env:`);
   datEnv('POSTGRES_HOST_PORT', String(moi));
 
@@ -168,6 +245,43 @@ buoc('3/6', 'Khoi dong PostgreSQL 16');
 await chonCongTrong();
 chay('docker', ['compose', 'up', '-d', 'postgres', 'media-init']);
 
+/** Cong tren MAY CHU ma docker THUC SU dang gan cho container cua ta. */
+function congDaGan() {
+  const r = thu('docker', ['port', 'ltv-postgres', '5432/tcp']);
+  const m = r.ok ? /:(\d+)\s*$/m.exec(r.out) : null;
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * Dung cong ma DOCKER bao, chu khong phai cong ta mong doi.
+ *
+ * Da co lan container len va bao "healthy" nhung docker khong gan cong nao ra
+ * may chu ca. Khi do moi thu ma ta doan deu sai: `.env` tro toi 5432, va tren
+ * 5432 lai co MOT postgres KHAC dang tra loi — nen migration chay vao nham co
+ * so du lieu va bao "password authentication failed". Mot loi rat kho lan ra.
+ *
+ * Hoi docker la cach duy nhat biet chac. Cong nao docker gan cho container thi
+ * ket noi toi do chac chan vao dung container do.
+ */
+let congThat = congDaGan();
+if (congThat === null) {
+  loi('Container len nhung docker khong gan cong nao ra may chu — dung lai container.');
+  chay('docker', ['compose', 'up', '-d', '--force-recreate', 'postgres']);
+  congThat = congDaGan();
+}
+if (congThat === null) {
+  chet(
+    'Docker van khong gan duoc cong nao cho ltv-postgres.\n' +
+      '    Xem chi tiet: docker port ltv-postgres 5432/tcp\n' +
+      '                  docker inspect ltv-postgres --format "{{json .NetworkSettings.Ports}}"',
+  );
+}
+if (congThat !== Number(docEnv('POSTGRES_HOST_PORT') ?? 5432)) {
+  datEnv('POSTGRES_HOST_PORT', String(congThat));
+  datEnv('DATABASE_URL', (docEnv('DATABASE_URL') ?? '').replace(/(@[^/:]+):\d+\//, `$1:${congThat}/`));
+  xong(`dong bo .env theo cong docker da gan: ${congThat}`);
+}
+
 process.stdout.write('    cho PostgreSQL san sang');
 let san = false;
 for (let i = 0; i < 60; i++) {
@@ -180,7 +294,26 @@ for (let i = 0; i < 60; i++) {
 }
 console.log('');
 if (!san) chet('PostgreSQL khong len. Xem nhat ky: docker compose logs postgres');
-xong(`PostgreSQL san sang tren cong ${docEnv('POSTGRES_HOST_PORT') ?? 5432}`);
+
+/**
+ * `pg_isready` o tren chay BEN TRONG container, nen no xanh ke ca khi container
+ * khong gan cong nao ra may chu. Dieu ma phan con lai cua du an thuc su can la
+ * "tu may chu noi toi duoc" — nen kiem dung dieu do.
+ */
+if (!(await noiDuoc(congThat))) {
+  chet(
+    `Container len roi nhung may chu khong noi toi cong ${congThat} duoc.\n` +
+      `    Xem docker da gan cong nao: docker port ltv-postgres 5432/tcp`,
+  );
+}
+xong(`PostgreSQL san sang tren cong ${congThat}, may chu noi toi duoc`);
+
+// Container mot-lan: `up -d` khong bao loi neu no chay xong roi chet.
+const media = thu('docker', ['inspect', '-f', '{{.State.ExitCode}}', 'ltv-media-init']);
+if (media.ok && media.out.trim() !== '0') {
+  chet(`ltv-media-init that bai (ma thoat ${media.out.trim()}). Xem: docker logs ltv-media-init`);
+}
+xong('Thu muc media da dung');
 
 // ────────────────────────────────────────────────────────────────
 buoc('4/6', 'Cai dependency va dung cac goi workspace');

@@ -28,12 +28,15 @@ services:
   media-init:
     image: alpine:3.20
     container_name: ltv-media-init
+    # Moi dong duoi day phai THUT BANG NHAU. Trong YAML, khoi `>` chi gop dong
+    # lai thanh mot khi chung cung muc thut; dong nao thut sau hon thi xuong
+    # dong duoc GIU NGUYEN, va `sh` nhan duoc nhieu lenh roi bao
+    # "syntax error: unexpected &&".
     command: >
-      sh -c "mkdir -p /media/public-media/originals /media/public-media/variants
-                      /media/protected-documents /media/.tmp /media/.quarantine
-             && chmod 755 /media/public-media
-             && chmod 700 /media/protected-documents /media/.tmp /media/.quarantine
-             && echo 'media layout san sang'"
+      sh -c "mkdir -p /media/public-media/originals /media/public-media/variants /media/protected-documents /media/.tmp /media/.quarantine
+      && chmod 755 /media/public-media
+      && chmod 700 /media/protected-documents /media/.tmp /media/.quarantine
+      && echo 'media layout san sang'"
     volumes:
       - media-data:/media
 

@@ -16,7 +16,14 @@
 const args = process.argv.slice(2);
 const BASE = valueOf('--base') ?? 'http://localhost:3001';
 const EMAIL = valueOf('--email') ?? 'admin@ltvietnam.local';
-const PASSWORD = valueOf('--password') ?? 'mat-khau-quan-tri-rat-dai';
+const GOC = valueOf('--password') ?? 'mat-khau-quan-tri-rat-dai';
+/**
+ * Kich ban DOI mat khau o cuoi (de kiem viec thu hoi phien), nen sau mot lan
+ * chay thi mat khau khong con la `GOC` nua. Doi qua lai giua HAI gia tri thay
+ * vi noi them duoi: chay bao nhieu lan cung duoc, va mat khau khong dai ra.
+ */
+const KIA = `${GOC}-doi-roi`;
+let PASSWORD = GOC;
 
 function valueOf(flag) {
   const i = args.indexOf(flag);
@@ -88,6 +95,11 @@ const boot = await call('POST', '/api/v1/auth/bootstrap', {
 });
 if (boot.status === 409) {
   console.log(`  bo qua  da co tai khoan quan tri — dung ${EMAIL} da tao truoc do`);
+  // Lan chay truoc da doi mat khau. Xem gia tri nao dang dung, roi dung tiep
+  // gia tri do — KHONG noi long bai kiem nao, chi lay dung trang thai hien co.
+  const thu = await call('POST', '/api/v1/auth/login', { email: EMAIL, password: GOC });
+  if (thu.status !== 201) PASSWORD = KIA;
+  console.log(`  bo qua  mat khau dang dung: ${PASSWORD === GOC ? 'goc' : 'da doi o lan truoc'}`);
 } else {
   check('POST /auth/bootstrap lan dau', boot.status, 201);
 }
@@ -135,7 +147,7 @@ check('POST header CSRF sai -> 403',
     { 'x-csrf-token': 'gia-mao-ma-nay' })).status, 403);
 
 console.log('\n-- doi mat khau va thu hoi phien --');
-const MOI = PASSWORD + '-doi-roi';
+const MOI = PASSWORD === GOC ? KIA : GOC;
 check('doi mat khau voi CSRF dung -> 201',
   (await call('POST', '/api/v1/auth/change-password',
     { current_password: PASSWORD, new_password: MOI },

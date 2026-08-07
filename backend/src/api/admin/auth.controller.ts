@@ -26,8 +26,17 @@ import {
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(AUTH_SERVICE) private readonly auth: AuthService,
-    @Inject(USER_SERVICE) private readonly users: UserService,
+    /**
+     * Ten bien mang hau to `Service` la CO Y.
+     *
+     * Ban truoc dat la `users`, va `this.users.findById(...)` doc y nhu mot
+     * DAO — trung khuon `this.daos.users.findById(...)` o tang duoi. Nguoi
+     * doc phai mo file khac de biet day la service hay DAO, dung o cho ranh
+     * gioi quan trong nhat cua kien truc. Kieu du lieu noi that, nhung ten
+     * bien noi nguoc lai, va nguoi ta doc ten truoc.
+     */
+    @Inject(AUTH_SERVICE) private readonly authService: AuthService,
+    @Inject(USER_SERVICE) private readonly userService: UserService,
     @Inject(APP_CONFIG) private readonly cfg: AppConfig,
     @Inject(LOGGER) private readonly log: Logger,
   ) {}
@@ -48,7 +57,7 @@ export class AuthController {
   ): Promise<{ user: unknown }> {
     const dto = parse(loginSchema, body);
 
-    const result = await this.auth.login({
+    const result = await this.authService.login({
       email: dto.email,
       password: dto.password,
       ip: req.ip ?? null,
@@ -81,7 +90,7 @@ export class AuthController {
   @Get('me')
   async me(@Req() req: AuthedRequest): Promise<{ user: unknown }> {
     // Guard da dat `principal`; toi day chac chan co.
-    const user = await this.users.findById(req.principal!.userId);
+    const user = await this.userService.findById(req.principal!.userId);
     return { user };
   }
 
@@ -92,7 +101,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ ok: true }> {
     const dto = parse(changePasswordSchema, body);
-    await this.auth.changePassword({
+    await this.authService.changePassword({
       userId: req.principal!.userId,
       currentPassword: dto.current_password,
       newPassword: dto.new_password,
@@ -122,7 +131,7 @@ export class AuthController {
   @Post('forgot-password')
   async forgotPassword(@Body() body: unknown): Promise<{ ok: true }> {
     const dto = parse(forgotPasswordSchema, body);
-    const result = await this.auth.requestPasswordReset(dto.email);
+    const result = await this.authService.requestPasswordReset(dto.email);
 
     if (result) {
       /**
@@ -147,7 +156,7 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() body: unknown): Promise<{ ok: true }> {
     const dto = parse(resetPasswordSchema, body);
-    await this.auth.resetPassword({ token: dto.token, newPassword: dto.new_password });
+    await this.authService.resetPassword({ token: dto.token, newPassword: dto.new_password });
     return { ok: true };
   }
 
@@ -164,7 +173,7 @@ export class AuthController {
   @Post('bootstrap')
   async bootstrap(@Body() body: unknown): Promise<{ user: unknown }> {
     const dto = parse(bootstrapAdminSchema, body);
-    const user = await this.users.bootstrapFirstAdmin({
+    const user = await this.userService.bootstrapFirstAdmin({
       name: dto.name, email: dto.email, password: dto.password,
     });
     this.log.warn('auth_bootstrap_admin_created', { user_id: user.id, email: user.email });

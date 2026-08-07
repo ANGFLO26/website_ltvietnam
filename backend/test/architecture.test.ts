@@ -242,6 +242,56 @@ describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
 });
 
 /**
+ * Luat 9 — api/ khong duoc TIEM DAO manager.
+ *
+ * Luat 1 quet DUONG DAN import va chan `api/ -> dao/`. No khong du:
+ * `DAO_MANAGER` la mot Symbol export tu `shared/tokens.ts`, KHONG phai tu
+ * `dao/`. Nen mot controller viet
+ *
+ *     import { DAO_MANAGER } from '../../shared/tokens.js';
+ *     constructor(@Inject(DAO_MANAGER) private readonly daos) {}
+ *
+ * se co quyen vao ca 23 DAO, di vong hoan toan qua tang service — va Luat 1
+ * IM LANG cho qua vi khong co duong dan nao tro toi `dao/`.
+ *
+ * Lo hong nay do mot cau hoi cua nguoi dung phat hien ra, khong phai do test.
+ * Bay luat truoc kiem "co import sai khong"; khong luat nao hoi "co lay duoc
+ * DAO bang duong khac khong".
+ */
+describe('Luat 9 — api/ khong duoc tiem DAO manager', () => {
+  it('khong controller nao nhac toi DAO_MANAGER', () => {
+    const bad = FILES
+      .filter((f) => layerOf(f.path) === 'api')
+      .filter((f) => /\bDAO_MANAGER\b|\bDaoManager\b|\bDaoScope\b/.test(f.code))
+      .map((f) => f.path);
+    expect(
+      bad,
+      `Tang api phai di qua services/, khong duoc giu DAO manager:\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('api/ chi tiem token dich vu hoac ha tang, khong tiem gi khac', () => {
+    /**
+     * Danh sach TRANG cho nhung gi tang api duoc phep tiem.
+     *
+     * Mac dinh la TU CHOI: mot token moi xuat hien trong controller ma khong
+     * co trong danh sach nay se lam test do, va nguoi them no phai giai thich
+     * tai sao tang HTTP can no. Danh sach den thi nguoc lai — thu nguy hiem
+     * chi bi chan neu ai do da nghi ra truoc.
+     */
+    const CHO_PHEP = /^([A-Z_]+_SERVICE|APP_CONFIG|LOGGER|Reflector)$/;
+    const bad: string[] = [];
+    for (const f of FILES) {
+      if (layerOf(f.path) !== 'api') continue;
+      for (const m of f.code.matchAll(/@Inject\(\s*([A-Za-z_][\w]*)\s*\)/g)) {
+        if (!CHO_PHEP.test(m[1]!)) bad.push(`${f.path}: @Inject(${m[1]})`);
+      }
+    }
+    expect(bad, `Token khong duoc phep o tang api:\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+/**
  * Luat 8 — MOI bang trong so do phai duoc mot DAO nao do cham toi.
  *
  * Vi sao can: bay luat truoc kiem NHUNG GI DA VIET co dung hinh dang khong.
