@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import pg from 'pg';
+import type pg from 'pg';
+import { createTestPool } from '@ltv/testing';
 import { createKysely } from '../src/dao/connection.js';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
 import { AuthServiceImpl } from '../src/services/auth/service.js';
@@ -44,7 +45,7 @@ run('AuthService tren PostgreSQL that', () => {
   };
 
   beforeAll(async () => {
-    pool = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public' });
+    pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
     hasher = new FakeHasher();
     auth = new AuthServiceImpl(

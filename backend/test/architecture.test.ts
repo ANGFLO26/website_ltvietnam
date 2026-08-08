@@ -28,11 +28,12 @@ interface SourceFile {
 const stripComments = (s: string): string =>
   s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
-function walk(dir: string, out: string[] = []): string[] {
+function walk(dir: string, out: string[] = [], keTest = false): string[] {
   for (const name of readdirSync(dir)) {
+    if (name === 'node_modules' || name === 'dist') continue;
     const full = join(dir, name);
-    if (statSync(full).isDirectory()) walk(full, out);
-    else if (full.endsWith('.ts') && !full.endsWith('.test.ts')) out.push(full);
+    if (statSync(full).isDirectory()) walk(full, out, keTest);
+    else if (full.endsWith('.ts') && (keTest || !full.endsWith('.test.ts'))) out.push(full);
   }
   return out;
 }
@@ -41,6 +42,46 @@ const FILES: SourceFile[] = walk(SRC).map((full) => {
   const body = readFileSync(full, 'utf8');
   return {
     path: relative(SRC, full).replaceAll('\\', '/'),
+    body,
+    code: stripComments(body),
+    imports: [...body.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1]!),
+  };
+});
+
+/**
+ * BO QUET THU HAI — ca kho ma, khong chi `backend/src`.
+ *
+ * Chin luat dau chi biet ve `backend/src`, va do la ly do van de `createPool`
+ * ton tai duoc: `packages/db` xuat mot ban `createPool` song song ma khong luat
+ * nao phan ung, `worker/` import no truc tiep, va `packages/testing` la mot
+ * bien the thu sau ma KHONG AI DUNG. Sau cho tao pool, khac nhau, va khong mot
+ * bai kiem nao nhin thay nam trong so do.
+ *
+ * Ke ca FILE TEST. Ban dau toi de test ra ngoai — nhung 15 cho trong
+ * `backend/test/` chinh la nhung cho tu tao pool, va chung dua vao mot su tinh
+ * co: bo doc DATE dang ky o pham vi module cua `pool.ts`, nen test chi doc DATE
+ * dung khi no TINH CO keo file do theo. Mot bai test khong keo se doc `Date`
+ * thay vi chuoi, tuc la test va production doc du lieu khac nhau. De test ra
+ * ngoai pham vi quet la de dung cho nguy hiem nhat khong duoc canh.
+ */
+const REPO = resolve(import.meta.dirname, '../..');
+
+const REPO_FILES: SourceFile[] = [
+  ...walk(join(REPO, 'backend/src')),
+  ...walk(join(REPO, 'backend/test'), [], true),
+  ...walk(join(REPO, 'worker/src')),
+  ...readdirSync(join(REPO, 'packages'))
+    .filter((n) => statSync(join(REPO, 'packages', n)).isDirectory())
+    .flatMap((n) =>
+      ['src', 'scripts']
+        .map((sub) => join(REPO, 'packages', n, sub))
+        .filter((d) => existsSync(d))
+        .flatMap((d) => walk(d, [], true)),
+    ),
+].map((full) => {
+  const body = readFileSync(full, 'utf8');
+  return {
+    path: relative(REPO, full).replaceAll('\\', '/'),
     body,
     code: stripComments(body),
     imports: [...body.matchAll(/(?:from|import)\s+['"]([^'"]+)['"]/g)].map((m) => m[1]!),
@@ -495,6 +536,107 @@ describe('Luat 11 — kieu view cua API chi khai bao snake_case', () => {
       }
     }
     expect(bad, `Truong cua phan hoi phai la snake_case:\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+/**
+ * Luat 12–14 — MOT nguon ket noi database cho ca kho ma.
+ *
+ * Doc/13 ghi "createPool trung o 2 cho, 3 bien the". Dem lai: SAU cho, va
+ * chung da phan hoa that. Do duoc voi `TZ=Asia/Ho_Chi_Minh`:
+ *
+ *   SELECT '2026-03-15'::date
+ *     qua pool cua @ltv/db  (worker + CLI) -> Date "2026-03-14T17:00:00Z"
+ *     qua pool cua backend                 -> String "2026-03-15"
+ *
+ * Va tren pool "tho" (cli.ts, seed.ts, packages/testing):
+ *   SHOW search_path                        -> "$user", public
+ *   CREATE TABLE thu_khong_qualify (id int) -> nam o schema `public`
+ *
+ * Ba luat duoi day khong phai de "cho gon". Chung ton tai vi mot ban sao khong
+ * phan hoa do ai co y, ma phan hoa vi khong co gi buoc no phai giong.
+ */
+const NGUON_POOL = 'packages/db/src/pool.ts';
+
+describe('Luat 12 — chi mot file duoc tao ket noi pg', () => {
+  it('bo quet thay ca packages/ va worker/ — neu khong thi luat nay rong', () => {
+    /**
+     * Chin luat dau chi quet `backend/src`, va chinh vi vay chung khong thay
+     * `packages/db` lan `worker/`. Khang dinh nay lam cho pham vi quet thanh
+     * mot dieu KIEM DUOC, khong phai mot y dinh trong chu thich.
+     */
+    const goc = (p: string): string => p.split('/').slice(0, 2).join('/');
+    const cacGoc = new Set(REPO_FILES.map((f) => goc(f.path)));
+    expect([...cacGoc].sort()).toContain('worker/src');
+    expect([...cacGoc].sort()).toContain('packages/db');
+    expect(cacGoc.has('backend/test')).toBe(true);
+    expect(REPO_FILES.length).toBeGreaterThan(FILES.length);
+  });
+
+  it(`chi ${NGUON_POOL} duoc goi new pg.Pool / new pg.Client`, () => {
+    const bad = REPO_FILES.filter((f) => f.path !== NGUON_POOL)
+      .filter((f) => /new\s+(?:pg\.)?(?:Pool|Client)\s*\(/.test(f.code))
+      .map((f) => f.path);
+    expect(
+      bad,
+      `Ket noi database chi duoc tao o ${NGUON_POOL}:\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+});
+
+describe('Luat 13 — nguon pool PHAI dang ky bo doc DATE', () => {
+  /**
+   * Luat 12 la mot lenh CAM; mot minh no chua du. Neu ai do viet lai `pool.ts`
+   * va bo dong `setTypeParser` thi Luat 12 van xanh, va loi lech mot ngay quay
+   * lai o MOI tien trinh cung mot luc — te hon hien trang truoc F-1c, vi luc do
+   * it nhat backend con dung.
+   *
+   * Nen day la mot khang dinh KHANG DINH: dong do phai co mat, va phai o pham
+   * vi module (khong nam trong mot ham nao).
+   */
+  const src = REPO_FILES.find((f) => f.path === NGUON_POOL);
+
+  it('tim thay file nguon', () => {
+    expect(src, `khong thay ${NGUON_POOL}`).toBeDefined();
+  });
+
+  it('dang ky OID 1082 (DATE) o pham vi module', () => {
+    const code = src!.code;
+    expect(code, 'thieu setTypeParser cho DATE').toMatch(/setTypeParser\(/);
+    expect(code, 'thieu OID 1082').toMatch(/1082/);
+    // O pham vi module: dong goi setTypeParser khong duoc thut le.
+    expect(code, 'setTypeParser phai o pham vi module, khong trong ham').toMatch(
+      /^pg\.types\.setTypeParser\(/m,
+    );
+  });
+
+  it('KHONG file nao khac dang ky type parser', () => {
+    // Hai cho dang ky la hai cho co the mau thuan nhau.
+    const bad = REPO_FILES.filter((f) => f.path !== NGUON_POOL)
+      .filter((f) => /setTypeParser\s*\(/.test(f.code))
+      .map((f) => f.path);
+    expect(bad, `Chi ${NGUON_POOL} duoc dang ky type parser:\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+describe('Luat 14 — `pg` chi duoc import nhu GIA TRI o nguon pool', () => {
+  /**
+   * Luat 2 chan `pg` lot ra ngoai `dao/`, nhung no chi nhin `backend/src`.
+   * Ngoai kho backend, chi `pool.ts` co ly do goi mot cai gi cua `pg`.
+   *
+   * `import type pg from 'pg'` van duoc phep: chu ky ham can kieu `pg.Pool`, va
+   * import kieu bien mat sau khi bien dich nen khong the chay duoc gi.
+   */
+  it('cac file khac chi duoc `import type`', () => {
+    const bad: string[] = [];
+    for (const f of REPO_FILES) {
+      if (f.path === NGUON_POOL) continue;
+      for (const m of f.body.matchAll(/^\s*import\s+([^;]*?)\s*from\s*['"]pg['"]/gm)) {
+        const phan = m[1]!;
+        if (!/^type\b/.test(phan.trim())) bad.push(`${f.path}: import ${phan} from 'pg'`);
+      }
+    }
+    expect(bad, `Chi ${NGUON_POOL} duoc import 'pg' nhu gia tri:\n${bad.join('\n')}`).toEqual([]);
   });
 });
 

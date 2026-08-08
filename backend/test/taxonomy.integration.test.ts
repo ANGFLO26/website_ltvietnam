@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import pg from 'pg';
+import type pg from 'pg';
+import { createTestPool } from '@ltv/testing';
 import { createKysely } from '../src/dao/connection.js';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
 
@@ -12,7 +13,7 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
   const tag = `tax-${Date.now()}`;
 
   beforeAll(async () => {
-    pool = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public' });
+    pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
   });
   afterAll(async () => {

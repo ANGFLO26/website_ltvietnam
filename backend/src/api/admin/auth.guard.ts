@@ -1,10 +1,10 @@
 import {
-  CanActivate,
-  ExecutionContext,
   Inject,
   Injectable,
   SetMetadata,
+  type CanActivate,
   type CustomDecorator,
+  type ExecutionContext,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { AppConfig } from '@ltv/config';

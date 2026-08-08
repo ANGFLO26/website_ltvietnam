@@ -15,8 +15,8 @@ Một cái là **lỗ hổng khai thác được** trong mã tôi đã báo là 
 |---|---|---|---|
 | 1 | Đăng nhập không có giới hạn tốc độ — Argon2 19 MiB/lần | **Nghiêm trọng** | **đã sửa — F-1a** |
 | 2 | Vỏ phản hồi không thống nhất | Cao | **đã sửa — F-1b** |
-| 3 | `createPool` trùng ở 2 chỗ, 3 biến thể | Cao | Trước F0 |
-| 4 | Luật kiến trúc không quét `packages/` | Cao | Trước F0 |
+| 3 | `createPool` trùng ở **6** chỗ (tôi đếm thiếu) | Cao | **đã sửa — F-1c** |
+| 4 | Luật kiến trúc không quét `packages/` | Cao | **đã sửa — F-1c** |
 | 5 | `UserService` / `SettingService` — **không một test nào** | Cao | Trước F0 |
 | 6 | Không giới hạn kích thước thân yêu cầu | Trung bình | F0 |
 | 7 | Không có security header | Trung bình | F0 |
@@ -25,6 +25,8 @@ Một cái là **lỗ hổng khai thác được** trong mã tôi đã báo là 
 | 10 | 8 khoá cấu hình khai báo mà không dùng | Thấp | rải theo phase |
 | 11 | `worker/` vẫn là khung rỗng | — | F5 |
 | **12** | `forgot-password`: hạn mức IP = hạn mức email = 3 | Trung bình | **đã sửa — F-1b** |
+| **13** | `pnpm lint` chưa bao giờ xanh — 68 lỗi giả che 13 lỗi thật | Trung bình | **đã sửa — F-1c** |
+| **14** | `pnpm dev:worker` chưa bao giờ chạy được | Cao | **đã sửa — F-1c** |
 
 Số **12** không có trong bản rà soát đầu. Nó lộ ra khi chạy `smoke-auth.mjs`
 trên HTTP thật ở F-1b: F-1a tách hạn mức IP khỏi hạn mức email cho `login` rồi
@@ -266,10 +268,160 @@ migration CLI dùng biến thể thứ ba.
 migration CLI chạy **không** có `search_path` — nó đang dựa vào một cơ chế khác
 để tìm schema `ltv`, nên nếu cơ chế đó đổi thì migration hỏng theo cách khó lần.
 
-## Cách sửa
+## ĐÍNH CHÍNH — sáu chỗ, không phải hai
 
-Một nguồn duy nhất trong `packages/db`. `backend/src/dao/connection.ts` gọi lại
-chứ không tự viết. CLI dùng cùng hàm đó.
+Tôi viết "trùng ở 2 chỗ, 3 biến thể". Đếm lại:
+
+| chỗ | `search_path` | `statement_timeout` | bộ đọc DATE |
+|---|---|---|---|
+| `packages/db/src/pool.ts` | có | có | **không** |
+| `backend/src/dao/connection.ts` | có | có | có |
+| `packages/db/src/cli.ts` | **không** | không | **không** |
+| `packages/db/scripts/seed.ts` | **không** | không | **không** |
+| `packages/db/scripts/generate-types.ts` | **không** | không | **không** |
+| `packages/testing/src/index.ts` | **không** | không | **không** |
+
+Cộng **15 chỗ nữa** trong `backend/test/` tự viết `new pg.Pool(...)`.
+
+Và `packages/testing` là **mã chết** — không một ai `import '@ltv/testing'`.
+Biến thể thứ sáu là biến thể không ai dùng.
+
+## Nó KHÔNG phải rủi ro về sau — nó đã phân hoá rồi
+
+Đo với `TZ=Asia/Ho_Chi_Minh`:
+
+```
+SELECT '2026-03-15'::date
+  qua pool của @ltv/db  (worker + CLI dùng)  ->  Date   "2026-03-14T17:00:00Z"
+  qua pool của backend                       ->  String "2026-03-15"
+```
+
+Worker đọc **lệch một ngày**, trên máy thật đặt giờ Việt Nam. Đó là đúng lỗi
+tôi đã sửa ở `backend/src/dao/connection.ts` và viết cả một đoạn chú thích để
+cảnh báo — rồi không mang nó sang bản sao thứ hai, vì **không có gì buộc phải
+mang**. Bản sao không phân hoá vì ai cố ý; nó phân hoá vì không có gì buộc hai
+bản phải giống nhau.
+
+Và trên pool "thô" (`cli.ts`, `seed.ts`, `packages/testing`):
+
+```
+SHOW search_path                         ->  "$user", public
+SELECT 1 FROM users                      ->  relation "users" does not exist
+CREATE TABLE thu_khong_qualify (id int)  ->  nằm ở schema `public`
+```
+
+Câu thứ ba là cái đáng lo: một migration quên viết `ltv.` sẽ tạo bảng trong
+`public` mà **không báo lỗi**, và mọi migration sau đó có viết `ltv.` sẽ thất
+bại theo cách rất khó lần.
+
+## ĐÃ SỬA (F-1c)
+
+`packages/db/src/pool.ts` là nơi **duy nhất** gọi `new pg.Pool` / `new pg.Client`.
+
+**Không gộp tất cả thành một hàm** — đó là chỗ dễ sai. Đo trên pool ứng dụng:
+
+```
+SHOW statement_timeout  ->  10s
+SELECT pg_sleep(10)     ->  canceling statement due to statement timeout
+```
+
+`CREATE INDEX` trên bảng lớn mất vài phút. Cho migration dùng
+`statement_timeout` của ứng dụng nghĩa là migration bị **huỷ giữa đường** khi
+dữ liệu lớn lên — trên máy thật, không phải trên máy phát triển. Nên có **hai**
+hàm có tên, chứ không phải một hàm với một cờ:
+
+| | DATE | `search_path` | `statement_timeout` | `lock_timeout` |
+|---|---|---|---|---|
+| `createAppPool` | string | `ltv,public` | 10s | — |
+| `createMigrationPool` | string | `ltv,public` | **0** | **10s** |
+| `createTestPool` | string | `ltv,public` | 30s | — |
+| `createPoolFrom` (seed) | string | `ltv,public` | 0 | — |
+
+`lock_timeout = 10s` cho migration là **hai loại kiên nhẫn khác nhau**: thất
+bại nhanh khi không lấy được khoá, còn việc thì cho chạy bao lâu cũng được.
+Thiếu nó thì `statement_timeout = 0` biến một migration đợi khoá thành một
+migration treo vô hạn đang **giữ khoá DDL**, chặn cả ứng dụng.
+
+`packages/testing` từ mã chết thành nguồn duy nhất cho test, và 15 chỗ trong
+`backend/test/` gọi nó. Điều đó biến một **sự tình cờ** thành một bảo đảm: bộ
+đọc DATE đăng ký ở phạm vi module của `pool.ts`, nên trước đây test chỉ đọc DATE
+đúng khi nó *tình cờ* kéo file đó theo.
+
+Ba luật mới, quét **cả kho** kể cả file test:
+
+```
+12  chỉ `pool.ts` được gọi new pg.Pool / new pg.Client
+13  `pool.ts` PHẢI đăng ký OID 1082 ở phạm vi module, và không nơi nào khác
+14  `pg` chỉ được import như GIÁ TRỊ ở `pool.ts` (`import type` vẫn được)
+```
+
+Luật 13 là một khẳng định **khẳng định**, không phải một lệnh cấm. Luật 12 một
+mình không đủ: ai viết lại `pool.ts` và bỏ dòng `setTypeParser` thì Luật 12 vẫn
+xanh, và lỗi lệch một ngày quay lại ở **mọi** tiến trình cùng lúc — tệ hơn hiện
+trạng trước F-1c, vì lúc đó ít nhất backend còn đúng.
+
+Để **file test** ra ngoài phạm vi quét là để đúng chỗ nguy hiểm nhất không được
+canh: 15 chỗ tự tạo pool đều nằm trong test.
+
+---
+
+# 13. `pnpm lint` chưa bao giờ xanh
+
+Phát hiện khi chạy kiểm liên kết của F-1c, không có trong bản rà soát.
+
+```
+113 vấn đề, 79 lỗi
+   68 × no-undef   `console`/`process` "không tồn tại" trong tệp .mjs
+```
+
+68 lỗi **giả** — cấu hình không khai báo biến toàn cục của Node. Cái giá thật
+là chúng **che 13 lỗi thật**: `consistent-type-imports` (6),
+`no-unused-vars` (6), `no-unused-expressions` (1). Không ai đọc qua được 68
+dòng vô nghĩa để thấy 13 dòng có nghĩa, nên kết quả thực tế là không ai chạy
+lint — và một công cụ không ai chạy thì không bảo vệ gì. Một cổng báo động liên
+tục thì giống như không có cổng.
+
+Trong 13 lỗi thật có hai cái đáng kể:
+
+- `packages/db/src/schema-types.ts` khai `DateOnlyGen` và `Json` mà không bảng
+  nào dùng. Tệp này ghi "**SINH TỰ ĐỘNG — ĐỪNG SỬA TAY**", nên sửa bằng tay sẽ
+  bị `gen:types` ghi đè. Đã sửa **bộ sinh** để chỉ in bí danh nào được dùng.
+  Sinh lại và diff: chỉ mất hai bí danh, 52 bảng không đổi kiểu nào.
+- Và chính lúc diff mới thấy tệp "đừng sửa tay" đó **đã bị sửa tay**: chú thích
+  trong nó trỏ tới `dao/connection.ts` như nơi đăng ký OID 1082 — một câu đã
+  sai sau F-1c. Bây giờ bộ sinh in đúng `packages/db/src/pool.ts`.
+
+Sau khi sửa: `0 lỗi`.
+
+---
+
+# 14. `pnpm dev:worker` chưa bao giờ chạy được
+
+Cũng phát hiện khi chạy kiểm liên kết. Hai lỗi, cả hai tôi **đã sửa cho backend
+rồi**:
+
+```
+node --experimental-strip-types --watch src/main.ts
+```
+
+- `--experimental-strip-types` không viết lại `.js` → `.ts` trong import. Tôi
+  đã đổi backend sang `tsx` vì đúng lý do này, và không đổi worker.
+- không có `--env-file-if-exists`, nên `loadConfig()` chết với
+  `JWT_SECRET: Required` dù `.env` hợp lệ nằm ngay đó.
+
+Đây là lần thứ ba trong F-1: sửa đúng một chỗ rồi không hỏi "còn chỗ nào cũng
+thế không". Ba lần đó là `forgot-password` (F-1b), bộ đọc DATE, và cái này.
+
+Sau khi sửa, worker khởi động thật:
+
+```
+{"ts":"...","worker_id":"worker-1","msg":"worker_start","poll_ms":5000}
+```
+
+**Còn một điều CHƯA sửa, ghi lại thay vì im lặng:** worker gọi `loadConfig()`
+nên nó đòi `JWT_SECRET` và `PASSWORD_RESET_SECRET` — hai khoá nó không bao giờ
+dùng. Người triển khai riêng worker phải cấp một bí mật vô nghĩa. Đó là vấn đề
+cấu hình, thuộc F-1e.
 
 ---
 

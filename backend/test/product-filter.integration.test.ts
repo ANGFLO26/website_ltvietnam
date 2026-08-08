@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import pg from 'pg';
+import type pg from 'pg';
+import { createTestPool } from '@ltv/testing';
 import { Kysely, PostgresDialect } from 'kysely';
 import type { Database } from '@ltv/db';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
@@ -33,7 +34,7 @@ run('Bo loc san pham tren PostgreSQL that', () => {
   const slug = (k: string) => `${tag}-${k}`;
 
   beforeAll(async () => {
-    pool = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public' });
+    pool = createTestPool(url);
     const db = new Kysely<Database>({
       dialect: new PostgresDialect({ pool }),
       log: (e) => {

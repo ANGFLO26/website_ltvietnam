@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import pg from 'pg';
+import type pg from 'pg';
+import { createTestPool } from '@ltv/testing';
 import { createKysely } from '../src/dao/connection.js';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
 
@@ -14,7 +15,7 @@ run('Nhom noi dung: posts, projects, documents, customers', () => {
   const id: Record<string, string> = {};
 
   beforeAll(async () => {
-    pool = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public' });
+    pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
 
     const cat = await daos.postCategories.insert({ name: 'Tin tuc', slug: slug('tin-tuc') });

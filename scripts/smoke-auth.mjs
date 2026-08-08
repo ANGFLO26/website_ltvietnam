@@ -35,7 +35,8 @@ let fail = 0;
 
 function check(name, got, want) {
   const ok = got === want;
-  ok ? pass++ : fail++;
+  if (ok) pass += 1;
+  else fail += 1;
   const dau = ok ? '  ok  ' : ' FAIL ';
   console.log(`${dau} ${name.padEnd(48)} ${got}${ok ? '' : `  (mong ${want})`}`);
   return ok;

@@ -1,10 +1,10 @@
 import {
-  CanActivate,
-  ExecutionContext,
   Inject,
   Injectable,
   SetMetadata,
+  type CanActivate,
   type CustomDecorator,
+  type ExecutionContext,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { AppConfig } from '@ltv/config';
@@ -12,7 +12,7 @@ import type { Request } from 'express';
 import { APP_CONFIG, LOGGER } from '../../shared/tokens.js';
 import type { Logger } from '../../shared/logging/logger.js';
 import { DomainError } from '../../shared/errors.js';
-import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './rate-limit.registry.js';
+import { RATE_LIMIT_REGISTRY, type RateLimitRegistry } from './rate-limit.registry.js';
 
 export interface RateLimitSpec {
   /** Số lần cho phép trong cửa sổ. */

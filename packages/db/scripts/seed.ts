@@ -7,13 +7,18 @@
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import pg from 'pg';
+import { createPoolFrom } from '../src/pool.js';
 
 async function main(): Promise<void> {
   const dir = resolve(process.cwd(), 'seeds');
   const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
   const only = process.argv[2];
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = createPoolFrom({
+    connectionString: process.env.DATABASE_URL ?? '',
+    schema: process.env.DATABASE_SCHEMA ?? 'ltv',
+    // Seed va sinh kieu deu co the quet nhieu bang; khong dat tran thoi gian.
+    statementTimeoutMs: 0,
+  });
   try {
     for (const f of files) {
       if (only && !f.includes(only)) continue;

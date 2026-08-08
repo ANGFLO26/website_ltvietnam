@@ -17,6 +17,9 @@ importers:
       eslint:
         specifier: ^9.17.0
         version: 9.39.5
+      globals:
+        specifier: ^15.14.0
+        version: 15.15.0
       prettier:
         specifier: ^3.4.2
         version: 3.9.6
@@ -75,6 +78,9 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@ltv/testing':
+        specifier: workspace:*
+        version: link:../packages/testing
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.6
@@ -140,6 +146,9 @@ importers:
 
   packages/testing:
     dependencies:
+      '@ltv/db':
+        specifier: workspace:*
+        version: link:../db
       pg:
         specifier: ^8.13.1
         version: 8.22.0
@@ -156,6 +165,10 @@ importers:
       '@ltv/db':
         specifier: workspace:*
         version: link:../packages/db
+    devDependencies:
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.9
 
 packages:
 
@@ -1523,6 +1536,10 @@ packages:
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
+
+  globals@15.15.0:
+    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -3388,6 +3405,8 @@ snapshots:
       is-glob: 4.0.3
 
   globals@14.0.0: {}
+
+  globals@15.15.0: {}
 
   gopd@1.2.0: {}
 

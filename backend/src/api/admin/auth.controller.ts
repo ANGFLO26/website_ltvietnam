@@ -23,7 +23,7 @@ import {
 } from '../dto/user.view.js';
 import { Public, type AuthedRequest } from './auth.guard.js';
 import { RateLimit, type RateLimitedRequest } from './rate-limit.guard.js';
-import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './rate-limit.registry.js';
+import { RATE_LIMIT_REGISTRY, type RateLimitRegistry } from './rate-limit.registry.js';
 import {
   clearCsrfCookie,
   clearSessionCookie,

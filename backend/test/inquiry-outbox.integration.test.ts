@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import pg from 'pg';
+import type pg from 'pg';
+import { createTestClient, createTestPool } from '@ltv/testing';
 import { createKysely } from '../src/dao/connection.js';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
 
@@ -28,7 +29,7 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
   });
 
   beforeAll(async () => {
-    pool = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public' });
+    pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
   });
   afterAll(async () => {
@@ -181,8 +182,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
      */
     const jobIds = await seedJobs(10, 'race');
 
-    const poolA = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public', max: 1 });
-    const poolB = new pg.Pool({ connectionString: url, options: '-c search_path=ltv,public', max: 1 });
+    const poolA = createTestPool(url, { max: 1 });
+    const poolB = createTestPool(url, { max: 1 });
     try {
       const a = createDaoManager(createKysely(poolA));
       const b = createDaoManager(createKysely(poolB));
@@ -235,11 +236,10 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
      */
     const [heldId] = await seedJobs(1, 'lock');
 
-    const holder = new pg.Client({ connectionString: url, options: '-c search_path=ltv,public' });
-    const worker = new pg.Pool({
-      connectionString: url, max: 1,
-      options: '-c search_path=ltv,public -c statement_timeout=1500',
-    });
+    const holder = createTestClient(url);
+    // Tran NGAN la cach bai kiem nay chung minh dieu no noi: co SKIP LOCKED thi
+    // tra ve ngay, khong co thi cham tran.
+    const worker = createTestPool(url, { max: 1, statementTimeoutMs: 1500 });
 
     await holder.connect();
     try {

@@ -9,7 +9,7 @@
  */
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import pg from 'pg';
+import { createPoolFrom } from '../src/pool.js';
 
 const SCHEMA = process.env.DATABASE_SCHEMA ?? 'ltv';
 
@@ -54,7 +54,12 @@ interface Col {
 }
 
 async function main(): Promise<void> {
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = createPoolFrom({
+    connectionString: process.env.DATABASE_URL ?? '',
+    schema: process.env.DATABASE_SCHEMA ?? 'ltv',
+    // Seed va sinh kieu deu co the quet nhieu bang; khong dat tran thoi gian.
+    statementTimeoutMs: 0,
+  });
   const { rows } = await pool.query<Col>(
     `SELECT table_name, column_name, data_type, is_nullable, column_default, udt_name
        FROM information_schema.columns
@@ -81,18 +86,42 @@ async function main(): Promise<void> {
     ' */',
     "import type { ColumnType, Generated } from 'kysely';",
     '',
-    '// Cot dung ColumnType san. Ban `*Gen` cho cot CO DEFAULT: kieu insert them',
-    '// `undefined` de khong phai truyen. KHONG boc `Generated<ColumnType<..>>` —',
-    '// boc hai lan lam hong kieu doc.',
-    'type Timestamp = ColumnType<Date, Date | string, Date | string>;',
-    'type TimestampGen = ColumnType<Date, Date | string | undefined, Date | string>;',
-    '// DATE doc ra la CHUOI `YYYY-MM-DD`, khong phai `Date` — mot ngay tren',
-    '// lich khong co mui gio. Xem `dao/connection.ts`.',
-    'type DateOnly = ColumnType<string, Date | string, Date | string>;',
-    'type DateOnlyGen = ColumnType<string, Date | string | undefined, Date | string>;',
-    'type Json = unknown;',
-    'type JsonGen = ColumnType<unknown, unknown | undefined, unknown>;',
-    '',
+  ];
+  /** Vi tri chen khoi bi danh — ngay sau phan dau tep. */
+  const dauThan = out.length;
+
+  /**
+   * Bi danh kieu — CHI in ra cai NAO DUOC DUNG.
+   *
+   * Ban truoc in ca muoi bi danh, va hai trong so do (`DateOnlyGen`, `Json`)
+   * khong bang nao dung toi. Tep sinh ra co hai loi `no-unused-vars`, va
+   * chung khong the sua duoc bang tay vi lan `gen:types` sau se ghi de. Loc o
+   * DAY thi tep sinh ra luon sach, ke ca khi so do doi.
+   *
+   * Hai loi do an minh duoc mot thoi gian dai vi `pnpm lint` chua bao gio
+   * xanh: 68 loi GIA (`console` khong ton tai trong tep `.mjs`) che het.
+   */
+  const BI_DANH: readonly (readonly [string, string[]])[] = [
+    ['Timestamp', ['type Timestamp = ColumnType<Date, Date | string, Date | string>;']],
+    [
+      'TimestampGen',
+      ['type TimestampGen = ColumnType<Date, Date | string | undefined, Date | string>;'],
+    ],
+    [
+      'DateOnly',
+      [
+        '// DATE doc ra la CHUOI `YYYY-MM-DD`, khong phai `Date` — mot ngay tren',
+        '// lich khong co mui gio. Trinh doc OID 1082 dang ky o',
+        '// `packages/db/src/pool.ts` (nguon duy nhat tao ket noi pg).',
+        'type DateOnly = ColumnType<string, Date | string, Date | string>;',
+      ],
+    ],
+    [
+      'DateOnlyGen',
+      ['type DateOnlyGen = ColumnType<string, Date | string | undefined, Date | string>;'],
+    ],
+    ['Json', ['type Json = unknown;']],
+    ['JsonGen', ['type JsonGen = ColumnType<unknown, unknown | undefined, unknown>;']],
   ];
 
   for (const [table, cols] of [...byTable].sort()) {
@@ -116,6 +145,22 @@ async function main(): Promise<void> {
     }
     out.push('}', '');
   }
+
+  /**
+   * Chen khoi bi danh vao SAU dau tep, nhung tinh sau khi da biet bang nao
+   * dung kieu nao. Thu tu trong tep khong doi; chi phep loc la moi.
+   */
+  const thanBang = out.join('\n');
+  const khoi: string[] = [
+    '// Cot dung ColumnType san. Ban `*Gen` cho cot CO DEFAULT: kieu insert them',
+    '// `undefined` de khong phai truyen. KHONG boc `Generated<ColumnType<..>>` —',
+    '// boc hai lan lam hong kieu doc.',
+  ];
+  for (const [ten, dong] of BI_DANH) {
+    if (new RegExp(`\\b${ten}\\b`).test(thanBang)) khoi.push(...dong);
+  }
+  khoi.push('');
+  out.splice(dauThan, 0, ...khoi);
 
   out.push('export interface Database {');
   for (const table of [...byTable.keys()].sort()) out.push(`  ${table}: ${pascal(table)}Table;`);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path';
 import { loadConfig } from '@ltv/config';
-import pg from 'pg';
+import { createMigrationPool } from './pool.js';
 import {
   loadMigrations,
   migrateDown,
@@ -21,7 +21,20 @@ const log = (m: string) => process.stdout.write(`${m}\n`);
 async function main(): Promise<void> {
   const cmd = process.argv[2] ?? 'status';
   const cfg = loadConfig();
-  const pool = new pg.Pool({ connectionString: cfg.DATABASE_URL });
+  /**
+   * Pool RIENG cho migration, khong dung pool cua ung dung.
+   *
+   * Pool ung dung dat `statement_timeout = 10s`, va do duoc la no HUY that:
+   * `SELECT pg_sleep(10)` -> "canceling statement due to statement timeout".
+   * `CREATE INDEX` tren mot bang lon mat vai phut, nen dung pool ung dung
+   * nghia la migration bi huy giua duong khi du lieu lon len — tren may that,
+   * khong phai tren may phat trien.
+   *
+   * Truoc F-1c file nay tu goi `new pg.Pool({ connectionString })`, tuc la
+   * KHONG co `search_path`. No chay duoc chi vi moi migration deu viet `ltv.`
+   * tuong minh; mot file quen se tao bang trong `public` ma khong bao loi.
+   */
+  const pool = createMigrationPool(cfg);
 
   try {
     switch (cmd) {

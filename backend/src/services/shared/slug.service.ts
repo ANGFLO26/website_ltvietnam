@@ -243,7 +243,13 @@ export class SlugServiceImpl implements SlugService {
   }
 
   private async writeSlug(tx: SlugTx, input: RenameInput): Promise<void> {
-    const { entity, id, slug, locale } = input;
+    /**
+     * KHONG lay `locale` ra: bon nhom co ban dich khong doi slug qua ham nay
+     * (xem nhanh `default` o duoi), nen ham nay khong bao gio can locale. Bien
+     * do la tan du cua mot ban thiet ke truoc, va lint bat duoc no sau khi
+     * `pnpm lint` chay duoc lan dau.
+     */
+    const { entity, id, slug } = input;
     switch (entity) {
       case 'product': await tx.products.update(id, { slug }); return;
       case 'brand': await tx.brands.update(id, { slug }); return;

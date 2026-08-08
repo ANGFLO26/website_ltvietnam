@@ -1,44 +1,33 @@
-import { Kysely, PostgresDialect, type Transaction } from 'kysely';
-import pg from 'pg';
+import type { Kysely, Transaction } from 'kysely';
+import type pg from 'pg';
 import type { AppConfig } from '@ltv/config';
-import type { Database } from '@ltv/db';
+import { createAppPool, createDb, type Database } from '@ltv/db';
+import type { DaoManager } from './dao-manager.js';
 
 /**
  * Ket noi PostgreSQL — TANG DAO.
  *
  * Day va cac file trong `dao/` la NHUNG NOI DUY NHAT duoc biet ve Kysely va pg.
  * Tang services va api khong bao gio import hai thu nay.
+ *
+ * File nay KHONG con tu tao pool. Truoc F-1c no co mot ban sao y nguyen cua
+ * `createPool` trong `packages/db`, cong them mot dong dang ky bo doc DATE ma
+ * ban kia khong co — nen worker va migration CLI doc DATE lech mot ngay tren
+ * may dat gio Viet Nam. Ban sao khong phan hoa vi ai do co y; no phan hoa vi
+ * khong co gi buoc hai ban phai giong nhau. Nguon duy nhat gio o
+ * `packages/db/src/pool.ts`, va Luat 12 chan viec mo mot nguon thu hai.
  */
 export type KyselyExecutor = Kysely<Database> | Transaction<Database>;
 
 /**
- * DATE ve nguyen dang chuoi `YYYY-MM-DD`.
+ * `import type pg` — CHI lay kieu, khong lay gia tri.
  *
- * Mac dinh, `pg` dung kieu DATE thanh mot `Date` o NUA DEM GIO DIA PHUONG.
- * Tren may chay UTC+7, `2026-03-15` doc ra thanh `2026-03-14T17:00:00Z` —
- * lech mot ngay. Loi nay im lang tuyet doi: no dung tren may phat trien dat
- * o UTC va sai tren may that dat o gio Viet Nam, hoac nguoc lai.
- *
- * Mot ngay tren lich (ngay ban giao du an, ngay phat hanh tai lieu) khong
- * gan voi mui gio nao. Bieu dien no bang `Date` la sai ngay tu dau, nen o day
- * giu nguyen chuoi va `schema-types.ts` khai bao DATE doc ra la `string`.
- *
- * Dat o pham vi module de moi pool deu duoc ap, ke ca pool do test tu tao.
+ * Chu ky ham can kieu `pg.Pool`, nhung tang dao khong con can goi gi cua `pg`.
+ * Import kieu bien mat sau khi bien dich, nen Luat 14 (chi `packages/db` duoc
+ * import `pg` nhu GIA TRI) van dung.
  */
-const PG_OID_DATE = 1082;
-pg.types.setTypeParser(PG_OID_DATE, (value: string) => value);
-
-export function createPool(cfg: AppConfig): pg.Pool {
-  return new pg.Pool({
-    connectionString: cfg.DATABASE_URL,
-    max: cfg.DATABASE_POOL_MAX,
-    statement_timeout: cfg.DATABASE_STATEMENT_TIMEOUT_MS,
-    options: `-c search_path=${cfg.DATABASE_SCHEMA},public`,
-  });
-}
-
 export function createKysely(pool: pg.Pool): Kysely<Database> {
-  return new Kysely<Database>({ dialect: new PostgresDialect({ pool }) });
+  return createDb(pool);
 }
 
 /**
@@ -48,13 +37,13 @@ export function createKysely(pool: pg.Pool): Kysely<Database> {
  * la gi. Nho vay `pg` khong lot ra khoi thu muc `dao/`.
  */
 export interface DaoRuntime {
-  readonly manager: import('./dao-manager.js').DaoManager;
+  readonly manager: DaoManager;
   close(): Promise<void>;
 }
 
 export async function createDaoRuntime(cfg: AppConfig): Promise<DaoRuntime> {
   const { createDaoManager } = await import('./dao-manager.js');
-  const pool = createPool(cfg);
-  const db = createKysely(pool);
+  const pool = createAppPool(cfg);
+  const db = createDb(pool);
   return { manager: createDaoManager(db), close: () => pool.end() };
 }

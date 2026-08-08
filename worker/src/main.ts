@@ -7,10 +7,18 @@
  * P0 chi dung tien trinh, heartbeat va tat may an toan.
  */
 import { loadConfig } from '@ltv/config';
-import { createPool } from '@ltv/db';
+import { createAppPool } from '@ltv/db';
 
 const cfg = loadConfig();
-const pool = createPool(cfg);
+/**
+ * Cung mot ham tao pool voi backend — CO Y.
+ *
+ * Truoc F-1c, worker dung `createPool` cua `packages/db` va backend dung ban
+ * sao cua chinh no; ban cua `packages/db` thieu bo doc DATE, nen worker doc
+ * DATE lech mot ngay tren may dat gio Viet Nam. Do khong phai gia thiet — do
+ * duoc: `SELECT '2026-03-15'::date` ra `Date "2026-03-14T17:00:00Z"`.
+ */
+const pool = createAppPool(cfg);
 
 let running = true;
 let inFlight = 0;
