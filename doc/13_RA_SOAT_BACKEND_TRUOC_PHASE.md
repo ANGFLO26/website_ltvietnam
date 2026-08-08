@@ -17,16 +17,19 @@ Một cái là **lỗ hổng khai thác được** trong mã tôi đã báo là 
 | 2 | Vỏ phản hồi không thống nhất | Cao | **đã sửa — F-1b** |
 | 3 | `createPool` trùng ở **6** chỗ (tôi đếm thiếu) | Cao | **đã sửa — F-1c** |
 | 4 | Luật kiến trúc không quét `packages/` | Cao | **đã sửa — F-1c** |
-| 5 | `UserService` / `SettingService` — **không một test nào** | Cao | Trước F0 |
-| 6 | Không giới hạn kích thước thân yêu cầu | Trung bình | F0 |
-| 7 | Không có security header | Trung bình | F0 |
-| 8 | Lỗi kết nối DB → 500 thay vì 503 | Trung bình | F0 |
+| 5 | `UserService` / `SettingService` — **không một test nào** | Cao | **đã sửa — F-1d** |
+| 6 | Không giới hạn kích thước thân yêu cầu | Trung bình | **đã sửa — F-1e** |
+| 7 | Không có security header | Trung bình | **đã sửa — F-1e** |
+| 8 | Lỗi kết nối DB → 500 thay vì 503 | Trung bình | **đã sửa — F-1e** |
 | 9 | `/auth/me` trả trường nội bộ | Thấp | **đã sửa — F-1b** (Luật 10b kéo lên sớm) |
-| 10 | 8 khoá cấu hình khai báo mà không dùng | Thấp | rải theo phase |
+| 10 | ~~8~~ **22** khoá cấu hình chưa dùng — nay có test canh | Thấp | **đã canh — F-1e** |
 | 11 | `worker/` vẫn là khung rỗng | — | F5 |
 | **12** | `forgot-password`: hạn mức IP = hạn mức email = 3 | Trung bình | **đã sửa — F-1b** |
 | **13** | `pnpm lint` chưa bao giờ xanh — 68 lỗi giả che 13 lỗi thật | Trung bình | **đã sửa — F-1c** |
 | **14** | `pnpm dev:worker` chưa bao giờ chạy được | Cao | **đã sửa — F-1c** |
+| **15** | **LEO THANG ĐẶC QUYỀN** — chỉ cần biết email quản trị | **Nghiêm trọng** | **đã sửa — F-1d** |
+| **16** | `express` là **phantom dependency** — `tsc` xanh, chạy thì vỡ | Cao | **đã sửa — F-1e** |
+| **17** | Thân yêu cầu quá lớn → **500** thay vì 413 | Trung bình | **đã sửa — F-1e** |
 
 Số **12** không có trong bản rà soát đầu. Nó lộ ra khi chạy `smoke-auth.mjs`
 trên HTTP thật ở F-1b: F-1a tách hạn mức IP khỏi hạn mức email cho `login` rồi
@@ -581,3 +584,143 @@ người phát hiện chứ không do test.
 
 Đó là lý do bản rà soát bằng mắt vẫn cần, và tại sao tôi nên làm nó **trước mỗi
 nhóm phase** chứ không chỉ một lần.
+
+
+---
+
+# 15. LEO THANG ĐẶC QUYỀN — **nghiêm trọng**, phát hiện ở F-1d
+
+F-1d lẽ ra chỉ là "viết test cho `UserService`". Bài test đầu tiên cho
+`bootstrapFirstAdmin` làm lộ ra một lỗ hổng khai thác được, **chỉ cần biết email
+quản trị**, không cần mật khẩu.
+
+## Chuỗi khai thác — chạy thật trên HTTP
+
+```
+0. quản trị thật bootstrap                  ->  201, active admins = 1
+1. kẻ tấn công gửi mật khẩu sai 5 lần       ->  401 x5, rồi 429
+   trạng thái tài khoản                     ->  locked
+2. quản trị thật, mật khẩu ĐÚNG             ->  không vào được
+3. POST /auth/bootstrap   (@Public)         ->  201
+   {"data":{"email":"ke-tan-cong@evil.test","role":"admin"}}
+4. kẻ tấn công đăng nhập bằng tài khoản đó  ->  201
+
+bảng users:  admin@ltvietnam.local  admin  locked
+             ke-tan-cong@evil.test  admin  active
+```
+
+(Đo với `LOGIN_LOCK_AFTER_ATTEMPTS=5` để vừa **một** cửa sổ hạn mức. Mặc định là
+10; hạn mức 5/email/15 phút nên kẻ tấn công cần **hai** cửa sổ, khoảng 30 phút.
+Bộ đếm lần sai refresh mốc thời gian mỗi lần nên nó không hết hạn giữa hai cửa
+sổ. Cùng một chuỗi, chỉ lâu hơn.)
+
+## Nguyên nhân gốc là một CÂU HỎI SAI
+
+```
+bootstrapFirstAdmin hỏi   "còn quản trị HOẠT ĐỘNG nào không?"
+câu hỏi đúng là           "hệ thống ĐÃ KHỞI TẠO chưa?"
+```
+
+Một hệ thống có quản trị bị `locked` là hệ thống **đã** khởi tạo. Hai câu hỏi
+trả lời hai chuyện khác nhau — và `AuthService` thì tự đặt `status='locked'`,
+nên kẻ tấn công **điều khiển được câu trả lời của câu hỏi sai**.
+
+Điều đáng ghi lại: 9 luật kiến trúc, 4 luật vỏ phản hồi, 304 test — **không cái
+nào thấy được**. Chúng kiểm *hình dạng* và *cơ chế*. Cái này là một câu hỏi sai,
+viết đúng ngữ pháp, ở đúng tầng. Không có luật tự động nào bắt được loại lỗi đó;
+nó lộ ra vì phải *đặt tên* cho hành vi khi viết test.
+
+## Hai bản vá, mỗi bản đóng một nửa
+
+1. `bootstrapFirstAdmin` dùng `countAll()` — bảng `users` phải **rỗng**.
+   `countAll` cố ý **không lọc gì**, kể cả `deleted_at`: nếu lọc thì xoá mềm
+   quản trị cuối cùng sẽ mở lại cổng, cùng lỗ hổng qua cửa khác.
+2. `AuthService` **không khoá quản trị hoạt động cuối cùng**. Khoá quản trị duy
+   nhất biến một cuộc tấn công *thất bại* thành một cuộc từ chối dịch vụ *thành
+   công*, và ai biết email quản trị là làm được.
+
+**Đánh đổi của bản vá 2, nói rõ:** hệ thống một quản trị — đúng hiện trạng dự
+án — sẽ **không còn cơ chế khoá tài khoản nào**. Tôi chọn vậy vì bảo vệ thật
+không phải là khoá: là hạn mức 5 lần sai/15 phút/email, cộng Argon2id ~50 ms mỗi
+lần đoán, cộng mật khẩu tối thiểu 12 ký tự — 480 lần đoán một ngày không phá
+được. Phát `auth_lock_skipped_last_admin` mức `warn` để việc này không im lặng.
+
+## Đo lại sau khi vá, cùng kịch bản
+
+```
+đoán sai 5 lần        ->  401 x5, 429;  trạng thái VẪN `active`
+log                   ->  auth_lock_skipped_last_admin
+POST /auth/bootstrap  ->  409 USER_BOOTSTRAP_DONE
+quản trị thật         ->  201
+bảng users            ->  chỉ còn admin@ltvietnam.local, active
+```
+
+## Hai lỗi tôi tự tạo trong chính bộ test, cả hai chỉ lộ khi CHẠY
+
+1. Bài test mới chạy `UPDATE ltv.users SET status='disabled' WHERE
+   status='active'` rồi không trả lại. 343 test xanh, rồi `smoke-auth.mjs`
+   thất bại ngay sau: nó đã vô hiệu hoá tài khoản của phép thử.
+2. Tệ hơn: helper `voiBangRong` gọi `pool.query('BEGIN')` / `DELETE` /
+   `ROLLBACK` trên một pool thường. **Pool không bảo đảm ba câu lệnh đi cùng
+   một kết nối**, nên `DELETE FROM ltv.users` chạy ngoài transaction và **xoá
+   thật**; `ROLLBACK` không hoàn tác gì. Test vẫn xanh, tài khoản mất vĩnh
+   viễn. Tôi viết đúng cảnh báo này trong `createClientFrom` ở F-1c rồi mắc
+   đúng lỗi đó vài phút sau. Sửa bằng `max: 1`, và kiểm lại bằng một hàng "cọc
+   mốc" phải **còn** sau khi chạy test.
+
+---
+
+# 16. `express` là phantom dependency — `tsc` xanh, chạy thì vỡ
+
+F-1e cần `import { json } from 'express'` để đặt trần thân yêu cầu.
+`pnpm -r typecheck` **xanh**. Chạy thì:
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'express'
+```
+
+`@types/express` có trong `devDependencies` nên kiểu giải được; gói **thực thi**
+thì chỉ có mặt vì `@nestjs/platform-express` kéo theo. Kiểu và thực thi đến từ
+hai nguồn khác nhau, nên typecheck không thể bắt.
+
+pnpm dùng `node_modules` phẳng nên gói bóng **vẫn chạy trên máy này**. Đó là chỗ
+nó nguy hiểm: chạy ở đây và đổ ở chỗ khác — hoặc đổ vào ngày
+`@nestjs/platform-express` bỏ `express` khỏi cây phụ thuộc, lúc đó không ai liên
+hệ được sự cố với thay đổi đó.
+
+**Luật 15** quét mọi import giá trị và đối chiếu với `package.json` của gói sở
+hữu tệp. Nó tìm thêm **ba** gói bóng nữa: `packages/config` và
+`packages/contracts` có script `test: vitest run` và import `vitest` mà **không
+khai báo** — chạy được chỉ vì pnpm hoist devDependency của gốc.
+
+Kèm một phát hiện thứ hai: `@types/express` là `^5` còn thực thi là Express
+`4.22.1` (nest 10 ghim). Đã hạ về `^4.17.21`.
+
+---
+
+# 17. Thân yêu cầu quá lớn → 500 thay vì 413
+
+Đặt trần rồi, gửi thân 2 MB với `BODY_LIMIT_BYTES = 1 MiB`, và nhận:
+
+```
+500  {"error":{"code":"INTERNAL_ERROR","message":"Da co loi xay ra."}}
+```
+
+body-parser ném lỗi kiểu `http-errors` — một `Error` thường có `.status = 413`
+và `.type = 'entity.too.large'` — **không** phải `HttpException` của Nest, nên
+filter rơi vào nhánh "lỗi không lường trước".
+
+Hậu quả: người gọi gửi yêu cầu quá lớn — **lỗi của họ** — và nhận "đã có lỗi
+xảy ra", không biết phải gửi nhỏ hơn. Người vận hành thấy 500 và đi tìm bug
+trong mã nguồn.
+
+Đã sửa: tin `.status` trong khoảng **4xx** (quy ước `http-errors`, Express dùng
+khắp nơi). Lỗi 5xx từ thư viện vẫn đi nhánh "không lường trước" để được ghi log
+đầy đủ. Đo lại: `413 PAYLOAD_TOO_LARGE`.
+
+Và một điều tôi **đo rồi mới biết**: JSON sai cú pháp **không** đi qua nhánh
+này — Nest bọc nó thành `BadRequestException` trước (`ctor=BadRequestException
+status=400 type=undefined`). Nên 400 là đúng, chỉ đến bằng đường khác. Bảng tra
+`MA_THEO_TYPE` ban đầu tôi viết theo *tài liệu* của body-parser có 5 dòng; bốn
+dòng trong đó **không bao giờ chạy**. Đã cắt xuống đúng một dòng đã đo được —
+cùng thứ "cấu hình chết" mà `config-usage.test.ts` ra đời để chặn.

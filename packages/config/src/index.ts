@@ -65,6 +65,29 @@ export const configSchema = z.object({
    * tu dat header do va co han muc vo han — nguy hiem hon la de tat.
    */
   TRUST_PROXY: bool.default('false'),
+
+  /**
+   * Tran kich thuoc THAN yeu cau JSON.
+   *
+   * `express.json()` mac dinh 100 KB, nhung mac dinh do khong duoc dat tuong
+   * minh o dau — nen no la mot con so khong ai chon. Noi dung bien tap la
+   * JSONB (`doc/11` content block) voi nhieu block, nen 100 KB co the that su
+   * khong du; 1 MB thi du rong ma van chan mot yeu cau 50 MB di sau vao he
+   * thong roi moi bi tu choi.
+   *
+   * Tep KHONG di qua duong nay — upload dung `MEDIA_MAX_UPLOAD_BYTES` (F7).
+   */
+  BODY_LIMIT_BYTES: int.default(1024 * 1024),
+
+  /**
+   * `max-age` cua HSTS, giay. `0` = KHONG gui header.
+   *
+   * Mac dinh 0 CO Y. HSTS noi voi trinh duyet "tu nay chi dung HTTPS cho ten
+   * mien nay", va trinh duyet NHO rat lau. Bat khi chua co chung chi hop le se
+   * lam chinh minh khong truy cap duoc, va khong the go nhanh. Nen no phai la
+   * mot quyet dinh co y thuc, khong phai mac dinh.
+   */
+  HSTS_MAX_AGE_SECONDS: int.default(0),
   /** Tran so lan bam Argon2 chay cung luc. Xem `shared/crypto/hash-gate.ts`. */
   HASH_MAX_CONCURRENT: int.default(4),
   HASH_MAX_QUEUED: int.default(32),

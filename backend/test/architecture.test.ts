@@ -640,6 +640,80 @@ describe('Luat 14 — `pg` chi duoc import nhu GIA TRI o nguon pool', () => {
   });
 });
 
+/**
+ * Luat 15 — KHONG import goi "bong".
+ *
+ * Loi that o F-1e: `main.ts` viet `import { json } from 'express'`, va
+ * `express` KHONG nam trong `dependencies` cua `@ltv/backend` — no chi co mat
+ * vi `@nestjs/platform-express` keo theo.
+ *
+ * `tsc --noEmit` XANH, vi `@types/express` co trong `devDependencies` nen kieu
+ * giai duoc. Chi den luc CHAY moi vo:
+ *
+ *   Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'express'
+ *
+ * Day la dung loai loi ma typecheck khong the bat: kieu va thuc thi den tu hai
+ * nguon khac nhau. Va no im lang cho toi khi mot nguoi khac clone kho, hoac cho
+ * toi khi `@nestjs/platform-express` doi phien ban va bo `express` khoi cay phu
+ * thuoc — luc do khong ai lien he duoc su co voi thay doi do.
+ *
+ * pnpm dung `node_modules` phang nen mot goi bong VAN chay tren may nay. Do la
+ * cho no nguy hiem: no chay o day va do o cho khac.
+ */
+describe('Luat 15 — moi goi import phai duoc khai bao la dependency', () => {
+  /** Goi co san trong Node, khong can khai bao. */
+  const NOI_BO = /^(node:|assert|buffer|child_process|crypto|dns|events|fs|http|https|net|os|path|querystring|readline|stream|string_decoder|timers|tls|url|util|worker_threads|zlib)/;
+
+  const gocCua = (p: string): string | null => {
+    const m = /^(backend|worker|frontend|packages\/[^/]+)\//.exec(p);
+    return m ? m[1]! : null;
+  };
+
+  /** Ten goi tu mot import specifier: `@scope/x/y` -> `@scope/x`, `a/b` -> `a`. */
+  const tenGoi = (spec: string): string => {
+    const phan = spec.split('/');
+    return spec.startsWith('@') ? phan.slice(0, 2).join('/') : phan[0]!;
+  };
+
+  it('khong co goi bong', () => {
+    const bad: string[] = [];
+    const cache = new Map<string, Set<string>>();
+
+    for (const f of REPO_FILES) {
+      const goc = gocCua(f.path);
+      if (!goc) continue;
+
+      if (!cache.has(goc)) {
+        const pkg = join(REPO, goc, 'package.json');
+        const j = existsSync(pkg)
+          ? (JSON.parse(readFileSync(pkg, 'utf8')) as Record<string, Record<string, string>>)
+          : {};
+        cache.set(
+          goc,
+          new Set([
+            ...Object.keys(j.dependencies ?? {}),
+            ...Object.keys(j.devDependencies ?? {}),
+            ...Object.keys(j.peerDependencies ?? {}),
+          ]),
+        );
+      }
+      const khaiBao = cache.get(goc)!;
+
+      for (const spec of f.imports) {
+        if (spec.startsWith('.') || spec.startsWith('/') || NOI_BO.test(spec)) continue;
+        // `@/...` la alias cua Next.js, khong phai goi npm.
+        if (spec.startsWith('@/')) continue;
+        const ten = tenGoi(spec);
+        if (!khaiBao.has(ten)) bad.push(`${f.path} -> '${spec}' (${goc} chua khai bao '${ten}')`);
+      }
+    }
+    expect(
+      bad,
+      `Goi bong: import duoc nhung khong khai bao. Chay tren may nay, do tren may khac:\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+});
+
 describe('Bo quet hoat dong dung', () => {
   it('doc duoc file va tim thay import', () => {
     expect(FILES.length).toBeGreaterThan(10);
