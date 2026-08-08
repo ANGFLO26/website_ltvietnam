@@ -107,49 +107,68 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
   });
 
   // ── standards ──────────────────────────────────────────────────
+  /**
+   * `organization` + `code` phai DUY NHAT THEO LAN CHAY, khong duoc hard-code.
+   *
+   * Ban truoc dung thang `ASTM`/`D86`. Ba bai kiem trong khoi nay do ngay khi
+   * du lieu demo (F0) dua `ASTM D86` that vao database:
+   * `duplicate key value violates unique constraint "uq_standards_org_code"`.
+   *
+   * Slug da duoc gan `tag` tu truoc, nhung chi muc duy nhat lai nam tren
+   * (organization, code) — nen `tag` bao ve dung cot KHONG bi rang buoc. Mot bai
+   * kiem chi chay duoc tren database RONG thi no khong kiem duoc he thong that.
+   */
+  const ORG = `T${tag.replace(/\D/g, '').slice(-8)}`;
+
   it('findByCode khop DUNG cach chi muc duy nhat khop — khong phan biet hoa thuong', async () => {
     const s = await daos.standards.insert({
-      organization: 'ASTM', code: 'D86', slug: `${tag}-astm-d86`, name: 'Distillation',
+      organization: ORG, code: 'D86-X', slug: `${tag}-astm-d86`, name: 'Distillation',
     });
-    expect((await daos.standards.findByCode('astm', 'd86'))!.id).toBe(s.id);
-    expect((await daos.standards.findByCode('AsTm', 'D86'))!.id).toBe(s.id);
-    expect(await daos.standards.findByCode('ASTM', 'D87')).toBeNull();
+    expect((await daos.standards.findByCode(ORG.toLowerCase(), 'd86-x'))!.id).toBe(s.id);
+    expect((await daos.standards.findByCode(ORG, 'D86-X'))!.id).toBe(s.id);
+    expect(await daos.standards.findByCode(ORG, 'D87-X')).toBeNull();
   });
 
   it('chi muc duy nhat THAT SU chan trung theo hoa thuong', async () => {
-    await daos.standards.insert({ organization: 'ISO', code: '3405', slug: `${tag}-iso-3405` });
+    await daos.standards.insert({ organization: ORG, code: '3405-X', slug: `${tag}-iso-3405` });
     // Neu findByCode so khop kieu khac voi chi muc, thi day la cho no lo mat
     await expect(
-      daos.standards.insert({ organization: 'iso', code: '3405', slug: `${tag}-iso-3405-b` }),
+      daos.standards.insert({
+        organization: ORG.toLowerCase(), code: '3405-x', slug: `${tag}-iso-3405-b`,
+      }),
     ).rejects.toThrow();
   });
 
   it('findManyByCodes lay ca lo bang MOT truy van', async () => {
-    await daos.standards.insert({ organization: 'IP', code: '123', slug: `${tag}-ip-123` });
-    await daos.standards.insert({ organization: 'DIN', code: '51 751', slug: `${tag}-din-51751` });
+    await daos.standards.insert({ organization: ORG, code: '123-X', slug: `${tag}-ip-123` });
+    await daos.standards.insert({ organization: ORG, code: '51 751-X', slug: `${tag}-din-51751` });
     const got = await daos.standards.findManyByCodes([
-      { organization: 'ip', code: '123' },
-      { organization: 'din', code: '51 751' },
-      { organization: 'NF', code: 'khong-co' },
+      { organization: ORG.toLowerCase(), code: '123-x' },
+      { organization: ORG.toLowerCase(), code: '51 751-x' },
+      { organization: ORG, code: 'khong-co' },
     ]);
-    expect(got.map((x) => x.code).sort()).toEqual(['123', '51 751']);
+    expect(got.map((x) => x.code).sort()).toEqual(['123-X', '51 751-X']);
     expect(await daos.standards.findManyByCodes([])).toEqual([]);
   });
 
   it('listOrganizations dung cho mat bo loc', async () => {
+    // Dung to chuc cua CHINH lan chay nay, khong dua vao `ASTM` tinh co co san:
+    // "co ASTM trong database" la mot su that ve du lieu demo, khong phai ve ma.
+    await daos.standards.insert({ organization: ORG, code: 'ORG-1', slug: `${tag}-org-1` });
     const orgs = await daos.standards.listOrganizations();
-    const astm = orgs.find((o) => o.organization === 'ASTM');
-    expect(astm).toBeDefined();
-    expect(astm!.count).toBeGreaterThan(0);
+    const cua_toi = orgs.find((o) => o.organization === ORG);
+    expect(cua_toi).toBeDefined();
+    expect(cua_toi!.count).toBeGreaterThan(0);
   });
 
   it('tim theo ma so — nguoi mua go "D86" phai ra ket qua', async () => {
-    const r = await daos.standards.list({ search: 'D86' }, { pageSize: 10 });
-    expect(r.data.some((x) => x.code === 'D86')).toBe(true);
+    await daos.standards.insert({ organization: ORG, code: 'D86-TIM', slug: `${tag}-tim` });
+    const r = await daos.standards.list({ search: 'D86-TIM' }, { pageSize: 10 });
+    expect(r.data.some((x) => x.code === 'D86-TIM')).toBe(true);
   });
 
   it('standards mac dinh la published, khac voi cac bang khac', async () => {
-    const s = await daos.standards.insert({ organization: 'JIS', code: 'K2254', slug: `${tag}-jis` });
+    const s = await daos.standards.insert({ organization: ORG, code: 'K2254-X', slug: `${tag}-jis` });
     // Tieu chuan la du kien tham chieu, khong phai noi dung bien tap —
     // bat soan thao publish tung cai la viec vo ich.
     expect(s.status).toBe('published');

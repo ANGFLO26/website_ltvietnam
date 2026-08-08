@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { API_ENDPOINTS, apiProgress, endpointKey } from '@ltv/contracts';
 
 /**
  * TEST KIEN TRUC — sau luat, ep tu dong.
@@ -711,6 +712,138 @@ describe('Luat 15 — moi goi import phai duoc khai bao la dependency', () => {
       bad,
       `Goi bong: import duoc nhung khong khai bao. Chay tren may nay, do tren may khac:\n${bad.join('\n')}`,
     ).toEqual([]);
+  });
+});
+
+/**
+ * Luat 16 — BANG ENDPOINT phai khop CONTROLLER THAT, ca hai chieu.
+ *
+ * `doc/06` liet ke endpoint bang van xuoi, va van xuoi khong kiem duoc. Nen "da
+ * xong API cong khai" la mot cau khong ai xac minh duoc — dung loai tuyen bo
+ * toi da noi sai nhieu lan trong du an nay: bao "xong tang DAO" khi con ba bang
+ * chua ai cham, bao "co gioi han toc do" khi no chua tung duoc cai dat.
+ *
+ * HAI chieu, va chieu thu hai quan trong khong kem:
+ *
+ *   a. moi endpoint `status: 'done'` phai co controller that
+ *      -> chan viec danh dau xong ma khong co ma
+ *   b. moi route trong controller phai co trong bang VA dang `done`
+ *      -> chan viec viet endpoint ma khong khai bao (frontend khong biet no ton
+ *         tai), va chan viec viet xong roi quen doi `todo` -> `done`
+ */
+interface RouteThat {
+  readonly key: string;
+  readonly file: string;
+}
+
+function routesTrongMa(): RouteThat[] {
+  const ra: RouteThat[] = [];
+  for (const f of FILES) {
+    if (layerOf(f.path) !== 'api') continue;
+    const tienTo = /@Controller\s*\(\s*['"]([^'"]*)['"]\s*\)/.exec(f.code)?.[1];
+    if (tienTo === undefined) continue;
+
+    for (const m of f.code.matchAll(
+      /@(Get|Post|Patch|Delete|Put)\s*\(\s*(?:['"]([^'"]*)['"])?\s*\)/g,
+    )) {
+      const method = m[1]!.toUpperCase();
+      const duoi = m[2] ?? '';
+      const path = `/${[tienTo, duoi].filter((s) => s !== '').join('/')}`;
+      ra.push({ key: `${method} ${path}`, file: f.path });
+    }
+  }
+  return ra;
+}
+
+describe('Luat 16 — bang endpoint khop controller that', () => {
+  const trongMa = routesTrongMa();
+  const trongBang = new Map(API_ENDPOINTS.map((e) => [endpointKey(e), e]));
+
+  it('bo quet tim thay route — neu khong thi hai phep kiem duoi la rong', () => {
+    /**
+     * Cung ly do voi phep kiem tuong tu o Luat 10: hai phep kiem duoi deu co
+     * dang "danh sach vi pham phai rong". Neu bo quet hong (doi ten decorator,
+     * doi cach viet tien to) thi danh sach rong VI KHONG QUET GI, va ca hai se
+     * xanh mot cach vo nghia.
+     */
+    expect(trongMa.length).toBeGreaterThan(7);
+    expect(trongMa.map((r) => r.key)).toContain('POST /auth/login');
+    expect(trongMa.map((r) => r.key)).toContain('GET /health/live');
+  });
+
+  it('16a — moi endpoint `done` deu co controller that', () => {
+    const trongMaSet = new Set(trongMa.map((r) => r.key));
+    const thieu = API_ENDPOINTS.filter((e) => e.status === 'done')
+      .map(endpointKey)
+      .filter((k) => !trongMaSet.has(k));
+    expect(
+      thieu,
+      `Bang noi "done" nhung khong co controller:\n${thieu.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('16b — moi route trong ma deu co trong bang va dang `done`', () => {
+    const bad: string[] = [];
+    for (const r of trongMa) {
+      const e = trongBang.get(r.key);
+      if (!e) bad.push(`${r.key} (${r.file}) — CHUA khai bao trong API_ENDPOINTS`);
+      else if (e.status !== 'done') bad.push(`${r.key} — da co ma nhung bang van ghi 'todo'`);
+    }
+    expect(bad, `Bang endpoint va ma nguon lech nhau:\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('duong dan CU THE phai khai bao truoc duong dan CO THAM SO', () => {
+    /**
+     * `/products/landing` va `/products/:slug` cung khop mot yeu cau toi
+     * `/products/landing`. Express chon route dang ky TRUOC, nen neu `:slug`
+     * dung truoc thi `/products/landing` se bi hieu la mot san pham co slug
+     * `landing` — tra 404, va 404 do rat kho lan vi ca hai route deu "dung".
+     *
+     * Bang nay la thu tu tham chieu cho controller, nen no phai dung ngay o day.
+     */
+    const bad: string[] = [];
+    const viTri = new Map<string, number>();
+    API_ENDPOINTS.forEach((e, i) => viTri.set(endpointKey(e), i));
+
+    for (const e of API_ENDPOINTS) {
+      if (!e.path.includes('/:')) continue;
+      const goc = e.path.slice(0, e.path.indexOf('/:'));
+      const iTham = viTri.get(endpointKey(e))!;
+      for (const khac of API_ENDPOINTS) {
+        if (khac === e || khac.method !== e.method) continue;
+        // Duong dan cu the cung cap: `/products/landing` vs `/products/:slug`
+        if (!khac.path.startsWith(`${goc}/`)) continue;
+        const con = khac.path.slice(goc.length + 1);
+        if (con.includes('/') || con.startsWith(':')) continue;
+        if (viTri.get(endpointKey(khac))! > iTham) {
+          bad.push(`${khac.method} ${khac.path} phai khai bao TRUOC ${e.method} ${e.path}`);
+        }
+      }
+    }
+    expect(bad, bad.join('\n')).toEqual([]);
+  });
+
+  it('khong co endpoint trung lap trong bang', () => {
+    const dem = new Map<string, number>();
+    for (const e of API_ENDPOINTS) dem.set(endpointKey(e), (dem.get(endpointKey(e)) ?? 0) + 1);
+    const trung = [...dem].filter(([, n]) => n > 1).map(([k]) => k);
+    expect(trung, `Endpoint khai bao hai lan:\n${trung.join('\n')}`).toEqual([]);
+  });
+
+  it('moi endpoint deu thuoc mot phase — khong co cai vo chu', () => {
+    const voChu = API_ENDPOINTS.filter((e) => !e.phase);
+    expect(voChu.map(endpointKey)).toEqual([]);
+  });
+
+  it('bao tien do (khong phai khang dinh — de doc trong ket qua test)', () => {
+    const p = apiProgress();
+    const dong = Object.entries(p.byPhase)
+      .sort()
+      .map(([ph, o]) => `${ph}: ${o.done}/${o.total}`)
+      .join('  ');
+    // eslint-disable-next-line no-console
+    console.log(`    API: ${p.done}/${p.total} endpoint  ·  ${dong}`);
+    expect(p.total).toBeGreaterThan(40);
   });
 });
 
