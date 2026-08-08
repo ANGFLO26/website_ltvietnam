@@ -740,8 +740,22 @@ function routesTrongMa(): RouteThat[] {
   const ra: RouteThat[] = [];
   for (const f of FILES) {
     if (layerOf(f.path) !== 'api') continue;
-    const tienTo = /@Controller\s*\(\s*['"]([^'"]*)['"]\s*\)/.exec(f.code)?.[1];
-    if (tienTo === undefined) continue;
+
+    /**
+     * `@Controller()` KHONG co tham so la hop le, va bo quet cu da bo qua no.
+     *
+     * Mau cu bat buoc phai co chuoi: `@Controller\(\s*['"]...['"]\s*\)`. Khi
+     * `TaxonomyController` dung `@Controller()` (khong tien to, vi nam nhom nam
+     * o goc `/brands`, `/standards`... khong co tien to chung), bo quet KHONG
+     * KHOP va bo qua CA FILE — 17 route bien mat khoi phep doi chieu.
+     *
+     * Luat 16a bat duoc vi bang ghi `done`. Nhung Luat 16b — "moi route trong ma
+     * phai co trong bang" — thi XANH mot cach vo nghia: khong co route nao de
+     * kiem. Do la ly do phai co phep dem duoi.
+     */
+    const m = /@Controller\s*\(\s*(?:['"]([^'"]*)['"]\s*)?\)/.exec(f.code);
+    if (!m) continue;
+    const tienTo = m[1] ?? '';
 
     for (const m of f.code.matchAll(
       /@(Get|Post|Patch|Delete|Put)\s*\(\s*(?:['"]([^'"]*)['"])?\s*\)/g,
@@ -759,16 +773,29 @@ describe('Luat 16 — bang endpoint khop controller that', () => {
   const trongMa = routesTrongMa();
   const trongBang = new Map(API_ENDPOINTS.map((e) => [endpointKey(e), e]));
 
-  it('bo quet tim thay route — neu khong thi hai phep kiem duoi la rong', () => {
+  it('bo quet KHONG BO SOT route nao — dem doi chieu voi so decorator', () => {
     /**
-     * Cung ly do voi phep kiem tuong tu o Luat 10: hai phep kiem duoi deu co
-     * dang "danh sach vi pham phai rong". Neu bo quet hong (doi ten decorator,
-     * doi cach viet tien to) thi danh sach rong VI KHONG QUET GI, va ca hai se
-     * xanh mot cach vo nghia.
+     * Phep kiem nay ra doi tu mot loi that. Ban dau bo quet doi `@Controller('x')`
+     * co chuoi, nen no bo qua CA FILE dung `@Controller()` — 17 route bien mat.
+     * Luat 16a bat duoc (vi bang ghi `done`), nhung 16b thi xanh vo nghia.
+     *
+     * Ban truoc cua phep kiem nay chi khang dinh `length > 7` va co hai route
+     * quen thuoc — ca hai van dung khi 17 route bi bo sot. Mot nguong "lon hon
+     * mot con so nho" khong phat hien duoc viec bo sot.
+     *
+     * Nen dem TONG so decorator route trong `api/` va doi chieu: bo quet phai
+     * thay DUNG bang so do. Con so nay khong the dung khi mot file bi bo qua.
      */
-    expect(trongMa.length).toBeGreaterThan(7);
+    const soDecorator = FILES.filter((f) => layerOf(f.path) === 'api').reduce(
+      (n, f) =>
+        n + [...f.code.matchAll(/@(?:Get|Post|Patch|Delete|Put)\s*\(/g)].length,
+      0,
+    );
+    expect(soDecorator).toBeGreaterThan(20);
+    expect(trongMa.length, 'bo quet bo sot route — co file khong duoc doc').toBe(soDecorator);
     expect(trongMa.map((r) => r.key)).toContain('POST /auth/login');
     expect(trongMa.map((r) => r.key)).toContain('GET /health/live');
+    expect(trongMa.map((r) => r.key)).toContain('GET /brands/:slug');
   });
 
   it('16a — moi endpoint `done` deu co controller that', () => {

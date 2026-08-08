@@ -8,6 +8,9 @@ import { HEALTH_SERVICE } from './services/health/interface.js';
 import { HealthServiceImpl } from './services/health/service.js';
 import { HealthController } from './api/public/health.controller.js';
 import { ResolveController } from './api/public/resolve.controller.js';
+import { TaxonomyController } from './api/public/taxonomy.controller.js';
+import { TAXONOMY_SERVICE } from './services/taxonomy/interface.js';
+import { TaxonomyServiceImpl } from './services/taxonomy/service.js';
 import { ROUTE_RESOLVER_SERVICE } from './services/redirects/interface.js';
 import { RouteResolverImpl } from './services/redirects/service.js';
 import { AUTH_SERVICE } from './services/auth/interface.js';
@@ -44,7 +47,7 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
  */
 @Global()
 @Module({
-  controllers: [HealthController, ResolveController, AuthController],
+  controllers: [HealthController, ResolveController, TaxonomyController, AuthController],
   providers: [
     {
       provide: APP_CONFIG,
@@ -69,6 +72,11 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     },
     { provide: DAO_MANAGER, useFactory: (rt: DaoRuntime) => rt.manager, inject: [DAO_RUNTIME] },
     { provide: HEALTH_SERVICE, useClass: HealthServiceImpl },
+    {
+      provide: TAXONOMY_SERVICE,
+      useFactory: (daos: DaoManager) => new TaxonomyServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
     {
       provide: ROUTE_RESOLVER_SERVICE,
       useFactory: (daos: DaoManager, log: Logger) =>

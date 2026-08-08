@@ -100,24 +100,24 @@ export const API_ENDPOINTS = [
     note: 'chi chay khi bang users RONG — xem doc/13 muc 15' },
 
   // ══════════════ F1 — taxonomy ══════════════
-  { method: 'GET', path: '/brands', area: 'public', auth: false, phase: 'F1', status: 'todo',
+  { method: 'GET', path: '/brands', area: 'public', auth: false, phase: 'F1', status: 'done',
     note: '?type=&featured=&parent={slug}' },
-  { method: 'GET', path: '/brands/:slug', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/brands/:slug/children', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/product-categories', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/product-categories/tree', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/product-categories/:slug', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/product-categories/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/standards', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/standards/:slug', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/standards/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/applications', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/applications/:slug', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/applications/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/industries', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/industries/:slug', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/industries/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'todo' },
-  { method: 'GET', path: '/industries/:slug/services', area: 'public', auth: false, phase: 'F1', status: 'todo' },
+  { method: 'GET', path: '/brands/:slug', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/brands/:slug/children', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/product-categories', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/product-categories/tree', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/product-categories/:slug', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/product-categories/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/standards', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/standards/:slug', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/standards/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/applications', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/applications/tree', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/applications/:slug', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/applications/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/industries', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/industries/:slug', area: 'public', auth: false, phase: 'F1', status: 'done' },
+  { method: 'GET', path: '/industries/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'done' },
 
   // ══════════════ F2 — san pham ══════════════
   { method: 'GET', path: '/products/landing', area: 'public', auth: false, phase: 'F2', status: 'todo',
@@ -140,6 +140,16 @@ export const API_ENDPOINTS = [
   { method: 'GET', path: '/post-categories/:slug/posts', area: 'public', auth: false, phase: 'F3', status: 'todo' },
   { method: 'GET', path: '/documents', area: 'public', auth: false, phase: 'F3', status: 'todo' },
   { method: 'GET', path: '/documents/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
+  /**
+   * DOI TU F1 SANG F3 — mot dinh chinh pham vi, khong phai mot cho tranh.
+   *
+   * Endpoint nay tra ve DICH VU, va dich vu la nhom co ban dich: doc cong khai
+   * can locale + chi tra translation da publish (ADR-004). Toan bo duong do la
+   * viec cua F3. Xep no o F1 nghia la F1 phai dung mot nua duong dich, roi F3
+   * viet lai — hoac te hon, F1 tra ve dich vu chua qua luat locale.
+   */
+  { method: 'GET', path: '/industries/:slug/services', area: 'public', auth: false, phase: 'F3', status: 'todo',
+    note: 'can duong doc co ban dich cua F3; ServiceDao chua co truy van theo nganh' },
 
   // ══════════════ F4 — khung site ══════════════
   { method: 'GET', path: '/home', area: 'public', auth: false, phase: 'F4', status: 'todo',
