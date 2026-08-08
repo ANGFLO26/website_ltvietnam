@@ -279,7 +279,13 @@ describe('Luat 9 — api/ khong duoc tiem DAO manager', () => {
      * tai sao tang HTTP can no. Danh sach den thi nguoc lai — thu nguy hiem
      * chi bi chan neu ai do da nghi ra truoc.
      */
-    const CHO_PHEP = /^([A-Z_]+_SERVICE|APP_CONFIG|LOGGER|Reflector)$/;
+    /**
+     * `RATE_LIMIT_REGISTRY` la HA TANG CUA TANG API, khong phai duong vao du
+     * lieu — no chi giu bo dem trong bo nho. Them vao danh sach trang mot cach
+     * TUONG MINH thay vi doi ten thanh `*_SERVICE` cho lot luat: doi ten se
+     * lam nguoi doc tuong day la mot service nghiep vu.
+     */
+    const CHO_PHEP = /^([A-Z_]+_SERVICE|APP_CONFIG|LOGGER|Reflector|RATE_LIMIT_REGISTRY)$/;
     const bad: string[] = [];
     for (const f of FILES) {
       if (layerOf(f.path) !== 'api') continue;

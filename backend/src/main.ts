@@ -19,6 +19,16 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(cfg.API_BASE_PATH, { exclude: ['health/live', 'health/ready'] });
   app.enableCors({ origin: cfg.CORS_ORIGINS, credentials: true });
 
+  /**
+   * `trust proxy` quyet dinh `req.ip` co dang tin khong, va gioi han toc do
+   * dua vao `req.ip`.
+   *
+   * Bat khi KHONG dung sau proxy la nguy hiem hon la de tat: ke tan cong tu
+   * dat `X-Forwarded-For` va co han muc vo han. Nen mac dinh `false`, va bat
+   * bang `TRUST_PROXY=true` chi khi that su dat sau nginx/Caddy/CDN.
+   */
+  app.getHttpAdapter().getInstance().set('trust proxy', cfg.TRUST_PROXY);
+
   await app.listen(cfg.API_PORT);
   log.info('backend_started', {
     port: cfg.API_PORT,

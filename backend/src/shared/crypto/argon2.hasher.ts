@@ -1,5 +1,6 @@
 import { hash, verify } from '@node-rs/argon2';
 import type { PasswordHasher } from '../../services/auth/crypto.port.js';
+import { HashGate } from './hash-gate.js';
 
 /**
  * Argon2id — thuat toan bam mat khau duoc khuyen nghi hien nay.
@@ -31,26 +32,49 @@ const PARAMS = {
 const DUMMY = 'khong-phai-mat-khau-that-chi-de-ton-thoi-gian';
 
 export class Argon2Hasher implements PasswordHasher {
+  /**
+   * MOI loi goi bam di qua cong — ke ca `burn()`.
+   *
+   * `burn()` la thu ton tai chi de tieu thoi gian, nen no cung ton dung 19 MiB
+   * va dung mot luong threadpool nhu bam that. Bo qua no o day thi cong chi
+   * chan duoc mot nua duong tan cong — ma nhanh email-khong-ton-tai lai la
+   * nhanh RE NHAT de doi.
+   */
+  constructor(private readonly gate = new HashGate()) {}
+
   hash(plain: string): Promise<string> {
-    return hash(plain, PARAMS);
+    return this.gate.run(() => hash(plain, PARAMS));
   }
 
   async verify(h: string, plain: string): Promise<boolean> {
-    try {
-      return await verify(h, plain, PARAMS);
-    } catch {
-      /**
-       * Ma bam hong hoac sai dinh dang -> `false`, KHONG nem loi.
-       *
-       * Nem loi o day bien thanh HTTP 500, va 500 chi xuat hien voi email co
-       * that (email khong ton tai thi khong co ma bam de hong). Ke tan cong
-       * doc duoc su khac biet do.
-       */
-      return false;
-    }
+    /**
+     * `try/catch` nam BEN TRONG cong, khong bao quanh no.
+     *
+     * Ban dau toi boc ca `gate.run(...)` trong `try`, va do la mot loi that:
+     * khi cong day, `run` nem `AUTH_BUSY`, `catch` bien no thanh `false`, va
+     * "he thong qua tai" tro thanh "sai mat khau". Te hon, `AuthService` dem
+     * do la mot lan sai va co the KHOA OAN tai khoan cua nguoi dung.
+     *
+     * Dat trong cong thi loi cua Argon2 (ma bam hong) van thanh `false`, con
+     * loi cua cong duoc truyen len de tang tren tra 503.
+     */
+    return this.gate.run(async () => {
+      try {
+        return await verify(h, plain, PARAMS);
+      } catch {
+        /**
+         * Ma bam hong hoac sai dinh dang -> `false`, KHONG nem loi.
+         *
+         * Nem loi o day bien thanh HTTP 500, va 500 chi xuat hien voi email co
+         * that (email khong ton tai thi khong co ma bam de hong). Ke tan cong
+         * doc duoc su khac biet do.
+         */
+        return false;
+      }
+    });
   }
 
   async burn(): Promise<void> {
-    await hash(DUMMY, PARAMS);
+    await this.gate.run(() => hash(DUMMY, PARAMS));
   }
 }

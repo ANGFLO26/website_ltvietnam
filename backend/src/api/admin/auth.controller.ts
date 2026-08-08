@@ -16,6 +16,8 @@ import {
   resetPasswordSchema,
 } from '../dto/auth.dto.js';
 import { Public, type AuthedRequest } from './auth.guard.js';
+import { RateLimit, type RateLimitedRequest } from './rate-limit.guard.js';
+import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './rate-limit.registry.js';
 import {
   clearCsrfCookie,
   clearSessionCookie,
@@ -39,6 +41,7 @@ export class AuthController {
     @Inject(USER_SERVICE) private readonly userService: UserService,
     @Inject(APP_CONFIG) private readonly cfg: AppConfig,
     @Inject(LOGGER) private readonly log: Logger,
+    @Inject(RATE_LIMIT_REGISTRY) private readonly rateLimits: RateLimitRegistry,
   ) {}
 
   /**
@@ -48,7 +51,34 @@ export class AuthController {
    * JavaScript truy cap duoc la `localStorage` hoac bien trong bo nho. Ca hai
    * deu doc duoc boi ma XSS. Cookie `HttpOnly` thi khong.
    */
+  /**
+   * Han muc TRUOC ham bam — HAI con so KHAC nhau cho hai moi de doa.
+   *
+   *   theo EMAIL : 5 / 15 phut   — chan do mat khau cua MOT tai khoan
+   *   theo IP     : 30 / 15 phut  — chan doi tai nguyen tu mot nguon
+   *
+   * Ban dau toi dat ca hai bang 5, va phep do bat duoc hau qua: sau khi bi
+   * doi, mot nguoi dung go DUNG mat khau van nhan 429. Ly do la ke doi va
+   * nguoi dung dung chung mot IP — tinh huong that voi mot van phong sau NAT.
+   *
+   * Hai con so khac nhau vi hai muc dich khac nhau:
+   *   - do mat khau mot tai khoan can NHIEU lan tren CUNG email -> chan chat
+   *     theo email la du, va no khong lam kho ai
+   *   - doi tai nguyen dung email khac nhau moi lan -> chan theo IP, nhung
+   *     phai rong de mot van phong 10 nguoi khong bi khoa lan nhau
+   *
+   * Dat ca hai bang 5 la lay con so cua moi de doa thu nhat roi ap cho ca hai.
+   *
+   * `doc/06` ghi "5/15'/IP". Toi CO Y lech khoi con so do: no gop hai moi de
+   * doa thanh mot. Tang han muc IP KHONG lam yeu di viec chan do mat khau, vi
+   * viec do da co han muc email lo — va `HashGate` moi la thu bao ve tai
+   * nguyen that su, khong phu thuoc IP nao.
+   */
   @Public()
+  @RateLimit({
+    limit: 30, windowMs: 15 * 60_000, byIp: true,
+    byBodyField: 'email', bodyFieldLimit: 5,
+  })
   @Post('login')
   async login(
     @Body() body: unknown,
@@ -63,6 +93,18 @@ export class AuthController {
       ip: req.ip ?? null,
       userAgent: req.headers['user-agent'] ?? null,
     });
+
+    /**
+     * Dang nhap THANH CONG -> xoa bo dem.
+     *
+     * Nho dong nay, han muc khong phai "5 lan dang nhap moi 15 phut" ma la
+     * "5 lan THAT BAI lien tiep". Nguoi dung binh thuong khong bao gio cham
+     * toi; ke doi thi cham ngay o lan thu sau.
+     */
+    const rl = req as RateLimitedRequest;
+    if (rl.rateLimitRoute && rl.rateLimitKeys) {
+      this.rateLimits.reset(rl.rateLimitRoute, rl.rateLimitKeys);
+    }
 
     setSessionCookie(res, this.cfg, result.token, result.ttlSeconds);
     setCsrfCookie(res, this.cfg, randomBytes(32).toString('base64url'), result.ttlSeconds);
@@ -127,7 +169,9 @@ export class AuthController {
    * Neu tra 404 cho email khong co thi form "quen mat khau" tro thanh cong cu
    * kiem tra email nao dang ky trong he thong.
    */
+  // Endpoint nay ky mot the va (o F5) se gui mot email — ca hai deu dat.
   @Public()
+  @RateLimit({ limit: 3, windowMs: 15 * 60_000, byIp: true, byBodyField: 'email' })
   @Post('forgot-password')
   async forgotPassword(@Body() body: unknown): Promise<{ ok: true }> {
     const dto = parse(forgotPasswordSchema, body);
@@ -153,6 +197,7 @@ export class AuthController {
   }
 
   @Public()
+  @RateLimit({ limit: 10, windowMs: 15 * 60_000, byIp: true })
   @Post('reset-password')
   async resetPassword(@Body() body: unknown): Promise<{ ok: true }> {
     const dto = parse(resetPasswordSchema, body);
@@ -169,7 +214,10 @@ export class AuthController {
    * Endpoint nay cong khai, nhung `bootstrapFirstAdmin` tu choi khi da co
    * tai khoan — nen no chi mo dung mot lan, luc kho du lieu con trong.
    */
+  // Bam mat khau, nen phai co han muc — du `bootstrapFirstAdmin` da tu choi
+  // truoc khi bam khi da co tai khoan.
   @Public()
+  @RateLimit({ limit: 5, windowMs: 60 * 60_000, byIp: true })
   @Post('bootstrap')
   async bootstrap(@Body() body: unknown): Promise<{ user: unknown }> {
     const dto = parse(bootstrapAdminSchema, body);

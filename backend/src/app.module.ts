@@ -19,6 +19,9 @@ import { SETTING_SERVICE } from './services/settings/interface.js';
 import { SettingServiceImpl } from './services/settings/service.js';
 import { AuthController } from './api/admin/auth.controller.js';
 import { AuthGuard } from './api/admin/auth.guard.js';
+import { RateLimitGuard } from './api/admin/rate-limit.guard.js';
+import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './api/admin/rate-limit.registry.js';
+import { HashGate } from './shared/crypto/hash-gate.js';
 import type { DaoManager } from './dao/dao-manager.js';
 
 const RESET_SIGNER = Symbol('RESET_SIGNER');
@@ -64,7 +67,12 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     { provide: HEALTH_SERVICE, useClass: HealthServiceImpl },
 
     // ── mat ma: cai dat nam o shared/crypto, service chi biet cong ──
-    { provide: PASSWORD_HASHER, useClass: Argon2Hasher },
+    {
+      provide: PASSWORD_HASHER,
+      useFactory: (cfg: AppConfig): PasswordHasher =>
+        new Argon2Hasher(new HashGate(cfg.HASH_MAX_CONCURRENT, cfg.HASH_MAX_QUEUED)),
+      inject: [APP_CONFIG],
+    },
     {
       provide: TOKEN_SIGNER,
       useFactory: (cfg: AppConfig): TokenSigner => new JwtSessionSigner(cfg.JWT_SECRET),
@@ -109,9 +117,20 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
      * mo cong ma khong ai thay. Dang ky toan cuc thi huong sai la huong on ao:
      * endpoint cong khai quen `@Public()` chi tra 401, va nguoi ta sua ngay.
      */
+    /**
+     * THU TU HAI GUARD nay quan trong.
+     *
+     * Nest chay guard toan cuc theo dung thu tu khai bao. `RateLimitGuard`
+     * phai chay TRUOC `AuthGuard`: neu nguoc lai thi `AuthGuard` da lam viec
+     * (doc cookie, kiem the — mot truy van database) cho nhung yeu cau le ra
+     * bi chan ngay. Voi endpoint `@Public()` nhu `login` thi con te hon: khong
+     * co gi chan truoc ham bam.
+     */
+    { provide: RATE_LIMIT_REGISTRY, useClass: RateLimitRegistry },
+    { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
-  exports: [APP_CONFIG, LOGGER, DAO_MANAGER],
+  exports: [APP_CONFIG, LOGGER, DAO_MANAGER, RATE_LIMIT_REGISTRY],
 })
 export class AppModule implements OnApplicationShutdown {
   constructor(@Inject(DAO_RUNTIME) private readonly dao: DaoRuntime) {}

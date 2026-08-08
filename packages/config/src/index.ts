@@ -58,6 +58,16 @@ export const configSchema = z.object({
   LOGIN_RATE_WINDOW_MINUTES: int.default(15),
   LOGIN_LOCK_AFTER_ATTEMPTS: int.default(10),
   MIN_PASSWORD_LENGTH: int.default(12),
+  /**
+   * Co tin `X-Forwarded-For` khong.
+   *
+   * `false` la mac dinh AN TOAN. Bat khi KHONG dung sau proxy thi ke tan cong
+   * tu dat header do va co han muc vo han — nguy hiem hon la de tat.
+   */
+  TRUST_PROXY: bool.default('false'),
+  /** Tran so lan bam Argon2 chay cung luc. Xem `shared/crypto/hash-gate.ts`. */
+  HASH_MAX_CONCURRENT: int.default(4),
+  HASH_MAX_QUEUED: int.default(32),
 
   MEDIA_ROOT: z.string().default('./.data/media'),
   MEDIA_PUBLIC_DIR: z.string().default('public-media'),
@@ -111,6 +121,10 @@ export function assertProductionSafe(cfg: AppConfig): void {
   }
   if (cfg.CORS_ORIGINS.some((o) => o.startsWith('http://'))) {
     loi.push('CORS_ORIGINS chua origin http:// — chi cho phep https tren production');
+  }
+  if (cfg.HASH_MAX_CONCURRENT > 16) {
+    // Moi lan bam ton 19 MiB. 16 x 19 = 304 MiB da la nhieu cho mot may nho.
+    loi.push(`HASH_MAX_CONCURRENT=${cfg.HASH_MAX_CONCURRENT} qua cao — moi lan bam ton 19 MiB`);
   }
   if (cfg.JWT_SECRET === cfg.PASSWORD_RESET_SECRET) {
     // Dung chung bi mat thi mot the dat lai mat khau doi duoc thanh the phien.
