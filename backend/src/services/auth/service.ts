@@ -22,6 +22,20 @@ export interface AuthConfig {
   /** Khoa tai khoan sau bao nhieu lan sai lien tiep. */
   readonly lockAfterAttempts: number;
   readonly minPasswordLength: number;
+
+  /**
+   * Bao mot su kien dang chu y ra ngoai — KHONG phai mot `Logger`.
+   *
+   * Tang service khong duoc phu thuoc cai dat ghi log (do la ha tang, cung ho
+   * voi HTTP). Nhung co dung mot viec o day ma chi tang service biet: khi bo
+   * qua viec khoa quan tri cuoi cung. Nguoi van hanh CAN biet dieu do, va tang
+   * api thi khong the biet.
+   *
+   * Mot ham tuy chon la du: `app.module.ts` noi no vao `LOGGER`, con test thi
+   * bat lai de KHANG DINH su kien da xay ra — chu khong chi khang dinh "khong
+   * bi khoa", cai co the dung vi mot ly do sai.
+   */
+  readonly onEvent?: (event: string, fields: Record<string, unknown>) => void;
 }
 
 /** Thong bao DUY NHAT cho moi that bai dang nhap — xem `interface.ts`. */
@@ -109,8 +123,40 @@ export class AuthServiceImpl implements AuthService {
     if (!ok) {
       const n = this.attempts.record(email);
       if (n >= this.cfg.lockAfterAttempts) {
-        // Khoa nay nam trong DATABASE nen ben vung qua khoi dong lai.
-        await this.daos.users.setStatus(user.id, 'locked');
+        /**
+         * KHONG khoa quan tri HOAT DONG CUOI CUNG.
+         *
+         * Nua thu hai cua chuoi leo thang o `UserService.bootstrapFirstAdmin`.
+         * Ban va o do dong cong bootstrap; day dong cai lam cong mo ra.
+         *
+         * Danh doi, noi ro vi no khong hien nhien: mot he thong chi co MOT
+         * quan tri — dung hien trang cua du an nay — se KHONG con co che khoa
+         * tai khoan nao. Toi chon vay vi:
+         *
+         *   - khoa quan tri duy nhat bien mot cuoc tan cong THAT BAI thanh mot
+         *     cuoc tu choi dich vu THANH CONG. Ke tan cong khong doan duoc mat
+         *     khau nhung dat duoc dieu tot thu hai: khoa ca doi ngu ra ngoai.
+         *     Ai biet email quan tri la lam duoc.
+         *   - co che bao ve THAT khong phai la khoa: la han muc 5 lan sai /
+         *     15 phut / email, cong Argon2id ~50ms moi lan doan, cong mat khau
+         *     toi thieu 12 ky tu. 480 lan doan mot ngay khong pha duoc mat khau
+         *     do.
+         *   - duong phuc hoi cua tai khoan bi khoa la `forgot-password`, ma o
+         *     hien trang the dat lai chi duoc GHI VAO LOG (chua co hang doi
+         *     email — B7). Nen "bi khoa" hom nay nghia la phai doc log may chu.
+         *
+         * Ghi log muc `warn` de viec nay khong im lang: mot quan tri duy nhat
+         * bi doan mat khau lien tuc la thu nguoi van hanh can biet.
+         */
+        const laQuanTriCuoiCung =
+          user.role === 'admin' && (await this.daos.users.countActiveAdmins()) <= 1;
+
+        if (laQuanTriCuoiCung) {
+          this.cfg.onEvent?.('auth_lock_skipped_last_admin', { user_id: user.id, attempts: n });
+        } else {
+          // Khoa nay nam trong DATABASE nen ben vung qua khoi dong lai.
+          await this.daos.users.setStatus(user.id, 'locked');
+        }
       }
       throw new UnauthorizedError('AUTH_INVALID_CREDENTIALS', LOGIN_FAILED);
     }

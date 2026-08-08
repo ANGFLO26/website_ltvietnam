@@ -124,6 +124,19 @@ run('AuthService tren PostgreSQL that', () => {
 
   it('sai lien tiep du so lan thi tai khoan bi KHOA TRONG DATABASE', async () => {
     const u = await mkUser('bi-khoa');
+    /**
+     * Phai co MOT quan tri hoat dong KHAC, va dieu do bay gio la mot dieu kien
+     * TUONG MINH cua bai kiem.
+     *
+     * Viec khoa gio bo qua quan tri hoat dong cuoi cung (xem bai ke tiep). Bai
+     * kiem nay truoc do van xanh sau khi doi hanh vi — nhung chi vi cac bai
+     * kiem khac trong file da de lai vai hang `active` trong bang. Do la xanh
+     * vi mot ly do KHAC voi ly do bai kiem noi, va no se do vao ngay ai do chay
+     * rieng no tren bang rong.
+     */
+    await mkUser('bi-khoa-ban-cung');
+    expect(await daos.users.countActiveAdmins()).toBeGreaterThan(1);
+
     for (let i = 0; i < 3; i++) {
       await expect(auth.login({ email: u.email, password: 'sai-mat-khau-roi' }))
         .rejects.toThrow(UnauthorizedError);
@@ -134,6 +147,77 @@ run('AuthService tren PostgreSQL that', () => {
     // Va mat khau DUNG cung khong vao duoc nua
     await expect(auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }))
       .rejects.toThrow(UnauthorizedError);
+  });
+
+  it('KHONG khoa quan tri hoat dong CUOI CUNG — nua thu hai cua chuoi leo thang', async () => {
+    /**
+     * Do that tren HTTP truoc khi va (`LOGIN_LOCK_AFTER_ATTEMPTS=5`):
+     *
+     *   thu sai 5 lan                 ->  401 x5 roi 429
+     *   trang thai tai khoan          ->  locked
+     *   quan tri that, mat khau DUNG  ->  khong vao duoc
+     *   POST /auth/bootstrap          ->  201 { "email": "ke-tan-cong@evil.test" }
+     *   ke tan cong dang nhap         ->  201
+     *
+     * `bootstrapFirstAdmin` da duoc va (dieu kien la bang RONG). Day va cai
+     * LAM CONG MO RA: khoa quan tri duy nhat bien mot cuoc tan cong THAT BAI
+     * thanh mot cuoc tu choi dich vu THANH CONG, va ai biet email quan tri la
+     * lam duoc.
+     *
+     * Danh doi: mot he thong chi co MOT quan tri thi khong con co che khoa nao.
+     * Bao ve that la han muc 5 lan sai / 15 phut / email cong Argon2id cong mat
+     * khau toi thieu 12 ky tu — 480 lan doan mot ngay khong pha duoc.
+     */
+    const suKien: string[] = [];
+    const authRieng = new AuthServiceImpl(
+      daos, hasher,
+      new JwtSessionSigner(SECRET), new JwtResetSigner(RESET_SECRET),
+      {
+        sessionTtlSeconds: 3600, resetTtlSeconds: 1800,
+        lockAfterAttempts: 3, minPasswordLength: 12,
+        onEvent: (e) => suKien.push(e),
+      },
+    );
+
+    /**
+     * PHAI TRA LAI trang thai da doi — va day la mot loi toi da tao ra.
+     *
+     * Ban dau bai kiem nay chi chay
+     * `UPDATE ltv.users SET status='disabled' WHERE status='active'` roi di
+     * tiep. No xanh, ca 343 test xanh — nhung no da VO HIEU HOA tai khoan quan
+     * tri cua `smoke-auth.mjs`, va phep thu tren HTTP that bai ngay sau do voi
+     * "Khong dang nhap duoc".
+     *
+     * Mot bai kiem sua du lieu dung chung ma khong tra lai thi khong chi hong
+     * cac bai kiem chay sau no; no hong ca moi truong. Ghi lai dung nhung hang
+     * minh doi roi phuc hoi trong `finally`.
+     */
+    const { rows: daTat } = await pool.query<{ id: string }>(
+      `UPDATE ltv.users SET status = 'disabled' WHERE status = 'active' RETURNING id`,
+    );
+    try {
+      const u = await mkUser('quan-tri-cuoi');
+      expect(await daos.users.countActiveAdmins()).toBe(1);
+
+      for (let i = 0; i < 3; i++) {
+        await expect(authRieng.login({ email: u.email, password: 'sai-mat-khau-roi' }))
+          .rejects.toThrow(UnauthorizedError);
+      }
+
+      expect((await daos.users.findById(u.id))!.status).toBe('active');
+      // Khang dinh su kien DA phat: neu khong thi "khong bi khoa" co the dung vi
+      // mot ly do khac (vd nguong chua cham), va bai kiem se rong.
+      expect(suKien).toContain('auth_lock_skipped_last_admin');
+      // Va mat khau DUNG van vao duoc — do moi la dieu nguoi dung quan tam.
+      await expect(authRieng.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }))
+        .resolves.toBeDefined();
+    } finally {
+      if (daTat.length > 0) {
+        await pool.query(`UPDATE ltv.users SET status = 'active' WHERE id = ANY($1::uuid[])`, [
+          daTat.map((r) => r.id),
+        ]);
+      }
+    }
   });
 
   it('dang nhap thanh cong XOA bo dem — sai vai lan roi dung thi khong bi khoa', async () => {

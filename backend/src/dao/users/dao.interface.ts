@@ -18,4 +18,17 @@ export interface UserDao {
   updatePassword(id: string, passwordHash: string, changedAt: Date): Promise<void>;
   setStatus(id: string, status: UserStatus): Promise<void>;
   countActiveAdmins(): Promise<number>;
+
+  /**
+   * Dem MOI hang trong bang — moi vai tro, moi trang thai, KE CA da xoa mem.
+   *
+   * Khac `countActiveAdmins` mot cach co y, va su khac biet do la mot lo hong
+   * da khai thac duoc. `bootstrapFirstAdmin` truoc day hoi "con quan tri HOAT
+   * DONG nao khong", tuc la mot he thong co quan tri bi `locked` duoc coi la
+   * he thong CHUA KHOI TAO — va endpoint bootstrap thi `@Public()`.
+   *
+   * Cau hoi dung la "bang `users` co rong khong". Ke ca hang da xoa mem cung
+   * tinh: neu khong thi xoa quan tri cuoi cung se mo lai cong.
+   */
+  countAll(): Promise<number>;
 }

@@ -65,6 +65,21 @@ export class KyselyUserDao extends BaseDao implements UserDao {
     await this.db.updateTable('users').set({ status }).where('id', '=', id).execute();
   }
 
+  /**
+   * KHONG co `where` nao — day khong phai thieu sot.
+   *
+   * Cau hoi la "bang nay co rong khong". Them bat ky dieu kien nao (trang thai,
+   * vai tro, `deleted_at`) se lam mot bang KHONG rong duoc tra loi la rong, va
+   * do dung la lo hong ma ham nay ra doi de dong.
+   */
+  async countAll(): Promise<number> {
+    const r = await this.db
+      .selectFrom('users')
+      .select(({ fn }) => fn.countAll<string>().as('n'))
+      .executeTakeFirstOrThrow();
+    return Number(r.n);
+  }
+
   async countActiveAdmins(): Promise<number> {
     const r = await this.db
       .selectFrom('users')

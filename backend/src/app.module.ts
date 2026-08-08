@@ -89,15 +89,17 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
       provide: AUTH_SERVICE,
       useFactory: (
         daos: DaoManager, hasher: PasswordHasher,
-        tokens: TokenSigner, reset: ResetTokenSigner, cfg: AppConfig,
+        tokens: TokenSigner, reset: ResetTokenSigner, cfg: AppConfig, log: Logger,
       ) =>
         new AuthServiceImpl(daos, hasher, tokens, reset, {
           sessionTtlSeconds: cfg.JWT_TTL_HOURS * 3600,
           resetTtlSeconds: cfg.PASSWORD_RESET_TTL_MINUTES * 60,
           lockAfterAttempts: cfg.LOGIN_LOCK_AFTER_ATTEMPTS,
           minPasswordLength: cfg.MIN_PASSWORD_LENGTH,
+          // Service bao su kien ra bang mot ham; noi day la cho no gap `Logger`.
+          onEvent: (event, fields) => log.warn(event, fields),
         }),
-      inject: [DAO_MANAGER, PASSWORD_HASHER, TOKEN_SIGNER, RESET_SIGNER, APP_CONFIG],
+      inject: [DAO_MANAGER, PASSWORD_HASHER, TOKEN_SIGNER, RESET_SIGNER, APP_CONFIG, LOGGER],
     },
     {
       provide: USER_SERVICE,

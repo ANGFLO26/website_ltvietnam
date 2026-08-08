@@ -75,14 +75,41 @@ export class UserServiceImpl implements UserService {
     return after;
   }
 
+  /**
+   * LEO THANG DAC QUYEN — day la ban va, va lo hong da duoc do that.
+   *
+   * Ban dau ham nay hoi `countActiveAdmins() > 0`. Chuoi khai thac, chi can
+   * BIET EMAIL quan tri, khong can mat khau:
+   *
+   *   1. gui mat khau sai cho toi khi `AuthService` dat `status = 'locked'`
+   *      (`LOGIN_LOCK_AFTER_ATTEMPTS`, mac dinh 10 — han muc 5/email/15 phut
+   *      nen mat hai cua so, khoang 30 phut)
+   *   2. gio `countActiveAdmins()` = 0
+   *   3. `POST /auth/bootstrap` la `@Public()`, va no chap nhan
+   *   4. ke tan cong co mot tai khoan QUAN TRI cua chinh no
+   *
+   * Do that, tung buoc:
+   *
+   *   thu sai 5 lan          -> 401 x5, roi 429
+   *   trang thai tai khoan   -> locked
+   *   quan tri that, mat khau DUNG -> khong vao duoc
+   *   POST /auth/bootstrap   -> 201 { "email": "ke-tan-cong@evil.test" }
+   *   ke tan cong dang nhap  -> 201
+   *
+   * Loi khong nam o endpoint hay o han muc. No nam o CAU HOI: "con quan tri
+   * hoat dong nao khong" tra loi mot chuyen khac han "he thong da khoi tao
+   * chua". Mot he thong co quan tri bi khoa la he thong DA khoi tao.
+   *
+   * Nen dieu kien la `countAll()` — bang `users` phai RONG, ke ca hang da xoa
+   * mem. Duong phuc hoi khi bi khoa la `forgot-password` (`resetPassword` dat
+   * `locked` -> `active`), khong phai bootstrap.
+   */
   async bootstrapFirstAdmin(input: CreateUserRequest): Promise<User> {
-    // Chi chay khi kho hoan toan trong. Goi lan thu hai bi tu choi — nguoi
-    // dung tiep theo phai do quan tri hien co tao.
-    const existing = await this.daos.users.countActiveAdmins();
+    const existing = await this.daos.users.countAll();
     if (existing > 0) {
       throw new ConflictError(
         'USER_BOOTSTRAP_DONE',
-        'Da co tai khoan quan tri — dung chuc nang tao nguoi dung thong thuong',
+        'Da co tai khoan — dung chuc nang tao nguoi dung thong thuong',
       );
     }
     return this.create(input);
