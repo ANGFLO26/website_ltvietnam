@@ -13,17 +13,23 @@ Một cái là **lỗ hổng khai thác được** trong mã tôi đã báo là 
 
 | # | Vấn đề | Mức | Khi nào sửa |
 |---|---|---|---|
-| 1 | Đăng nhập không có giới hạn tốc độ — Argon2 19 MiB/lần | **Nghiêm trọng** | Trước F0 |
-| 2 | Vỏ phản hồi không thống nhất | Cao | Trước F0 |
+| 1 | Đăng nhập không có giới hạn tốc độ — Argon2 19 MiB/lần | **Nghiêm trọng** | **đã sửa — F-1a** |
+| 2 | Vỏ phản hồi không thống nhất | Cao | **đã sửa — F-1b** |
 | 3 | `createPool` trùng ở 2 chỗ, 3 biến thể | Cao | Trước F0 |
 | 4 | Luật kiến trúc không quét `packages/` | Cao | Trước F0 |
 | 5 | `UserService` / `SettingService` — **không một test nào** | Cao | Trước F0 |
 | 6 | Không giới hạn kích thước thân yêu cầu | Trung bình | F0 |
 | 7 | Không có security header | Trung bình | F0 |
 | 8 | Lỗi kết nối DB → 500 thay vì 503 | Trung bình | F0 |
-| 9 | `/auth/me` trả trường nội bộ | Thấp | F0 |
+| 9 | `/auth/me` trả trường nội bộ | Thấp | **đã sửa — F-1b** (Luật 10b kéo lên sớm) |
 | 10 | 8 khoá cấu hình khai báo mà không dùng | Thấp | rải theo phase |
 | 11 | `worker/` vẫn là khung rỗng | — | F5 |
+| **12** | `forgot-password`: hạn mức IP = hạn mức email = 3 | Trung bình | **đã sửa — F-1b** |
+
+Số **12** không có trong bản rà soát đầu. Nó lộ ra khi chạy `smoke-auth.mjs`
+trên HTTP thật ở F-1b: F-1a tách hạn mức IP khỏi hạn mức email cho `login` rồi
+**để nguyên** `forgot-password` với cả hai bằng 3. Tôi sửa đúng ý đó ở một
+endpoint rồi không hỏi "còn endpoint nào cũng thế không".
 
 Ba món nợ đã ghi rõ trong mã (thẻ đặt lại vào log, bộ đếm trong RAM,
 at-least-once) **không** nằm trong danh sách — chúng là đánh đổi có chủ đích,
@@ -159,6 +165,86 @@ return { ok: true };
 Phải là **interceptor toàn cục**, cộng một luật kiến trúc: controller không
 được tự bọc `data`.
 
+## ĐÃ SỬA (F-1b)
+
+Nguyên tắc: **hướng sai phải là hướng ồn ào.** Với interceptor toàn cục, viết
+đúng là *không làm gì cả* — không có gì để quên. Với một quy ước thì viết đúng
+đòi hỏi nhớ, và người ta sẽ quên ở endpoint thứ 19.
+
+Bốn quyết định về hợp đồng, chốt bây giờ lúc còn **một** controller:
+
+| | |
+|---|---|
+| `{ data }` / `{ data, meta }` | `EnvelopeInterceptor` bọc, controller trả **tài nguyên** |
+| `data` **chính là** tài nguyên | không phải `{ data: { user: {...} } }` — lớp lồng đó không nói gì |
+| `204` thay cho `200 { ok: true }` | `{ ok: true }` không mang thông tin nào mà mã HTTP chưa nói |
+| `snake_case` một chiều | `doc/06` đã dùng `page_size`, vỏ lỗi đã dùng `request_id` |
+
+Bốn luật ép, mặc định **từ chối**:
+
+```
+10a  handler không được đặt khoá `data`        -> chặn { data: { data } }
+10b  kiểu trả về phải có TÊN, không nội dòng   -> chặn vỏ tự chế
+10c  @NoEnvelope() chỉ ở danh sách trắng       -> chặn đường thoát
+11   view của API chỉ khai báo snake_case      -> chặn trộn hai kiểu viết
+```
+
+**Luật 10b tự kéo vấn đề số 9 lên sớm.** Bắt đặt tên kiểu trả về nghĩa là phải
+*chọn* trường, và chọn trường là lúc thấy `/auth/me` đang trả cả
+`passwordChangedAt` với `status`. Một luật về *hình dạng* tìm ra một lỗi về
+*nội dung* — không phải ý định ban đầu của luật.
+
+**Luật 1 báo động, và nó đúng.** `api/dto/user.view.ts` import
+`dao/users/object.js`. Cái nó chỉ ra là một chỗ **đặt sai tên** chứ không phải
+một vi phạm: `object.ts` là *thực thể nghiệp vụ* — chú thích đầu file của chính
+nó viết vậy — nằm trong `dao/` chỉ vì Luật 4 xếp bốn file của một bảng cạnh
+nhau. Tầng api **vẫn luôn** chạm thực thể đó; trước đây nó chỉ không đặt tên
+(`Promise<{ user: unknown }>`). Nới đúng một khe, `import type` và chỉ
+`object.ts`; `dao.ts`/`mapper.ts`/`query.ts` vẫn chặn tuyệt đối. Dọn `object.ts`
+sang `domain/` là việc cho 23 bảng và phá Luật 4 — chưa làm, đã ghi lại.
+
+## Bằng chứng đo được, không phải lời hứa
+
+Bản **CŨ** của `smoke-auth.mjs` chạy trên backend **mới** — nó phải đỏ, và đó
+là bằng chứng vỏ thật sự đã đổi trên dây:
+
+```
+FAIL  doi mat khau voi CSRF dung -> 201     204  (mong 201)
+FAIL  email co that / khong co that cung ma HTTP
+```
+
+Bản **mới**: `38 đạt, 0 không đạt`, chạy lại ngay lần hai vẫn 38/38.
+Toàn bộ: `298 test xanh` (trước F-1b: 271), `tsc` sạch từ kho đã xoá hết bản dịch.
+
+**Mười phép tiêm lỗi**, mỗi phép làm đúng một bài kiểm đỏ: controller tự bọc ·
+kiểu nội dòng · `@NoEnvelope()` lậu · `camelCase` trong view · bộ quét handler
+hỏng · import `dao.js` · import giá trị thay `import type` · bỏ đường đi thẳng
+của `undefined` · bỏ đường đi thẳng của `Buffer` · `Math.floor` thay `Math.ceil`
+· nhận trang bằng `'items' in value` thay vì symbol.
+
+## Hai cái bẫy chỉ lộ ra khi chạy, không khi đọc
+
+**`res.statusCode` KHÔNG dùng được để nhận biết 204.** Tôi viết vậy trước.
+Nest áp `@HttpCode(...)` trong `RouterResponseController`, tức là **sau** chuỗi
+interceptor — lúc `map` chạy thì `res.statusCode` vẫn là 200 mặc định của
+Express. Nên phép kiểm đó luôn sai và `@HttpCode(204)` sẽ nhận thân
+`{ "data": null }`; 204 có thân là sai chuẩn HTTP. Đọc **giá trị trả về** thay
+vì trạng thái thì không phụ thuộc nội tạng của Nest: handler nào không có gì để
+nói thì khai `Promise<void>`.
+
+**Một phép kiểm bảo mật cũ đã rỗng mà vẫn xanh.** Bản cũ của
+`smoke-auth.mjs` có:
+
+```js
+check('KHONG lo ma bam mat khau', 'passwordHash' in (me.body.user ?? {}), false);
+```
+
+Sau khi vỏ đổi hình dạng, `me.body.user` thành `undefined`, nên
+`'passwordHash' in {}` là `false` — **đúng kết quả mong đợi, vì không đọc gì cả**.
+Một phép kiểm bảo mật không còn đọc đúng chỗ thì nó không còn kiểm gì. Bản mới
+khẳng định **có** ở chỗ đúng trước (`data.email` khớp), rồi mới khẳng định
+**không có** ở chỗ sai.
+
 ---
 
 # 3. `createPool` trùng ở hai chỗ, ba biến thể
@@ -250,6 +336,11 @@ rồi **không kiểm**. Đúng loại mã "trông có vẻ đúng".
 | **9** `/auth/me` trả trường nội bộ | `return { user }` — cả `User` | Lộ `passwordChangedAt` (mốc thu hồi) và `status`. Không nguy hiểm trực tiếp nhưng là vệ sinh API |
 
 Số 8 tôi đã nhận ra khi chạy end-to-end và ghi lại, nhưng chưa sửa.
+
+**Số 9 đã sửa ở F-1b**, sớm hơn dự kiến, và không phải vì tôi nhớ ra: Luật 10b
+bắt kiểu trả về phải có tên, đặt tên thì phải chọn trường, và chọn trường là
+lúc nhìn thấy hai trường nội bộ đang đi ra ngoài. `UserView` giờ lọc chúng, và
+`smoke-auth.mjs` khẳng định cả năm cách viết tên đều không có mặt.
 
 ---
 

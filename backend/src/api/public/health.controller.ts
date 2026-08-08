@@ -2,6 +2,7 @@ import { Controller, Get, HttpCode, Inject, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { HEALTH_SERVICE, type HealthService } from '../../services/health/interface.js';
 import { Public } from '../admin/auth.guard.js';
+import { NoEnvelope } from '../../shared/http/envelope.js';
 
 /**
  * Tang API chi phu thuoc INTERFACE cua service, khong phu thuoc cai dat.
@@ -18,6 +19,18 @@ import { Public } from '../admin/auth.guard.js';
  *
  * Loi nay da xay ra that o lan chay dau: `/health/live` tra 401.
  */
+/**
+ * `@NoEnvelope()` — health nam NGOAI hop dong `/api/v1`.
+ *
+ * `main.ts` loai `health/live` va `health/ready` khoi tien to `/api/v1`, nen
+ * chung khong phai API cua frontend. Nguoi tieu thu la trinh dieu phoi
+ * (Docker/Kubernetes/proxy) va no doc MA HTTP; boc `{ data: ... }` chi lam
+ * nguoi go `curl /health/ready` phai dao them mot lop de xem `status`.
+ *
+ * Luat 10c gioi han decorator nay trong mot danh sach trang tuong minh, de no
+ * khong tro thanh duong thoat cho endpoint nao thay vo bat tien.
+ */
+@NoEnvelope()
 @Public()
 @Controller('health')
 export class HealthController {

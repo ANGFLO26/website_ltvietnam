@@ -1,5 +1,5 @@
 import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { assertProductionSafe, loadConfig, type AppConfig } from '@ltv/config';
 import { createDaoRuntime, type DaoRuntime } from './dao/connection.js';
 import { APP_CONFIG, DAO_MANAGER, LOGGER } from './shared/tokens.js';
@@ -22,6 +22,7 @@ import { AuthGuard } from './api/admin/auth.guard.js';
 import { RateLimitGuard } from './api/admin/rate-limit.guard.js';
 import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './api/admin/rate-limit.registry.js';
 import { HashGate } from './shared/crypto/hash-gate.js';
+import { EnvelopeInterceptor } from './shared/http/envelope.interceptor.js';
 import type { DaoManager } from './dao/dao-manager.js';
 
 const RESET_SIGNER = Symbol('RESET_SIGNER');
@@ -129,6 +130,15 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     { provide: RATE_LIMIT_REGISTRY, useClass: RateLimitRegistry },
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
+
+    /**
+     * Vo `{ data, meta }` — dang ky TOAN CUC, cung ly do voi guard.
+     *
+     * Neu de moi controller tu boc thi endpoint thu 19 se quen, va cai gia la
+     * mot cho frontend hong rieng le. Voi interceptor toan cuc, viet dung la
+     * KHONG lam gi ca — khong co gi de quen.
+     */
+    { provide: APP_INTERCEPTOR, useClass: EnvelopeInterceptor },
   ],
   exports: [APP_CONFIG, LOGGER, DAO_MANAGER, RATE_LIMIT_REGISTRY],
 })

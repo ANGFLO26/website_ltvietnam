@@ -63,6 +63,36 @@ const tableDirs = existsSync(DAO_DIR)
     )
   : [];
 
+/**
+ * NGOAI LE DUY NHAT cua Luat 1: `dao/<bang>/object.ts`.
+ *
+ * Luat nay bao dong khi `api/dto/user.view.ts` import `dao/users/object.js`, va
+ * cai no chi ra la mot cho DAT SAI TEN chu khong phai mot vi pham:
+ *
+ * `object.ts` la THUC THE NGHIEP VU, khong phai chi tiet cua tang dao. Chu
+ * thich dau file cua chinh no viet nhu vay: "Thuc the nghiep vu `User` — KHONG
+ * phai hang trong bang". No nam trong `dao/` vi Luat 4 xep bon file cua mot
+ * bang canh nhau, khong phai vi no thuoc tang dao. Bang chung: `services/`
+ * cung import no, va `AuthService.login` da tra ve thuc the do ra tang api tu
+ * truoc — tang api VAN LUON cham thuc the, chi la truoc day no khong dat ten
+ * (`Promise<{ user: unknown }>`, tra thang thuc the ra ngoai).
+ *
+ * Cach dung khac la don `object.ts` sang mot thu muc `domain/` rieng. Do la
+ * viec cho 23 bang, va no pha Luat 4. Chua lam bay gio; ghi lai o day de lan
+ * sau ai doc thi biet day la mot lua chon, khong phai mot su tinh co.
+ *
+ * Noi long TOI DAU:
+ *   - CHI `dao/<bang>/object.ts`. `dao.ts`, `dao.interface.ts`, `mapper.ts`,
+ *     `query.ts`, `dao-manager.ts`, `connection.ts` van bi chan tuyet doi.
+ *   - CHI `import type`. Import gia tri se cho phep goi mot cai gi do; import
+ *     kieu thi bien mat sau khi bien dich va khong the chay duoc.
+ *
+ * Nhung duong tan cong that su van bi chan boi luat khac, khong phai luat nay:
+ * Luat 2 chan kieu bang cua Kysely lot ra ngoai `dao.ts`/`mapper.ts`, va Luat 9
+ * chan viec tiem `DAO_MANAGER` vao controller.
+ */
+const CHO_PHEP_TU_DAO = /^dao\/[^/]+\/object\.(ts|js)$/;
+
 describe('Luat 1 — api/ khong duoc import dao/', () => {
   it('controller phai di qua services/', () => {
     const bad: string[] = [];
@@ -70,7 +100,18 @@ describe('Luat 1 — api/ khong duoc import dao/', () => {
       if (layerOf(f.path) !== 'api') continue;
       for (const spec of f.imports) {
         const t = resolveImport(f.path, spec);
-        if (t && layerOf(t) === 'dao') bad.push(`${f.path} -> ${spec}`);
+        if (!t || layerOf(t) !== 'dao') continue;
+
+        if (CHO_PHEP_TU_DAO.test(t)) {
+          // Ngoai le CHI ap dung cho `import type`.
+          const laKieu = new RegExp(
+            `import\\s+type[^;]*from\\s*['"]${spec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`,
+          ).test(f.code);
+          if (laKieu) continue;
+          bad.push(`${f.path} -> ${spec} (thuc the chi duoc "import type")`);
+          continue;
+        }
+        bad.push(`${f.path} -> ${spec}`);
       }
     }
     expect(bad, `Tang api khong duoc cham thang tang dao:\n${bad.join('\n')}`).toEqual([]);
@@ -329,6 +370,131 @@ describe('Luat 8 — khong bang nao trong so do bi bo quen', () => {
       missing,
       `Bang co trong so do nhung khong DAO nao cham toi:\n${missing.join('\n')}`,
     ).toEqual([]);
+  });
+});
+
+/**
+ * Luat 10 — VO PHAN HOI la mot quyet dinh, o mot cho.
+ *
+ * `EnvelopeInterceptor` boc moi phan hoi thanh `{ data }` / `{ data, meta }`.
+ * Ba cach lam no ro ri, va ca ba deu im lang:
+ *
+ *   a. controller TU boc (`return { data: ... }`) -> `{ data: { data: ... } }`
+ *   b. controller tra mot vo tu che (`{ user: ... }`, `{ ok: true }`) -> vo
+ *      long vo, va hinh dang `data` khac nhau o tung endpoint
+ *   c. ai do gan `@NoEnvelope()` de di qua cho bat tien -> hop dong ra ro dan
+ *      tung endpoint mot
+ *
+ * Luat nay chi doc PHAN THAN CUA HANDLER (tu mot decorator route den decorator
+ * route tiep theo), khong doc ca file: mot ham phu tra ve kieu doi tuong noi
+ * dong la vo hai, con mot handler thi khong.
+ */
+const ROUTE_DECORATOR = /@(?:Get|Post|Put|Patch|Delete|Head|Options|All)\s*\(/g;
+
+interface Handler {
+  readonly file: string;
+  /** Ma tu decorator route den decorator route ke tiep. */
+  readonly slice: string;
+  readonly mienVo: boolean;
+}
+
+function handlersOf(f: SourceFile): Handler[] {
+  const starts = [...f.code.matchAll(ROUTE_DECORATOR)].map((m) => m.index);
+  // `@NoEnvelope()` o cap LOP mien cho moi handler trong file do.
+  const mienCapLop = /@NoEnvelope\s*\(\s*\)/.test(f.code.split(/@Controller\s*\(/)[0] ?? '');
+  return starts.map((start, i) => {
+    const slice = f.code.slice(start, starts[i + 1] ?? f.code.length);
+    return { file: f.path, slice, mienVo: mienCapLop || /@NoEnvelope\s*\(\s*\)/.test(slice) };
+  });
+}
+
+const API_HANDLERS = FILES.filter((f) => layerOf(f.path) === 'api').flatMap(handlersOf);
+
+describe('Luat 10 — controller khong duoc tu boc vo phan hoi', () => {
+  it('quet tim thay handler — neu khong thi ba phep kiem duoi la rong', () => {
+    /**
+     * Phep kiem nay ton tai vi ba phep kiem duoi deu co dang "danh sach vi pham
+     * phai rong". Neu bo quet handler hong (doi ten decorator, doi cach viet)
+     * thi danh sach rong VI KHONG QUET GI CA, va ca ba se xanh mot cach vo
+     * nghia. Da bi mot lan roi voi test on dinh phan trang.
+     */
+    expect(API_HANDLERS.length).toBeGreaterThan(5);
+    expect(API_HANDLERS.filter((h) => h.mienVo).length).toBeGreaterThan(0);
+  });
+
+  it('10a — khong handler nao dat khoa `data` trong phan hoi', () => {
+    const bad = API_HANDLERS.filter((h) => !h.mienVo)
+      .filter((h) => /\bdata\s*:/.test(h.slice))
+      .map((h) => h.file);
+    expect(
+      bad,
+      `Vo do EnvelopeInterceptor dat. Controller tra TAI NGUYEN:\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('10b — kieu tra ve phai co TEN, khong duoc la doi tuong noi dong', () => {
+    /**
+     * `Promise<{ user: unknown }>` la ca hai loi cung mot luc: mot vo tu che,
+     * va mot hop dong khong the tra cuu o dau ca. Bat phai dat ten thi:
+     *
+     *   - `data` cua tung endpoint co mot dinh nghia doc duoc
+     *   - dat ten buoc phai CHON truong, va do la luc phat hien minh dang tra
+     *     ca `passwordChangedAt` ra ngoai (van de so 9 cua `doc/13`)
+     */
+    const bad = API_HANDLERS.filter((h) => !h.mienVo)
+      .filter((h) => /\)\s*:\s*(?:Promise<\s*)?\{/.test(h.slice))
+      .map((h) => `${h.file}: ${/\)\s*:\s*(?:Promise<\s*)?\{[^}]*\}/.exec(h.slice)?.[0] ?? ''}`);
+    expect(
+      bad,
+      `Kieu tra ve cua handler phai co ten (vd UserView):\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('10c — `@NoEnvelope()` chi duoc dung o danh sach trang', () => {
+    /**
+     * Mac dinh TU CHOI. Khong co luat nay thi `@NoEnvelope()` la duong thoat:
+     * ai gap kho voi vo se gan no roi di tiep, va sau 20 module thi "vo chuan"
+     * chi con la vo cua nhung endpoint khong gap kho.
+     *
+     * Them mot duong vao danh sach nay la mot quyet dinh CO Y THUC — dung y
+     * muon cua luat.
+     */
+    const CHO_PHEP = new Set(['api/public/health.controller.ts']);
+    const bad = FILES.filter((f) => /@NoEnvelope\s*\(/.test(f.code))
+      .map((f) => f.path)
+      .filter((p) => !CHO_PHEP.has(p) && !p.startsWith('shared/http/'));
+    expect(bad, `@NoEnvelope() chua duoc duyet cho:\n${bad.join('\n')}`).toEqual([]);
+  });
+});
+
+/**
+ * Luat 11 — phan hoi dung MOT kieu viet: `snake_case`.
+ *
+ * `doc/06` viet `meta{page, page_size, total_items, total_pages}`; vo loi da
+ * dung `request_id`; DTO dau vao dung `current_password`. Nhung thuc the
+ * nghiep vu la `camelCase` (`lastLoginAt`), nen tra thang thuc the ra ngoai la
+ * tron hai kieu viet trong CUNG mot phan hoi — va cai gia do frontend tra,
+ * moi ngay, o moi truong.
+ *
+ * Cho chuyen doi la `api/dto/<x>.view.ts`, doi xung voi `dao/<bang>/mapper.ts`
+ * o bien vao.
+ */
+describe('Luat 11 — kieu view cua API chi khai bao snake_case', () => {
+  const VIEWS = FILES.filter((f) => /^api\/dto\/.*\.view\.ts$/.test(f.path));
+
+  it('co file view de kiem', () => {
+    expect(VIEWS.length).toBeGreaterThan(0);
+  });
+
+  it('khong truong nao viet camelCase', () => {
+    const bad: string[] = [];
+    for (const f of VIEWS) {
+      for (const m of f.code.matchAll(/readonly\s+([A-Za-z_]\w*)\s*[?]?\s*:/g)) {
+        const ten = m[1]!;
+        if (/[A-Z]/.test(ten)) bad.push(`${f.path}: ${ten}`);
+      }
+    }
+    expect(bad, `Truong cua phan hoi phai la snake_case:\n${bad.join('\n')}`).toEqual([]);
   });
 });
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
 import type { AppConfig } from '@ltv/config';
 import type { Response } from 'express';
 import { randomBytes } from 'node:crypto';
@@ -15,6 +15,12 @@ import {
   loginSchema,
   resetPasswordSchema,
 } from '../dto/auth.dto.js';
+import {
+  toUserIdentityView,
+  toUserView,
+  type UserIdentityView,
+  type UserView,
+} from '../dto/user.view.js';
 import { Public, type AuthedRequest } from './auth.guard.js';
 import { RateLimit, type RateLimitedRequest } from './rate-limit.guard.js';
 import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './rate-limit.registry.js';
@@ -84,7 +90,7 @@ export class AuthController {
     @Body() body: unknown,
     @Req() req: AuthedRequest,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ user: unknown }> {
+  ): Promise<UserIdentityView> {
     const dto = parse(loginSchema, body);
 
     const result = await this.authService.login({
@@ -111,37 +117,66 @@ export class AuthController {
 
     // Ghi log CO chu the, KHONG co mat khau va KHONG co the.
     this.log.info('auth_login_ok', { user_id: result.user.id });
-    return { user: result.user };
+
+    /**
+     * Tra ve TAI NGUYEN, khong tra ve vo.
+     *
+     * `EnvelopeInterceptor` boc thanh `{ "data": { "id": ... } }`. Ban truoc
+     * tra `{ user: result.user }`, va qua vo se thanh `{ data: { user: {...} } }`
+     * — mot lop long them khong noi gi. Voi endpoint tra ve MOT tai nguyen thi
+     * `data` CHINH LA tai nguyen do; Luat 10a chan viec quay lai kieu cu.
+     */
+    return toUserIdentityView(result.user);
   }
 
   /**
-   * Dang xuat luon tra ve 200, ke ca khi chua dang nhap.
+   * Dang xuat luon THANH CONG, ke ca khi chua dang nhap.
    *
    * Khong co gi de bao ve o day, va tra loi cho mot yeu cau dang xuat chi lam
    * giao dien phai xu ly them mot nhanh. Ket qua mong muon — "phien nay khong
    * con" — dung o ca hai truong hop.
    */
+  /**
+   * `204 No Content` chu khong phai `200 { ok: true }`.
+   *
+   * `{ ok: true }` la mot than gia: no khong mang thong tin nao ma ma HTTP
+   * chua noi. Va no bat frontend phai chon doc `res.ok` hay `body.data.ok` —
+   * hai nguon cho cung mot su that, nen som muon co cho doc nguon sai.
+   *
+   * Ba endpoint con lai (`change-password`, `reset-password`,
+   * `forgot-password`) cung the: chung lam mot viec roi khong co gi de ke.
+   * `Promise<void>` cung la cach `EnvelopeInterceptor` biet KHONG boc — xem
+   * chu thich `boc()` ve vi sao khong the doc `res.statusCode`.
+   */
   @Public()
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response): { ok: true } {
+  @HttpCode(204)
+  logout(@Res({ passthrough: true }) res: Response): void {
     clearSessionCookie(res, this.cfg);
     clearCsrfCookie(res, this.cfg);
-    return { ok: true };
   }
 
   @Get('me')
-  async me(@Req() req: AuthedRequest): Promise<{ user: unknown }> {
+  async me(@Req() req: AuthedRequest): Promise<UserView> {
     // Guard da dat `principal`; toi day chac chan co.
     const user = await this.userService.findById(req.principal!.userId);
-    return { user };
+    /**
+     * Guard da kiem the va the mang `userId` cua mot nguoi dung CON HOAT DONG.
+     * Khong tim thay o day nghia la tai khoan bi xoa ngay giua hai buoc — mot
+     * cuoc dua that, du hep. Tra 401 chu khong 500: phien khong con hop le nua,
+     * va do la dieu nguoi goi can biet.
+     */
+    if (!user) throw new DomainError('AUTH_SESSION_EXPIRED', 'Phien khong con hop le', 'UNAUTHORIZED');
+    return toUserView(user);
   }
 
   @Post('change-password')
+  @HttpCode(204)
   async changePassword(
     @Body() body: unknown,
     @Req() req: AuthedRequest,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ ok: true }> {
+  ): Promise<void> {
     const dto = parse(changePasswordSchema, body);
     await this.authService.changePassword({
       userId: req.principal!.userId,
@@ -160,7 +195,6 @@ export class AuthController {
     clearSessionCookie(res, this.cfg);
     clearCsrfCookie(res, this.cfg);
     this.log.info('auth_password_changed', { user_id: req.principal!.userId });
-    return { ok: true };
   }
 
   /**
@@ -169,11 +203,35 @@ export class AuthController {
    * Neu tra 404 cho email khong co thi form "quen mat khau" tro thanh cong cu
    * kiem tra email nao dang ky trong he thong.
    */
-  // Endpoint nay ky mot the va (o F5) se gui mot email — ca hai deu dat.
+  /**
+   * Endpoint nay ky mot the va (o F5) se gui mot email — ca hai deu dat.
+   *
+   * HAI con so, cung ly do voi `login` — va day la mot loi toi de sot o F-1a.
+   *
+   * F-1a tach han muc IP khoi han muc email cho `login`, roi de nguyen
+   * `forgot-password` voi ca hai bang 3. Phep thu tren HTTP that bat duoc:
+   * ba yeu cau tu MOT IP voi BA email khac nhau la het han muc, nen nguoi thu
+   * tu trong mot van phong sau NAT khong the dat lai mat khau, va thong bao
+   * bao ho cho 15 phut. Toi da sua dung y do o mot endpoint roi khong hoi
+   * "con endpoint nao cung the khong".
+   *
+   *   theo EMAIL : 3 / 15 phut   — chan viec doi thu gui lien tuc email dat
+   *                                lai vao hom thu cua MOT nguoi
+   *   theo IP     : 10 / 15 phut — chan dung phi email va uy tin ten mien,
+   *                                nhung du rong cho mot van phong
+   *
+   * Khong xoa bo dem khi "thanh cong": endpoint nay luon tra 204 du email co
+   * that hay khong (de khong lo email nao da dang ky), nen khong co tin hieu
+   * nao chung to nguoi goi la nguoi that.
+   */
   @Public()
-  @RateLimit({ limit: 3, windowMs: 15 * 60_000, byIp: true, byBodyField: 'email' })
+  @RateLimit({
+    limit: 10, windowMs: 15 * 60_000, byIp: true,
+    byBodyField: 'email', bodyFieldLimit: 3,
+  })
   @Post('forgot-password')
-  async forgotPassword(@Body() body: unknown): Promise<{ ok: true }> {
+  @HttpCode(204)
+  async forgotPassword(@Body() body: unknown): Promise<void> {
     const dto = parse(forgotPasswordSchema, body);
     const result = await this.authService.requestPasswordReset(dto.email);
 
@@ -193,16 +251,15 @@ export class AuthController {
         token: result.token,
       });
     }
-    return { ok: true };
   }
 
   @Public()
   @RateLimit({ limit: 10, windowMs: 15 * 60_000, byIp: true })
   @Post('reset-password')
-  async resetPassword(@Body() body: unknown): Promise<{ ok: true }> {
+  @HttpCode(204)
+  async resetPassword(@Body() body: unknown): Promise<void> {
     const dto = parse(resetPasswordSchema, body);
     await this.authService.resetPassword({ token: dto.token, newPassword: dto.new_password });
-    return { ok: true };
   }
 
   /**
@@ -219,13 +276,13 @@ export class AuthController {
   @Public()
   @RateLimit({ limit: 5, windowMs: 60 * 60_000, byIp: true })
   @Post('bootstrap')
-  async bootstrap(@Body() body: unknown): Promise<{ user: unknown }> {
+  async bootstrap(@Body() body: unknown): Promise<UserView> {
     const dto = parse(bootstrapAdminSchema, body);
     const user = await this.userService.bootstrapFirstAdmin({
       name: dto.name, email: dto.email, password: dto.password,
     });
     this.log.warn('auth_bootstrap_admin_created', { user_id: user.id, email: user.email });
-    return { user };
+    return toUserView(user);
   }
 }
 
