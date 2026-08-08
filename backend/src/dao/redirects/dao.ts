@@ -21,6 +21,25 @@ export class KyselyRedirectDao extends BaseDao implements RedirectDao {
     return row ? toRedirect(row) : null;
   }
 
+  async findActiveBySourceCI(sourcePath: string): Promise<Redirect | null> {
+    /**
+     * `lower(source_path) = lower($1)` — khop CHI MUC HAM cua migration 034.
+     *
+     * `sql` raw o day la co y: Kysely khong dien dat duoc `lower(cot)` ben trai
+     * mot cach de doc, va bieu thuc phai GIONG HET bieu thuc trong chi muc, neu
+     * khong PostgreSQL se quet toan bang ma khong bao gi. Ngan sach truy van cua
+     * duong nay la MOT truy van co chi muc; co mot bai kiem doc `EXPLAIN` de
+     * khang dinh dieu do.
+     */
+    const row = await this.db
+      .selectFrom('redirects')
+      .selectAll()
+      .where(sql<boolean>`lower(source_path) = lower(${sourcePath})`)
+      .where('status', '=', 'active')
+      .executeTakeFirst();
+    return row ? toRedirect(row) : null;
+  }
+
   async findById(id: string): Promise<Redirect | null> {
     const row = await this.db
       .selectFrom('redirects').selectAll().where('id', '=', id).executeTakeFirst();

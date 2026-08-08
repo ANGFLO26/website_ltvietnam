@@ -21,6 +21,37 @@
 
 export type ApiMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
+/**
+ * `data` cua `GET /resolve` — DUNG CHUNG giua backend va frontend.
+ *
+ * Dat o `@ltv/contracts` chu khong o `backend/src/api/dto` la co y, va day la
+ * lan dau du an dung loi the do (doc/12 muc 2.2): frontend import CUNG mot
+ * kieu, nen doi hinh dang phan hoi lam frontend **do luc bien dich** thay vi
+ * hong luc chay.
+ *
+ * Dieu do khong phai gia thiet. Middleware cua frontend truoc F0 goi
+ * `/routes/resolve` (khong ton tai) va doc than PHANG (khong co `data`) — hai
+ * cho lech nhau ma khong gi bao, va hau qua la MOI trang tra 503 qua nhanh
+ * fail-safe. Voi mot kieu dung chung, `kind` la union hai nhanh: them nhanh
+ * thu ba ma frontend khong xu ly la mot loi bien dich.
+ *
+ * CHI hai nhanh, va do la quyet dinh co y — `gone` (410) va `not_found` khong
+ * co NGUON DU LIEU nao trong so do v1.3:
+ *
+ *   - `gone` can biet mot URL DA TUNG ton tai roi bi xoa vinh vien. Xoa mem chi
+ *     dat `deleted_at`, va khong bang nao ghi "URL nay se khong tro lai".
+ *   - `not_found` can biet mot slug khong ton tai o BAT KY bang nao — o duong
+ *     nong thi do la mot truy van tren moi bang co slug, cho MOI yeu cau, de
+ *     tra loi mot cau ma trang se tu tra loi khi no lay du lieu.
+ *
+ * Cai mat: khong phan biet 404 voi 410 cho URL cu. Muon 410 that thi phai co
+ * mot nguon du lieu tuong minh (cot `gone_at`, hoac mot bang rieng) — viec cua
+ * F6, khong phai mot dong `if`.
+ */
+export type ResolveResponse =
+  | { readonly kind: 'redirect'; readonly status: 301 | 302; readonly target: string }
+  | { readonly kind: 'content' };
+
 /** Phase theo `doc/12`. `F-1` la phase va nen da lam truoc F0. */
 export type ApiPhase = 'F-1' | 'F0' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6' | 'F7' | 'F8';
 
@@ -50,6 +81,13 @@ export const API_ENDPOINTS = [
     outsideBasePath: true, note: 'liveness; khong kiem phu thuoc, khong lo gi' },
   { method: 'GET', path: '/health/ready', area: 'ops', auth: false, phase: 'F-1', status: 'done',
     outsideBasePath: true, note: 'readiness; 503 khi DB khong len' },
+
+  /**
+   * Giai duong dan cho middleware Next.js — noi bo, nhung PHAI `@Public()`
+   * vi middleware chay truoc khi co phien nao. Tren that nen chan o tang mang.
+   */
+  { method: 'GET', path: '/resolve', area: 'ops', auth: false, phase: 'F0', status: 'done',
+    note: 'DUONG NONG: mot truy van co chi muc cho MOI yeu cau cua trang' },
 
   // ══════════════ auth ══════════════
   { method: 'POST', path: '/auth/login', area: 'admin', auth: false, phase: 'F-1', status: 'done' },

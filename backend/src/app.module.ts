@@ -7,6 +7,9 @@ import { createLogger, type Logger } from './shared/logging/logger.js';
 import { HEALTH_SERVICE } from './services/health/interface.js';
 import { HealthServiceImpl } from './services/health/service.js';
 import { HealthController } from './api/public/health.controller.js';
+import { ResolveController } from './api/public/resolve.controller.js';
+import { ROUTE_RESOLVER_SERVICE } from './services/redirects/interface.js';
+import { RouteResolverImpl } from './services/redirects/service.js';
 import { AUTH_SERVICE } from './services/auth/interface.js';
 import { AuthServiceImpl } from './services/auth/service.js';
 import { PASSWORD_HASHER, TOKEN_SIGNER } from './services/auth/crypto.port.js';
@@ -41,7 +44,7 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
  */
 @Global()
 @Module({
-  controllers: [HealthController, AuthController],
+  controllers: [HealthController, ResolveController, AuthController],
   providers: [
     {
       provide: APP_CONFIG,
@@ -66,6 +69,14 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     },
     { provide: DAO_MANAGER, useFactory: (rt: DaoRuntime) => rt.manager, inject: [DAO_RUNTIME] },
     { provide: HEALTH_SERVICE, useClass: HealthServiceImpl },
+    {
+      provide: ROUTE_RESOLVER_SERVICE,
+      useFactory: (daos: DaoManager, log: Logger) =>
+        // Chuoi va vong lap la dau hieu duong GHI da lam sai, nen chung phai
+        // ON AO. `warn` de nguoi van hanh thay ma khong phai doi 500.
+        new RouteResolverImpl(daos, (e, f) => log.warn(e, f)),
+      inject: [DAO_MANAGER, LOGGER],
+    },
 
     // ── mat ma: cai dat nam o shared/crypto, service chi biet cong ──
     {

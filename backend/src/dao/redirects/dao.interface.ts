@@ -13,6 +13,21 @@ export interface RedirectDao {
    */
   findActiveBySource(sourcePath: string): Promise<Redirect | null>;
 
+  /**
+   * Nhu tren nhung KHONG PHAN BIET HOA THUONG — day la ham resolver dung.
+   *
+   * IIS mac dinh khong phan biet hoa thuong, nen cung mot trang `.aspx` cu co
+   * the da duoc lien ket bang `/Products/OptiDist.aspx` va
+   * `/products/optidist.aspx`. So khop chinh xac chi cuu duoc mot trong hai, va
+   * duong con lai tra 404 — mat dung thu bang nay ra doi de giu.
+   *
+   * Dua vao chi muc ham `idx_redirects_source_lower` (migration 034) nen van la
+   * MOT truy van co chi muc. Khong duoc thay bang "thu chinh xac roi thu chu
+   * thuong": duong nay la duong nong, va cach do ton hai truy van o dung truong
+   * hop pho bien nhat (khong co redirect nao khop).
+   */
+  findActiveBySourceCI(sourcePath: string): Promise<Redirect | null>;
+
   findById(id: string): Promise<Redirect | null>;
 
   list(filter: RedirectFilter, page?: Partial<Page>): Promise<Paged<Redirect>>;

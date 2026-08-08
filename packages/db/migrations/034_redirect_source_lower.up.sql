@@ -1,0 +1,23 @@
+-- === 034 chi muc ham cho tra cuu redirect KHONG PHAN BIET HOA THUONG ===
+--
+-- `redirects.source_path` la `text`, nen so khop phan biet hoa thuong. Nhung
+-- bang nay ton tai de giu gia tri SEO cua ~200 URL `.aspx` cu (ADR-001), va
+-- IIS mac dinh KHONG phan biet hoa thuong — nen cung mot trang cu co the da
+-- duoc lien ket bang nhieu cach viet:
+--
+--   /Products/OptiDist.aspx
+--   /products/optidist.aspx
+--
+-- Voi so khop chinh xac, chi mot trong hai duong tren duoc chuyen huong; duong
+-- con lai tra 404 va gia tri cua backlink do mat han. Do la dung thu bang nay
+-- ra doi de tranh.
+--
+-- Vi sao CHI MUC HAM chu khong phai hai truy van: duong nay la DUONG NONG —
+-- middleware goi cho MOI yeu cau khong khop route. "Thu chinh xac, khong thay
+-- thi thu chu thuong" ton HAI truy van o truong hop PHO BIEN NHAT (khong co
+-- redirect nao), tuc la lam cham moi trang binh thuong de phuc vu mot truong
+-- hop hiem. Chi muc ham cho MOT truy van cho ca hai.
+--
+-- Vi sao khong doi cot sang CITEXT: doi kieu cot la doi so do baseline v1.3
+-- (ADR-013). Chi muc ham la them, khong phai sua.
+CREATE UNIQUE INDEX idx_redirects_source_lower ON ltv.redirects (lower(source_path));

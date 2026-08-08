@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import type { ResolveResponse } from '@ltv/contracts';
 
 /**
  * Giao redirect theo D11/D17. DA DUOC CHUNG MINH bang spike P0.
@@ -28,17 +29,31 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
   const path = req.nextUrl.pathname;
   const started = Date.now();
 
-  let rule: { kind: string; status?: number; target?: string };
+  let rule: ResolveResponse;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), CEILING_MS);
-    const res = await fetch(`${RESOLVER}/routes/resolve?path=${encodeURIComponent(path)}`, {
+    /**
+     * `/resolve`, va doc `data` — HAI cho nay truoc F0 deu SAI.
+     *
+     * Ban truoc goi `/routes/resolve` (endpoint khong ton tai) va doc than
+     * PHANG (`rule = await res.json()`, khong co `data`). Ca hai lech ma khong
+     * gi bao, va hau qua khong phai mot trang loi: nhanh fail-safe bien MOI
+     * trang thanh 503.
+     *
+     * Do la ly do `ResolveResponse` nam trong `@ltv/contracts` (doc/12 muc 2.2)
+     * chu khong o `backend/src/api/dto`: hai dau import CUNG mot kieu, nen lech
+     * hinh dang la loi BIEN DICH thay vi mot su co luc chay.
+     */
+    const res = await fetch(`${RESOLVER}/resolve?path=${encodeURIComponent(path)}`, {
       signal: ctrl.signal,
       cache: 'no-store',
     });
     clearTimeout(timer);
     if (!res.ok) throw new Error(`resolver ${res.status}`);
-    rule = await res.json();
+    const body = (await res.json()) as { data?: ResolveResponse };
+    if (!body.data) throw new Error('resolver: thieu `data` trong vo phan hoi');
+    rule = body.data;
   } catch {
     // Fail-safe (plan 12 muc 6): tra 503, KHONG render noi dung doan,
     // KHONG phuc vu ban cache 200 khi route co the da doi thanh redirect.
@@ -54,21 +69,28 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
 
   const elapsed = String(Date.now() - started);
 
-  if (rule.kind === 'redirect' && rule.target) {
+  if (rule.kind === 'redirect') {
     // NextResponse.redirect cho phep chi dinh CHINH XAC ma trang thai.
-    const res = NextResponse.redirect(new URL(rule.target, req.url), rule.status ?? 301);
+    const res = NextResponse.redirect(new URL(rule.target, req.url), rule.status);
     res.headers.set('x-resolver', 'redirect');
     res.headers.set('x-resolver-ms', elapsed);
     res.headers.set('cache-control', 'no-store');
     return res;
   }
-  if (rule.kind === 'gone') {
-    return new NextResponse(null, { status: 410, headers: { 'x-resolver': 'gone' } });
-  }
-  if (rule.kind === 'not_found') {
-    return new NextResponse(null, { status: 404, headers: { 'x-resolver': 'not_found' } });
-  }
 
+  /**
+   * KHONG con nhanh `gone` (410) va `not_found` (404).
+   *
+   * Spike gia lap bon nhanh, nhung resolver that chi tra ve HAI: `gone` va
+   * `not_found` khong co nguon du lieu nao trong so do v1.3 (xem chu thich cua
+   * `ResolveResponse`). Giu hai nhanh khong bao gio chay lai lam nguoi doc tin
+   * rang 410 da duoc xu ly — cung loai "ban do sai" voi bang tra cuu
+   * `MA_THEO_TYPE` cua backend, ma bon phan nam dong khong bao gio chay.
+   *
+   * Neu F6 them nhanh thu ba vao `ResolveResponse` thi TypeScript se bao loi o
+   * day, vi `rule` luc do khong con hep ve `{ kind: 'content' }`. Do la ca ly do
+   * kieu nay nam trong `@ltv/contracts`.
+   */
   const res = NextResponse.next();
   res.headers.set('x-resolver', 'content');
   res.headers.set('x-resolver-ms', elapsed);
