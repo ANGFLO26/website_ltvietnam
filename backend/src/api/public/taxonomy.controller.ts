@@ -12,6 +12,7 @@ import type {
 import { DomainError, NotFoundError } from '../../shared/errors.js';
 import { page, type Page } from '../../shared/http/envelope.js';
 import { Public } from '../admin/auth.guard.js';
+import { SlugPipe } from '../../shared/http/slug.pipe.js';
 import {
   TAXONOMY_SERVICE,
   type PagedResult,
@@ -48,7 +49,7 @@ export class TaxonomyController {
   }
 
   @Get('brands/:slug/children')
-  async brandChildren(@Param('slug') slug: string): Promise<readonly BrandCardView[]> {
+  async brandChildren(@Param('slug', SlugPipe) slug: string): Promise<readonly BrandCardView[]> {
     /**
      * `brands/:slug/children` khai bao TRUOC `brands/:slug`.
      *
@@ -63,7 +64,7 @@ export class TaxonomyController {
   }
 
   @Get('brands/:slug')
-  async brand(@Param('slug') slug: string): Promise<BrandDetailView> {
+  async brand(@Param('slug', SlugPipe) slug: string): Promise<BrandDetailView> {
     const r = await this.tx.findBrand(slug);
     if (!r) throw khongThay('BRAND', slug);
     return r;
@@ -85,12 +86,12 @@ export class TaxonomyController {
   }
 
   @Get('product-categories/:slug/products')
-  async categoryProducts(@Param('slug') slug: string, @Query() q: unknown) {
+  async categoryProducts(@Param('slug', SlugPipe) slug: string, @Query() q: unknown) {
     return this.sanPham('category', slug, q);
   }
 
   @Get('product-categories/:slug')
-  async category(@Param('slug') slug: string): Promise<ProductCategoryCardView> {
+  async category(@Param('slug', SlugPipe) slug: string): Promise<ProductCategoryCardView> {
     const r = await this.tx.findProductCategory(slug);
     if (!r) throw khongThay('PRODUCT_CATEGORY', slug);
     return r;
@@ -109,12 +110,12 @@ export class TaxonomyController {
   }
 
   @Get('standards/:slug/products')
-  async standardProducts(@Param('slug') slug: string, @Query() q: unknown) {
+  async standardProducts(@Param('slug', SlugPipe) slug: string, @Query() q: unknown) {
     return this.sanPham('standard', slug, q);
   }
 
   @Get('standards/:slug')
-  async standard(@Param('slug') slug: string) {
+  async standard(@Param('slug', SlugPipe) slug: string) {
     const r = await this.tx.findStandard(slug);
     if (!r) throw khongThay('STANDARD', slug);
     return r;
@@ -135,12 +136,12 @@ export class TaxonomyController {
   }
 
   @Get('applications/:slug/products')
-  async applicationProducts(@Param('slug') slug: string, @Query() q: unknown) {
+  async applicationProducts(@Param('slug', SlugPipe) slug: string, @Query() q: unknown) {
     return this.sanPham('application', slug, q);
   }
 
   @Get('applications/:slug')
-  async application(@Param('slug') slug: string): Promise<ApplicationCardView> {
+  async application(@Param('slug', SlugPipe) slug: string): Promise<ApplicationCardView> {
     const r = await this.tx.findApplication(slug);
     if (!r) throw khongThay('APPLICATION', slug);
     return r;
@@ -154,12 +155,12 @@ export class TaxonomyController {
   }
 
   @Get('industries/:slug/products')
-  async industryProducts(@Param('slug') slug: string, @Query() q: unknown) {
+  async industryProducts(@Param('slug', SlugPipe) slug: string, @Query() q: unknown) {
     return this.sanPham('industry', slug, q);
   }
 
   @Get('industries/:slug')
-  async industry(@Param('slug') slug: string): Promise<IndustryCardView> {
+  async industry(@Param('slug', SlugPipe) slug: string): Promise<IndustryCardView> {
     const r = await this.tx.findIndustry(slug);
     if (!r) throw khongThay('INDUSTRY', slug);
     return r;

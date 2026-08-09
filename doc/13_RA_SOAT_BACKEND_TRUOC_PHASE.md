@@ -724,3 +724,111 @@ status=400 type=undefined`). Nên 400 là đúng, chỉ đến bằng đường 
 `MA_THEO_TYPE` ban đầu tôi viết theo *tài liệu* của body-parser có 5 dòng; bốn
 dòng trong đó **không bao giờ chạy**. Đã cắt xuống đúng một dòng đã đo được —
 cùng thứ "cấu hình chết" mà `config-usage.test.ts` ra đời để chặn.
+
+
+---
+
+# 18–20. Rà soát lại F1 và F2 (trước khi code F3)
+
+Ba phase F0/F1/F2 đều "xanh" khi tôi báo xong. Rà soát lại tìm được **ba vấn
+đề**, và điều đáng nói là *cách* tìm ra: tôi đã **không tiêm lỗi** cho F1/F2 —
+chỉ chạy test và thấy xanh. Đó là bỏ đúng bước đã bắt được lỗi ở mọi phase trước.
+
+## 18. Hai bài kiểm của F2 RỖNG — tiêm lỗi không bị bắt
+
+Tiêm 10 lỗi vào F1/F2. **8 bị bắt, 2 không:**
+
+```
+sort=newest  ->  đổi `published_at desc` thành `name desc`   TEST VẪN XANH
+landing      ->  bỏ `isFeatured: true` khỏi truy vấn danh mục TEST VẪN XANH
+```
+
+- `sort=newest` là thứ người dùng bấm để xem hàng mới. Hai bài kiểm sắp xếp cũ
+  chỉ kiểm `sort=name`; bài còn lại chỉ kiểm "ba lựa chọn đều gọi được". Nên
+  **thứ tự thật chưa từng được đo**.
+- Bài kiểm landing chỉ khẳng định `featured_brands`. Bốn nhóm còn lại — danh mục,
+  tiêu chuẩn, ứng dụng, sản phẩm — **không được đo**. Bỏ bộ lọc ở bất kỳ nhóm nào
+  trong bốn nhóm đó đều không bị phát hiện.
+
+Cả hai là cùng một hình dạng: **kiểm một đại diện rồi coi như đã kiểm cả nhóm.**
+Đã sửa: `sort=newest` giờ đặt mốc publish cách biệt rồi đối chiếu thứ tự thật
+(và khẳng định `name` cho thứ tự KHÁC — nếu giống thì phép kiểm vô nghĩa);
+landing kiểm cả năm nhóm.
+
+## 19. Một chú thích khẳng định bảo đảm KHÔNG tồn tại
+
+`packages/contracts/src/taxonomy.view.ts` — do tôi viết — có câu:
+
+> "Dưới `.view.ts` nên Luật 11 quét và ép `snake_case`, dù nó nằm ngoài
+> `backend/`"
+
+**Câu đó sai.** Luật 11 chỉ quét `backend/src/api/dto/*.view.ts`. 11 kiểu view
+mới của F1/F2 nằm trong `packages/contracts` và **không được canh gì cả**.
+
+Một chú thích khẳng định một bảo đảm không tồn tại còn tệ hơn không có chú
+thích: người đọc sau sẽ tin và không kiểm lại. Đã mở phạm vi Luật 11 sang
+`packages/contracts/src/*.view.ts`, kèm một phép kiểm khẳng định **cả hai** nơi
+đều được quét — nên thu phạm vi lại sẽ làm test đỏ.
+
+## 20. Byte NUL trong đường dẫn → **500**
+
+```
+GET /api/v1/brands/pac%00
+500  {"code":"INTERNAL_ERROR","message":"Da co loi xay ra."}
+log: invalid byte sequence for encoding "UTF8": 0x00
+```
+
+`pg` từ chối byte NUL và ném lỗi; filter không nhận ra loại lỗi đó nên trả 500.
+**Một ký tự** do người gọi gửi biến thành lỗi máy chủ: người gọi không biết mình
+sai ở đâu, người vận hành thấy 500 rồi đi tìm bug trong mã nguồn.
+
+Nguyên nhân gốc là một **bất đối xứng** tôi không nhận ra: tầng api xác thực
+tham số **truy vấn** bằng zod ở mọi endpoint, nhưng tham số **đường dẫn** thì
+`@Param('slug') slug: string` nhận bất kỳ chuỗi nào. Hai cửa vào, một cửa được
+canh.
+
+`SlugPipe` một mình không đủ — 11 chỗ phải nhớ gắn, và chỗ thứ 12 sẽ quên. Nên
+thêm **Luật 17**: mọi `@Param(...)` ở tầng api phải có pipe. Quên là build đỏ.
+
+`SlugPipe` **cố ý KHÔNG** ép định dạng slug (`^[a-z0-9-]+$`): ép ở tầng HTTP sẽ
+đổi 404 thành 422 cho mọi URL cũ gõ sai, mà URL cũ là đúng thứ `redirects` đang
+cố giữ. `/San-Pham/OptiDist.aspx` phải đi đến được resolver. Chỉ chặn cái làm
+**vỡ** hệ thống (NUL) và cái vô nghĩa (rỗng / quá 255).
+
+## Những gì rà soát KHÔNG tìm ra vấn đề — đo được, không phải đoán
+
+```
+SQL injection qua slug và ?q=       404/200, không 5xx nào
+?q=%  ?q=_  ?q=%%%                 total=0  -> ký tự wildcard KHÔNG lọt vào LIKE
+?page=1e9                          2–4 ms   -> không phải đường DoS
+mảng 50 phần tử                    422 (trần 20)
+POST/DELETE lên endpoint chỉ GET   404
+```
+
+## Ngân sách truy vấn — lần đầu được đo
+
+```
+/products (1 dòng)                   2      không N+1
+/products (100 dòng)                 2
+/products?brand&standard             2
+/products/:slug                      9      cố định, không theo dữ liệu
+/products/landing                   10      5 nhóm, chạy SONG SONG
+/brands                              2
+/product-categories/tree             2
+/product-categories/:slug/products   3      kiểm slug + rows + count
+```
+
+**Điều tôi CHƯA sửa, ghi lại thay vì im lặng:** `/products/landing` dùng 10 truy
+vấn, trong đó **5 câu `COUNT(*)` bị bỏ đi** — `list()` luôn đếm, còn landing
+không dùng `total_items`. Chúng chạy song song nên thời gian thực tế ≈ một câu,
+nhưng đó vẫn là 5 truy vấn vô ích trên trang catalogue chính. Sửa đúng cách là
+thêm `listFeatured(limit)` cho bốn DAO — mở rộng bề mặt DAO cho một trang.
+`doc/06` PHẦN VIII đã ghi landing dùng **cache ngắn**, nên tôi để cho F4 giải
+quyết cùng lúc với cache thay vì thêm bốn phương thức bây giờ.
+
+## Công cụ để lần sau không phải làm lại bằng tay
+
+`scripts/smoke-api.mjs` (`pnpm smoke:api`) — 74 phép kiểm trên HTTP thật: vỏ
+`{data, meta}` ở **mọi** endpoint, không lộ `id`/`status`, cây ≥ 2 cấp, mở rộng
+nhánh con lồng **chặt**, ADR-007, ADR-010, ADR-011, và 14 dạng đầu vào rác phải
+ra 4xx chứ không bao giờ 5xx.

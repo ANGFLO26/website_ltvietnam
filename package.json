@@ -22,7 +22,8 @@
     "smoke:auth": "node scripts/smoke-auth.mjs",
     "db:seed": "pnpm build:packages && pnpm --filter @ltv/db seed",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
-    "db:seed:demo": "pnpm build:packages && pnpm --filter @ltv/backend seed:demo"
+    "db:seed:demo": "pnpm build:packages && pnpm --filter @ltv/backend seed:demo",
+    "smoke:api": "node scripts/smoke-api.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

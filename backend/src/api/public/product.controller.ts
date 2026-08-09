@@ -4,6 +4,7 @@ import type { ProductCardView, ProductDetailView, ProductLandingView } from '@lt
 import { DomainError, NotFoundError } from '../../shared/errors.js';
 import { page, type Page } from '../../shared/http/envelope.js';
 import { Public } from '../admin/auth.guard.js';
+import { SlugPipe } from '../../shared/http/slug.pipe.js';
 import {
   PRODUCT_QUERY_SERVICE,
   type ProductQueryService,
@@ -58,7 +59,7 @@ export class ProductController {
   }
 
   @Get(':slug')
-  async detail(@Param('slug') slug: string): Promise<ProductDetailView> {
+  async detail(@Param('slug', SlugPipe) slug: string): Promise<ProductDetailView> {
     const r = await this.ps.findBySlug(slug);
     /**
      * San pham NGUNG KINH DOANH KHONG tra 404 — ADR-011.

@@ -239,14 +239,40 @@ run('ProductQueryService tren PostgreSQL that', () => {
       expect(ten).toEqual([...ten].sort());
     });
 
-    it('ba lua chon sap xep la NGU NGHIA, khong phai ten cot', async () => {
+    it('`sort=newest` THAT SU sap theo moc publish moi nhat truoc', async () => {
       /**
-       * Pho `published_at` / `display_order` ra URL cong khai thi doi cot la doi
-       * hop dong cong khai. Ba gia tri nay khong duoc trung ten cot.
+       * Bai kiem nay ra doi tu mot PHEP TIEM LOI KHONG BI BAT.
+       *
+       * Toi doi `newest` tu `published_at desc` sang `name desc` va CA BO TEST
+       * VAN XANH: hai bai kiem sap xep cu chi kiem `sort=name`, con bai kia chi
+       * kiem "ba lua chon deu goi duoc". Nghia la `sort=newest` — thu nguoi dung
+       * bam de xem hang moi — chua tung duoc do.
+       *
+       * Dat moc publish CACH BIET ro rang roi doi chieu thu tu that.
        */
-      for (const s2 of ['default', 'name', 'newest'] as const) {
-        await expect(ps.list({}, s2, { pageSize: 5 })).resolves.toBeDefined();
-      }
+      const moc = (ngay: string) => new Date(`${ngay}T00:00:00Z`);
+      await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
+        id['sp1'], moc('2026-01-01'),
+      ]);
+      await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
+        id['sp2'], moc('2026-06-01'),
+      ]);
+      await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
+        id['sp3'], moc('2026-03-01'),
+      ]);
+      const r = await ps.list(
+        { brandSlugs: [s('hang-a'), s('hang-b')] }, 'newest', { pageSize: 100 },
+      );
+      const thuTu = r.items.map((p) => p.slug);
+      // sp2 (thang 6) truoc sp3 (thang 3) truoc sp1 (thang 1)
+      expect(thuTu.indexOf(s('sp2'))).toBeLessThan(thuTu.indexOf(s('sp3')));
+      expect(thuTu.indexOf(s('sp3'))).toBeLessThan(thuTu.indexOf(s('sp1')));
+
+      // Va `name` cho thu tu KHAC — neu giong nhau thi phep kiem tren vo nghia.
+      const theoTen = (
+        await ps.list({ brandSlugs: [s('hang-a'), s('hang-b')] }, 'name', { pageSize: 100 })
+      ).items.map((p) => p.slug);
+      expect(theoTen).not.toEqual(thuTu);
     });
 
     it('pageSize bi chan o 100', async () => {
@@ -295,9 +321,32 @@ run('ProductQueryService tren PostgreSQL that', () => {
        * `homepage_sections.settings` chi chua cau hinh hien thi. Neu no chua danh
        * sach id thi co hai nguon su that cho cung mot cau hoi, va chung se lech.
        */
+      /**
+       * Bai kiem nay cung ra doi tu mot PHEP TIEM LOI KHONG BI BAT.
+       *
+       * Toi bo `isFeatured: true` khoi truy van DANH MUC (cai dau tien trong
+       * `Promise.all`) va bo test VAN XANH — vi ban cu chi kiem `featured_brands`.
+       * Bon nhom con lai khong duoc do. Gio kiem CA NAM.
+       */
       const l = await ps.landing();
       expect(l.featured_brands.map((b) => b.slug)).not.toContain(s('hang-b'));
-      expect(l.featured_brands.every((b) => b.is_featured)).toBe(true);
+
+      expect(l.featured_brands.every((b) => b.is_featured), 'brands').toBe(true);
+      expect(l.featured_categories.every((c) => c.is_featured), 'categories').toBe(true);
+      expect(l.featured_applications.every((a) => a.is_featured), 'applications').toBe(true);
+      expect(l.featured_products.every((p) => p.is_featured), 'products').toBe(true);
+
+      /**
+       * `StandardCardView` KHONG co `is_featured` (mat bo loc khong can no), nen
+       * phai doi chieu bang mot phan tu CHAC CHAN khong noi bat: `tc-y`.
+       */
+      expect(l.featured_standards.map((x) => x.slug), 'standards').not.toContain(s('tc-y'));
+      expect(l.featured_standards.map((x) => x.slug), 'standards').toContain(s('tc-x'));
+
+      // Va DUNG cho: moi nhom phai co it nhat mot phan tu, khong thi rong vo nghia.
+      for (const [ten, arr] of Object.entries(l)) {
+        expect(arr.length, `nhom ${ten} rong -> phep kiem tren vo nghia`).toBeGreaterThan(0);
+      }
     });
 
     it('ban nhap khong xuat hien o landing', async () => {

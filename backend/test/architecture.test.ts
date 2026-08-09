@@ -522,10 +522,37 @@ describe('Luat 10 — controller khong duoc tu boc vo phan hoi', () => {
  * o bien vao.
  */
 describe('Luat 11 — kieu view cua API chi khai bao snake_case', () => {
-  const VIEWS = FILES.filter((f) => /^api\/dto\/.*\.view\.ts$/.test(f.path));
+  /**
+   * Quet CA `packages/contracts` — day la mot lo hong toi tu tao roi tu khang
+   * dinh nguoc lai.
+   *
+   * Ban dau luat nay chi quet `backend/src/api/dto/*.view.ts`. F1 va F2 dat view
+   * o `packages/contracts/src/*.view.ts` de frontend import cung mot kieu
+   * (doc/12 muc 2.2) — va toi viet trong chinh file do:
+   *
+   *   "Duoi `.view.ts` nen Luat 11 quet va ep `snake_case`, du no nam ngoai
+   *    `backend/`"
+   *
+   * Cau do SAI. Luat khong quet, nen 11 kieu view moi cua F1/F2 khong duoc canh
+   * bat ky dieu gi. Mot chu thich khang dinh mot bao dam khong ton tai con te
+   * hon khong co chu thich: nguoi doc sau se tin va khong kiem lai.
+   *
+   * Phat hien khi RA SOAT lai F1/F2, khong phai khi viet.
+   */
+  const VIEWS = REPO_FILES.filter((f) =>
+    /(^backend\/src\/api\/dto\/.*\.view\.ts$)|(^packages\/contracts\/src\/.*\.view\.ts$)/.test(
+      f.path,
+    ),
+  );
 
-  it('co file view de kiem', () => {
-    expect(VIEWS.length).toBeGreaterThan(0);
+  it('quet ca hai noi dat view — backend/api/dto VA packages/contracts', () => {
+    expect(VIEWS.length).toBeGreaterThan(2);
+    const duong = VIEWS.map((f) => f.path);
+    expect(duong.some((p) => p.startsWith('backend/'))).toBe(true);
+    expect(
+      duong.some((p) => p.startsWith('packages/contracts/')),
+      'view trong contracts KHONG duoc quet — luat nay dang rong mot nua',
+    ).toBe(true);
   });
 
   it('khong truong nao viet camelCase', () => {
@@ -871,6 +898,52 @@ describe('Luat 16 — bang endpoint khop controller that', () => {
     // eslint-disable-next-line no-console
     console.log(`    API: ${p.done}/${p.total} endpoint  ·  ${dong}`);
     expect(p.total).toBeGreaterThan(40);
+  });
+});
+
+/**
+ * Luat 17 — MOI tham so duong dan phai di qua mot pipe kiem.
+ *
+ * Ra doi tu mot loi THAT tim duoc khi ra soat lai F1/F2:
+ *
+ *     GET /api/v1/brands/pac%00   ->  500
+ *     error: invalid byte sequence for encoding "UTF8": 0x00
+ *
+ * `pg` tu choi byte NUL va nem loi; filter khong nhan ra loai loi do nen tra 500.
+ * MOT ky tu do nguoi goi gui bien thanh loi may chu.
+ *
+ * Nguyen nhan goc la mot su BAT DOI XUNG toi khong nhan ra: tang api xac thuc
+ * tham so TRUY VAN bang zod o moi endpoint, nhung tham so DUONG DAN thi
+ * `@Param('slug') slug: string` nhan bat ky chuoi nao. Hai cua vao, mot cua
+ * duoc canh.
+ *
+ * Sua bang `SlugPipe` la chua du: 11 cho phai nho gan no, va cho thu 12 se quen.
+ * Luat nay lam viec quen do thanh BUILD DO.
+ */
+describe('Luat 17 — @Param phai co pipe kiem', () => {
+  it('khong con `@Param(...)` tran o tang api', () => {
+    const bad: string[] = [];
+    for (const f of FILES) {
+      if (layerOf(f.path) !== 'api') continue;
+      for (const m of f.code.matchAll(/@Param\s*\(([^)]*)\)/g)) {
+        const trong = m[1]!.trim();
+        // Hop le: `@Param('slug', SlugPipe)` — co dau phay va mot pipe.
+        if (/^['"][^'"]+['"]\s*,\s*\w+/.test(trong)) continue;
+        bad.push(`${f.path}: @Param(${trong})`);
+      }
+    }
+    expect(
+      bad,
+      `Tham so duong dan phai qua pipe kiem (vd SlugPipe):\n${bad.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('co `@Param` de kiem — neu khong thi luat tren rong', () => {
+    const n = FILES.filter((f) => layerOf(f.path) === 'api').reduce(
+      (t, f) => t + [...f.code.matchAll(/@Param\s*\(/g)].length,
+      0,
+    );
+    expect(n).toBeGreaterThan(8);
   });
 });
 
