@@ -832,3 +832,78 @@ quyết cùng lúc với cache thay vì thêm bốn phương thức bây giờ.
 `{data, meta}` ở **mọi** endpoint, không lộ `id`/`status`, cây ≥ 2 cấp, mở rộng
 nhánh con lồng **chặt**, ADR-007, ADR-010, ADR-011, và 14 dạng đầu vào rác phải
 ra 4xx chứ không bao giờ 5xx.
+
+
+---
+
+# 21. Dữ liệu demo cho F3 — và một lỗi trong *cách tôi đo*
+
+## Lỗ hổng của dữ liệu, hậu quả giống lỗ hổng của mã
+
+Sau F3, `GET /services`, `/projects`, `/posts`, `/documents` đều trả **mảng rỗng**
+trên HTTP thật: seed không có dữ liệu nào cho chúng. Bộ test tích hợp tự tạo dữ
+liệu riêng nên nó xanh, nhưng `smoke-api.mjs` — phép thử trên máy chủ thật —
+không kiểm được gì. Cùng một lỗ hổng với `featured_standards` rỗng ở F2: **một
+đường không bao giờ được thử.**
+
+Đã bổ sung: 5 dịch vụ (cây 2 cấp), 2 dự án, 2 danh mục tin, 4 bài viết, 3 tài
+liệu, 2 trang tĩnh. Seed vẫn idempotent (chạy lại: 0 mới).
+
+Ba chi tiết của bộ dữ liệu là **cố ý**, vì thiếu chúng thì phép thử không chứng
+minh được gì:
+
+```
+draft-translation-only  cha publish, BẢN DỊCH nháp   -> phải VẮNG
+draft-parent-only       CHA nháp, bản dịch publish   -> phải VẮNG
+new-optidist-launch     cả hai locale publish        -> hreflang có 2 mục
+astm-d86-explained      chỉ EN                        -> hreflang RỖNG
+qc-lab-commissioning    customer_visibility=confidential -> không nêu tên
+```
+
+Nếu seed chỉ có bài "cả hai publish" thì một cài đặt **bỏ hết** điều kiện trạng
+thái vẫn cho ra đúng kết quả đó.
+
+`smoke-api.mjs`: **74 → 123** phép kiểm.
+
+## Tôi đo trên MÃ NGUỒN ĐÃ BỊ HỎNG mà không biết
+
+Khi tiêm lỗi vào server đang chạy, tôi dùng chung một `/tmp/bak` cho các phép
+tiêm lồng nhau. Phép tiêm thứ hai ghi đè bản sao tốt, nên lần "phục hồi" trả về
+một file **vẫn thiếu** `AND t.status = 'published'`.
+
+Kết quả: `BAN DICH nhap -> vang` đổ ở **cả** những lần tiêm không liên quan đến
+nó. Tôi gần như kết luận "F3 có bug thật".
+
+Điều dừng tôi lại là **đối chiếu hai con số**:
+
+```
+SQL viết tay          -> 2 dòng
+API                   -> 3 dòng
+```
+
+Hai con số phải bằng nhau. Chênh lệch đó không thể là bug của điều kiện lọc — nó
+có nghĩa **SQL được sinh ra khác với SQL tôi tưởng**. Bắt câu lệnh thật ra thì
+thiếu đúng dòng tôi đã tiêm. `git diff` trên kho thật thì **sạch** — sai sót nằm
+hoàn toàn trong bản sao sandbox.
+
+Hai điều rút ra, ghi lại vì tôi sẽ còn tiêm lỗi nhiều lần nữa:
+
+1. **Mỗi phép tiêm phải có bản sao RIÊNG.** Dùng chung một tên tệp tạm là tự tạo
+   ra một trạng thái không ai theo dõi được.
+2. **Sau khi phục hồi, phải KIỂM đã phục hồi** — không phải giả định `cp` xong là
+   xong. Rẻ hơn nhiều so với việc đi tìm một bug không tồn tại.
+
+Và một hazard nữa cùng họ: mỗi lần chạy `pnpm dev:backend` trong sandbox mà tiến
+trình cũ chưa chết thì **máy chủ cũ (đã bị tiêm) vẫn giữ cổng 3001 và trả lời**.
+Phép đo khi đó nói về một phiên bản mã không còn tồn tại. Giờ tôi khởi động trên
+một cổng khác cho mỗi lần đo sạch.
+
+## Ba phép tiêm — sau khi sửa cách đo
+
+Trên mã nguồn đã xác nhận phục hồi, cả ba đều làm `smoke-api.mjs` đỏ đúng chỗ:
+
+```
+bỏ AND t.status='published' khỏi SQL   -> BAN DICH nhap -> vang           FAIL
+chi tiết chỉ kiểm CHA                 -> draft-translation-only -> 404   FAIL
+hreflang luôn trả 1 mục               -> cả hai bài hreflang               FAIL
+```

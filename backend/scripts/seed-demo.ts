@@ -449,6 +449,303 @@ async function seedSanPham(
 }
 
 // ══════════════════════════════════════════════════════════════
+// NOI DUNG CO BAN DICH (F3)
+// ══════════════════════════════════════════════════════════════
+/**
+ * Vi sao seed nay phai co: mot NHOM RONG lam endpoint khong duoc kiem THAT.
+ *
+ * Sau F3, `GET /services`, `/projects`, `/posts`, `/documents` deu tra mang rong
+ * tren HTTP that vi seed khong co du lieu nao cho chung. Bo test tich hop co du
+ * lieu rieng nen no xanh, nhung `smoke-api.mjs` — thu chay tren may chu that —
+ * khong kiem duoc gi. Do la cung mot lo hong voi `featured_standards` rong o F2:
+ * mot duong khong bao gio duoc thu.
+ *
+ * Bo du lieu duoi day co y chua CA BON to hop trang thai cua ADR-004, de phep
+ * thu tren HTTP that co the chung minh ban nhap KHONG lo ra:
+ *
+ *   cha publish + dich publish  ->  hien
+ *   cha publish + dich nhap     ->  vang
+ *   cha nhap    + dich publish  ->  vang
+ *   mot bai co CA HAI locale    ->  hreflang co hai muc
+ */
+const DICH_VU: readonly {
+  slug: string; name: string; type: string; children?: readonly { slug: string; name: string }[];
+}[] = [
+  {
+    slug: 'installation-commissioning',
+    name: 'Installation & Commissioning',
+    type: 'installation',
+    children: [
+      { slug: 'site-preparation', name: 'Site Preparation' },
+      { slug: 'startup-training', name: 'Start-up & Training' },
+    ],
+  },
+  { slug: 'preventive-maintenance', name: 'Preventive Maintenance', type: 'maintenance' },
+  { slug: 'calibration-service', name: 'Calibration Service', type: 'calibration' },
+];
+
+async function seedDichVu(
+  daos: DaoManager,
+  nganh: Map<string, string>,
+): Promise<Map<string, string>> {
+  const ra = new Map<string, string>();
+
+  const themMot = async (
+    slug: string, name: string, type: string | null, parentId: string | null,
+  ): Promise<string> => {
+    /**
+     * Tim theo (locale, slug) cua BAN DICH — khong theo bang cha.
+     *
+     * Bang `services` khong co slug; slug nam tren hang dich. Nen phep kiem
+     * idempotent phai di qua `findBySlug(locale, slug)`, khong phai `findBySlug(slug)`.
+     */
+    const co = await daos.services.findBySlug('en', slug);
+    if (co) {
+      dem.daCo += 1;
+      return co.service.id;
+    }
+    const sv = await daos.services.insert({
+      ...(parentId !== null ? { parentId } : {}),
+      ...(type !== null ? { serviceType: type } : {}),
+    });
+    for (const [locale, ten] of [['en', name], ['vi', name]] as const) {
+      await daos.services.upsertTranslation(sv.id, {
+        locale,
+        name: ten,
+        slug: locale === 'en' ? slug : `${slug}-vi`,
+        shortDescription: `${ten} — ${VAN_BAN_THAY_THE}`,
+        overview: [tieuDe('Overview'), doan(VAN_BAN_THAY_THE)],
+        scopeOfWork: [gachDau(['Van ban demo 1', 'Van ban demo 2'])],
+      });
+      await daos.services.publishTranslation(sv.id, locale, new Date());
+    }
+    await daos.services.publish(sv.id, new Date());
+    dem.moi += 1;
+    return sv.id;
+  };
+
+  for (const d of DICH_VU) {
+    const id = await themMot(d.slug, d.name, d.type, null);
+    ra.set(d.slug, id);
+    for (const c of d.children ?? []) {
+      ra.set(c.slug, await themMot(c.slug, c.name, null, id));
+    }
+  }
+
+  // Gan nganh de `/industries/:slug/services` co du lieu that.
+  const dau = ra.get('installation-commissioning');
+  const ng = nganh.get('oil-and-gas');
+  if (dau && ng) await daos.services.replaceLinks(dau, { industryIds: [ng] });
+
+  log(`  dich vu         ${ra.size}`);
+  return ra;
+}
+
+const DU_AN = [
+  { slug: 'refinery-lab-upgrade', title: 'Refinery Laboratory Upgrade', type: 'installation',
+    location: 'Dung Quat', country: 'VN', hienTen: true },
+  { slug: 'qc-lab-commissioning', title: 'QC Lab Commissioning', type: 'commissioning',
+    location: 'Hai Phong', country: 'VN', hienTen: false },
+] as const;
+
+async function seedDuAn(daos: DaoManager): Promise<number> {
+  let n = 0;
+  for (const d of DU_AN) {
+    if (await daos.projects.findBySlug('en', d.slug)) {
+      dem.daCo += 1;
+      n += 1;
+      continue;
+    }
+    const pr = await daos.projects.insert({
+      projectType: d.type,
+      locationText: d.location,
+      countryCode: d.country,
+      /**
+       * `confidential` cho du an thu hai — de phep thu chung minh duoc rang ten
+       * khach hang KHONG lo ra. Neu ca hai deu `public` thi nhanh che ten khong
+       * bao gio duoc chay.
+       */
+      customerVisibility: d.hienTen ? 'public' : 'confidential',
+      completedAt: '2026-03-15',
+    });
+    for (const locale of ['en', 'vi'] as const) {
+      await daos.projects.upsertTranslation(pr.id, {
+        locale,
+        title: d.title,
+        slug: locale === 'en' ? d.slug : `${d.slug}-vi`,
+        shortDescription: `${d.title} — ${VAN_BAN_THAY_THE}`,
+        scopeOfWork: [doan(VAN_BAN_THAY_THE)],
+        implementation: [doan(VAN_BAN_THAY_THE)],
+        result: [doan(VAN_BAN_THAY_THE)],
+      });
+      await daos.projects.publishTranslation(pr.id, locale, new Date());
+    }
+    await daos.projects.publish(pr.id, new Date());
+    dem.moi += 1;
+    n += 1;
+  }
+  log(`  du an           ${n}`);
+  return n;
+}
+
+const DANH_MUC_TIN = [
+  { slug: 'news', name: 'Company News' },
+  { slug: 'technical-articles', name: 'Technical Articles' },
+] as const;
+
+/**
+ * BON to hop trang thai — de phep thu tren HTTP that kiem duoc ADR-004.
+ *
+ * `chi-cha` va `chi-dich` PHAI vo hinh o duong cong khai. Neu seed chi co bai
+ * "ca hai publish" thi `smoke-api.mjs` khong the chung minh dieu gi: mot cai dat
+ * bo het dieu kien trang thai van cho ra dung ket qua do.
+ */
+const BAI_VIET = [
+  { slug: 'new-optidist-launch', title: 'New OptiDist Launch', dm: 'news',
+    chaPub: true, dichPub: true, haiNgu: true },
+  { slug: 'astm-d86-explained', title: 'ASTM D86 Explained', dm: 'technical-articles',
+    chaPub: true, dichPub: true, haiNgu: false },
+  { slug: 'draft-translation-only', title: 'Draft Translation Only', dm: 'news',
+    chaPub: true, dichPub: false, haiNgu: false },
+  { slug: 'draft-parent-only', title: 'Draft Parent Only', dm: 'news',
+    chaPub: false, dichPub: true, haiNgu: false },
+] as const;
+
+async function seedTin(daos: DaoManager): Promise<void> {
+  const dm = new Map<string, string>();
+  for (const c of DANH_MUC_TIN) {
+    const co = await daos.postCategories.findBySlug(c.slug);
+    if (co) {
+      dm.set(c.slug, co.id);
+      dem.daCo += 1;
+      continue;
+    }
+    const x = await daos.postCategories.insert({ name: c.name, slug: c.slug });
+    await daos.postCategories.publish(x.id, new Date());
+    dm.set(c.slug, x.id);
+    dem.moi += 1;
+  }
+  log(`  danh muc tin    ${dm.size}`);
+
+  let n = 0;
+  for (const b of BAI_VIET) {
+    if (await daos.posts.findBySlug('en', b.slug)) {
+      dem.daCo += 1;
+      n += 1;
+      continue;
+    }
+    const p = await daos.posts.insert({ categoryId: dm.get(b.dm)! });
+    const locales = b.haiNgu ? (['en', 'vi'] as const) : (['en'] as const);
+    for (const locale of locales) {
+      await daos.posts.upsertTranslation(p.id, {
+        locale,
+        title: b.title,
+        slug: locale === 'en' ? b.slug : `${b.slug}-vi`,
+        excerpt: `${b.title} — ${VAN_BAN_THAY_THE}`,
+        content: [tieuDe(b.title), doan(VAN_BAN_THAY_THE)],
+      });
+      if (b.dichPub) await daos.posts.publishTranslation(p.id, locale, new Date());
+    }
+    if (b.chaPub) await daos.posts.publish(p.id, new Date());
+    dem.moi += 1;
+    n += 1;
+  }
+  log(`  bai viet        ${n} (2 hien, 1 dich nhap, 1 cha nhap)`);
+}
+
+const TAI_LIEU = [
+  { slug: 'optidist-datasheet', title: 'OptiDist Datasheet', type: 'datasheet' },
+  { slug: 'ltv-company-profile', title: 'LT Vietnam Company Profile', type: 'company_profile' },
+  { slug: 'herzog-catalogue-2026', title: 'Herzog Catalogue 2026', type: 'catalogue' },
+] as const;
+
+async function seedTaiLieu(daos: DaoManager): Promise<void> {
+  /**
+   * `documents.file_id` la NOT NULL tro toi `media` — nen phai co mot hang media.
+   *
+   * Media THAT la viec cua F7 (luu tru tep, bien the anh, duong phuc vu). O day
+   * chi can MOT hang de khoa ngoai hop le; tep khong ton tai va do la co y —
+   * `is_public` van doc duoc, con tai tep se 404 cho den F7.
+   */
+  const co = await daos.media.findByChecksum?.('demo-placeholder').catch(() => null);
+  let fileId = co?.id;
+  if (!fileId) {
+    const m = await daos.media.insert({
+      fileName: 'demo-placeholder.pdf',
+      originalName: 'demo-placeholder.pdf',
+      storageClass: 'protected',
+      storagePath: 'protected-documents/demo-placeholder.pdf',
+      mimeType: 'application/pdf',
+      fileExtension: 'pdf',
+      fileSize: 1024,
+      checksum: 'demo-placeholder',
+      title: 'Tep thay the cho tai lieu demo',
+    });
+    fileId = m.id;
+    dem.moi += 1;
+  }
+
+  let n = 0;
+  for (const t of TAI_LIEU) {
+    if (await daos.documents.findBySlug(t.slug)) {
+      dem.daCo += 1;
+      n += 1;
+      continue;
+    }
+    const d = await daos.documents.insert({
+      documentType: t.type,
+      fileId,
+      title: t.title,
+      slug: t.slug,
+      description: `${t.title} — ${VAN_BAN_THAY_THE}`,
+      language: 'en',
+      visibility: 'public',
+    });
+    await daos.documents.publish(d.id, new Date());
+    dem.moi += 1;
+    n += 1;
+  }
+  log(`  tai lieu        ${n}`);
+}
+
+const TRANG = [
+  { type: 'about', slug: 'about-us', title: 'About LT Vietnam' },
+  { type: 'contact', slug: 'contact-us', title: 'Contact Us' },
+] as const;
+
+async function seedTrang(daos: DaoManager): Promise<void> {
+  let n = 0;
+  for (const t of TRANG) {
+    /**
+     * `page_type` la UNIQUE — tra cuu theo LOAI, khong theo slug.
+     *
+     * `findByType` la phep kiem idempotent dung o day: chay lai seed khong duoc
+     * dinh `duplicate key value violates unique constraint pages_page_type_key`.
+     */
+    if (await daos.pages.findByType(t.type)) {
+      dem.daCo += 1;
+      n += 1;
+      continue;
+    }
+    const p = await daos.pages.insert({ pageType: t.type, isSystemPage: true });
+    for (const locale of ['en', 'vi'] as const) {
+      await daos.pages.upsertTranslation(p.id, {
+        locale,
+        title: t.title,
+        slug: locale === 'en' ? t.slug : `${t.slug}-vi`,
+        summary: `${t.title} — ${VAN_BAN_THAY_THE}`,
+        content: [tieuDe(t.title), doan(VAN_BAN_THAY_THE)],
+      });
+      await daos.pages.publishTranslation(p.id, locale, new Date());
+    }
+    await daos.pages.publish(p.id, new Date());
+    dem.moi += 1;
+    n += 1;
+  }
+  log(`  trang tinh      ${n}`);
+}
+
+// ══════════════════════════════════════════════════════════════
 async function main(): Promise<void> {
   const cfg = loadConfig();
   const rt = await createDaoRuntime(cfg);
@@ -465,6 +762,13 @@ async function main(): Promise<void> {
     const nganh = await seedNganh(daos);
     await seedSanPham(daos, hang, danhMuc, tieuChuan, ungDung, nganh);
 
+    // ── F3: noi dung co ban dich ──
+    await seedDichVu(daos, nganh);
+    await seedDuAn(daos);
+    await seedTin(daos);
+    await seedTaiLieu(daos);
+    await seedTrang(daos);
+
     /**
      * KIEM BAT BIEN CUA CAY ngay sau khi ghi.
      *
@@ -473,7 +777,7 @@ async function main(): Promise<void> {
      * MA KHONG BAO LOI. Kiem o day de sai thi biet ngay, khong phai o F2 khi mot
      * bai kiem bo loc do vi mot ly do trong nhu khong lien quan.
      */
-    for (const nhom of ['productCategories', 'applications'] as const) {
+    for (const nhom of ['productCategories', 'applications', 'services'] as const) {
       const lech = await daos[nhom].findInconsistentNodes();
       if (lech.length > 0) {
         throw new Error(`Cay ${nhom} khong nhat quan sau khi seed: ${lech.join(', ')}`);

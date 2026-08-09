@@ -168,6 +168,90 @@ const trongDs = (await call('/products?page_size=100')).body?.data ?? [];
 check('VAN nam trong danh sach',
   trongDs.some((p) => p.slug === 'isl-legacy-distillation-analyzer'), true);
 
+// ════════════════ F3 — noi dung co ban dich ════════════════
+console.log('\n-- F3: danh sach --');
+for (const p of ['services', 'projects', 'posts', 'post-categories', 'documents']) {
+  const r = await call(`/${p}`);
+  check(`GET /${p}`, r.status, 200);
+  vo(`/${p}`, r, { coMeta: true });
+  check(`/${p}: co du lieu (can db:seed:demo)`, (r.body?.data?.length ?? 0) > 0, true);
+}
+
+console.log('\n-- F3: ADR-004 — CA HAI phai publish --');
+/**
+ * Seed co y tao hai bai KHONG duoc hien:
+ *   `draft-translation-only` : cha publish, BAN DICH nhap
+ *   `draft-parent-only`      : CHA nhap, ban dich publish
+ * Neu mot trong hai xuat hien thi mot dieu kien trang thai da bi bo.
+ */
+const baiEn = (await call('/posts?page_size=100')).body?.data ?? [];
+const slugBai = baiEn.map((x) => x.slug);
+check('bai da publish CA HAI -> hien', slugBai.includes('new-optidist-launch'), true);
+check('BAN DICH nhap -> vang', slugBai.includes('draft-translation-only'), false);
+check('CHA nhap -> vang', slugBai.includes('draft-parent-only'), false);
+for (const slug of ['draft-translation-only', 'draft-parent-only']) {
+  check(`chi tiet ${slug} -> 404`, (await call(`/posts/${slug}`)).status, 404);
+}
+
+console.log('\n-- F3: locale --');
+const pEn = await call('/posts/new-optidist-launch?locale=en');
+const pVi = await call('/posts/new-optidist-launch-vi?locale=vi');
+check('chi tiet EN -> 200', pEn.status, 200);
+check('chi tiet VI (slug rieng) -> 200', pVi.status, 200);
+check('phan hoi TU KE locale (en)', pEn.body?.data?.locale, 'en');
+check('phan hoi TU KE locale (vi)', pVi.body?.data?.locale, 'vi');
+check('slug cua locale KHAC -> 404', (await call('/posts/new-optidist-launch?locale=vi')).status, 404);
+
+console.log('\n-- F3: hreflang (ADR-004) --');
+/**
+ * `new-optidist-launch` co CA HAI locale publish -> hai muc alternate.
+ * `astm-d86-explained` chi co EN -> mang RONG. Mot the `<link hreflang>` la LOI
+ * HUA voi Google rang dia chi kia ton tai; loi hua sai thi Google im lang ha do
+ * tin cay ca cum trang.
+ */
+check('hai ngon ngu -> 2 muc alternate',
+  (pEn.body?.data?.hreflang_alternates ?? []).length, 2);
+const motNgu = await call('/posts/astm-d86-explained');
+check('mot ngon ngu -> hreflang RONG',
+  (motNgu.body?.data?.hreflang_alternates ?? []).length, 0);
+
+console.log('\n-- F3: cay dich vu + quan he --');
+const cay = await call('/services/tree');
+check('GET /services/tree', cay.status, 200);
+const sauCay = (ns, d = 0) => Math.max(d, ...ns.map((n) => sauCay(n.children, d + 1)));
+check('cay dich vu co it nhat 2 cap',
+  (cay.body?.data?.length ? sauCay(cay.body.data) : 0) >= 2, true);
+const nganhSv = await call('/industries/oil-and-gas/services');
+check('GET /industries/:slug/services', nganhSv.status, 200);
+check('nganh co dich vu gan vao', (nganhSv.body?.data?.length ?? 0) > 0, true);
+check('nganh khong ton tai -> 404',
+  (await call('/industries/khong-he-co/services')).status, 404);
+
+console.log('\n-- F3: ADR-014 — nhom KHONG co ban dich --');
+/**
+ * `documents` va `post-categories` khong co bang dich, nen `?locale=` la tham so
+ * LA -> 422. Neu chung im lang bo qua thi nguoi goi tin rang co ban dich.
+ */
+check('?locale tren /documents -> 422', (await call('/documents?locale=vi')).status, 422);
+check('?locale tren /post-categories -> 422',
+  (await call('/post-categories?locale=vi')).status, 422);
+const tl = await call('/documents/optidist-datasheet');
+check('chi tiet tai lieu -> 200', tl.status, 200);
+khongLoNoiBo('/documents/:slug', tl.body?.data);
+check('tai lieu KHONG mang locale', 'locale' in (tl.body?.data ?? {}), false);
+
+console.log('\n-- F3: ten khach hang chi khi duoc phep --');
+/**
+ * Seed dat du an thu hai la `confidential`. Neu ca hai deu `public` thi nhanh che
+ * ten khong bao gio duoc chay, va bai kiem nay vo nghia.
+ */
+const duAn1 = await call('/projects/refinery-lab-upgrade');
+const duAn2 = await call('/projects/qc-lab-commissioning');
+check('du an public -> 200', duAn1.status, 200);
+check('du an confidential -> VAN 200 (chi che ten)', duAn2.status, 200);
+check('du an confidential KHONG neu ten khach hang',
+  duAn2.body?.data?.customer_name, null);
+
 // ════════════════ dau vao rac ════════════════
 console.log('\n-- dau vao rac: phai 4xx, KHONG BAO GIO 5xx --');
 const rac = [
@@ -181,6 +265,9 @@ const rac = [
   ['mang qua 20 phan tu', `/products?${Array.from({ length: 30 }, (_, i) => `brand=x${i}`).join('&')}`, 422],
   ['slug khong ton tai', '/brands/khong-he-co', 404],
   ['nhanh khong ton tai', '/product-categories/khong-he-co/products', 404],
+  ['locale khong hop le', '/posts?locale=fr', 422],
+  ['tree khong co phan trang', '/services/tree?page=2', 422],
+  ['byte NUL trong slug noi dung', '/posts/x%00y', 422],
 ];
 for (const [ten, u, mong] of rac) check(ten, (await call(u)).status, mong);
 
