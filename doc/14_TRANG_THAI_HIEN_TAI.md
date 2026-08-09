@@ -25,7 +25,7 @@ catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đ�
 | **D1–D6** | Tầng DAO, 52/52 bảng | — | xong |
 | **B2** | Đăng nhập, phiên, CSRF | 7/7 | xong |
 | **F-1** | Vá nền: rate limit, vỏ `{data,meta}`, gộp `createPool`, 17 luật kiến trúc | 9/9 | xong |
-| **F0** | `RouteResolver` — 301 cho ~200 URL `.aspx` cũ | 1/1 | xong |
+| **F0** | `RouteResolver` — 301 cho ~200 URL cũ (**không chỉ `.aspx`** — xem `doc/18` §2.1) | 1/1 | xong |
 | **F1** | Taxonomy: brands, categories, standards, applications, industries | 17/17 | xong |
 | **F2** | Sản phẩm: lọc ADR-007, landing, chi tiết | 3/3 | xong |
 | **F3** | Nội dung có bản dịch: pages, services, projects, posts, documents | 13/13 | xong |

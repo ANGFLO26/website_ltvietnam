@@ -411,6 +411,12 @@ shadcn/ui. Quyết định này ảnh hưởng W0 và không đổi được r�
 
 ## 6.2. Nội dung thật cho catalogue
 
+**Đã phân tích riêng ở [`doc/18_DU_LIEU_TU_WEB_CU.md`](18_DU_LIEU_TU_WEB_CU.md)** (đọc
+web cũ thật ngày 2026-08-10). Kết luận quan trọng nhất: **tính năng chính của web mới —
+lọc theo danh mục/tiêu chuẩn/ứng dụng — không có nguồn dữ liệu ở web cũ.** Web cũ tổ chức
+theo hãng, không có danh mục chức năng, không có tiêu chuẩn gắn với máy. Copy sang thì
+những trang đó rỗng.
+
 Đã chốt **đưa sản phẩm PAC vào catalogue** (`doc/14` §5.1). Nghĩa là cần nội dung kỹ thuật
 thật từ bộ phận kỹ thuật cho từng máy. Frontend **không chặn** — dựng bằng dữ liệu demo
 được — nhưng lên sóng thì chặn.
