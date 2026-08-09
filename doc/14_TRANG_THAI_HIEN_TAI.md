@@ -75,10 +75,18 @@ Worker đã có claim/reaper/backoff và adapter file/SMTP.
 
 ## 4. Việc tiếp theo — đề xuất của tôi
 
-### 4.1. Việc tiếp theo — frontend công khai và frontend quản trị
+### 4.1. Việc tiếp theo — frontend công khai
 
-API F8 đã hoàn tất. Bước tiếp theo là nối giao diện công khai và giao diện quản trị vào
-các hợp đồng mới.
+**Đã có kế hoạch chia phase: [`doc/17_KE_HOACH_FRONTEND.md`](17_KE_HOACH_FRONTEND.md)** —
+W0…W8, cùng cấu trúc với `doc/12` (Làm gì · Tự kiểm · Kiểm liên kết), kèm 10 luật kiến
+trúc frontend ép bằng máy và hai công cụ `smoke-web.mjs` / `inject-web.mjs` đối lại
+`smoke-api.mjs` / `inject-*.mjs` của backend.
+
+Track quản trị (A1–A5) tách riêng và **không chặn** việc đưa website công khai lên.
+
+Kế hoạch đó cũng nêu **hai mâu thuẫn tài liệu phải sửa trước khi viết mã** — `doc/08`
+PHẦN VII nói ngược ADR-001 về vị trí ngôn ngữ, và cho rằng brand/product/document có bản
+dịch trong khi ADR-014 chỉ giữ bốn bảng translation. Cả hai định hình toàn bộ cây route.
 
 ### 4.2. Xác nhận môi trường — đã xong
 
