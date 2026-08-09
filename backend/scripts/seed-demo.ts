@@ -191,14 +191,23 @@ async function seedCay(
 // ══════════════════════════════════════════════════════════════
 // TIEU CHUAN — ten that, vi bo loc phai co nghia
 // ══════════════════════════════════════════════════════════════
+/**
+ * `featured` co mat o day vi mot nhom RONG lam endpoint khong duoc kiem that.
+ *
+ * `GET /products/landing` tra ve nam nhom noi bat. Ban dau seed khong danh dau
+ * tieu chuan nao, nen `featured_standards` luon la mang rong — nhanh do cua
+ * `landing` chay ma khong co du lieu nao di qua, va no se "xanh" du chuyen doi
+ * sai. Do la mot lo hong CUA DU LIEU DEMO, khong phai cua ma nguon, nhung hau
+ * qua giong nhau: mot duong khong bao gio duoc thu.
+ */
 const TIEU_CHUAN = [
-  { org: 'ASTM', code: 'D86', slug: 'astm-d86', name: 'Distillation of Petroleum Products' },
-  { org: 'ASTM', code: 'D5191', slug: 'astm-d5191', name: 'Vapor Pressure (Mini Method)' },
-  { org: 'ASTM', code: 'D93', slug: 'astm-d93', name: 'Flash Point by Pensky-Martens' },
-  { org: 'ASTM', code: 'D4052', slug: 'astm-d4052', name: 'Density by Digital Density Meter' },
-  { org: 'ISO', code: '3405', slug: 'iso-3405', name: 'Distillation Characteristics' },
-  { org: 'ISO', code: '2719', slug: 'iso-2719', name: 'Flash Point — Pensky-Martens' },
-  { org: 'IP', code: '123', slug: 'ip-123', name: 'Distillation of Petroleum Products' },
+  { org: 'ASTM', code: 'D86', slug: 'astm-d86', name: 'Distillation of Petroleum Products', featured: true },
+  { org: 'ASTM', code: 'D5191', slug: 'astm-d5191', name: 'Vapor Pressure (Mini Method)', featured: false },
+  { org: 'ASTM', code: 'D93', slug: 'astm-d93', name: 'Flash Point by Pensky-Martens', featured: true },
+  { org: 'ASTM', code: 'D4052', slug: 'astm-d4052', name: 'Density by Digital Density Meter', featured: false },
+  { org: 'ISO', code: '3405', slug: 'iso-3405', name: 'Distillation Characteristics', featured: true },
+  { org: 'ISO', code: '2719', slug: 'iso-2719', name: 'Flash Point — Pensky-Martens', featured: false },
+  { org: 'IP', code: '123', slug: 'ip-123', name: 'Distillation of Petroleum Products', featured: false },
 ] as const;
 
 async function seedTieuChuan(daos: DaoManager): Promise<Map<string, string>> {
@@ -216,6 +225,7 @@ async function seedTieuChuan(daos: DaoManager): Promise<Map<string, string>> {
       slug: t.slug,
       name: t.name,
     });
+    if (t.featured) await daos.standards.update(s.id, { isFeatured: true });
     await daos.standards.publish(s.id, new Date());
     ra.set(t.slug, s.id);
     dem.moi += 1;

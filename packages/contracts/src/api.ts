@@ -120,11 +120,11 @@ export const API_ENDPOINTS = [
   { method: 'GET', path: '/industries/:slug/products', area: 'public', auth: false, phase: 'F1', status: 'done' },
 
   // ══════════════ F2 — san pham ══════════════
-  { method: 'GET', path: '/products/landing', area: 'public', auth: false, phase: 'F2', status: 'todo',
+  { method: 'GET', path: '/products/landing', area: 'public', auth: false, phase: 'F2', status: 'done',
     note: 'PHAI khai bao TRUOC /products/:slug — xem Luat 16' },
-  { method: 'GET', path: '/products', area: 'public', auth: false, phase: 'F2', status: 'todo',
+  { method: 'GET', path: '/products', area: 'public', auth: false, phase: 'F2', status: 'done',
     note: 'bo loc ADR-007: cung dimension OR, khac dimension AND' },
-  { method: 'GET', path: '/products/:slug', area: 'public', auth: false, phase: 'F2', status: 'todo',
+  { method: 'GET', path: '/products/:slug', area: 'public', auth: false, phase: 'F2', status: 'done',
     note: 'discontinued VAN tra, kem co + hang thay the (ADR-011)' },
 
   // ══════════════ F3 — noi dung co ban dich ══════════════

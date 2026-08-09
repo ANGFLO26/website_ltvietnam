@@ -9,6 +9,9 @@ import { HealthServiceImpl } from './services/health/service.js';
 import { HealthController } from './api/public/health.controller.js';
 import { ResolveController } from './api/public/resolve.controller.js';
 import { TaxonomyController } from './api/public/taxonomy.controller.js';
+import { ProductController } from './api/public/product.controller.js';
+import { PRODUCT_QUERY_SERVICE } from './services/products/interface.js';
+import { ProductQueryServiceImpl } from './services/products/service.js';
 import { TAXONOMY_SERVICE } from './services/taxonomy/interface.js';
 import { TaxonomyServiceImpl } from './services/taxonomy/service.js';
 import { ROUTE_RESOLVER_SERVICE } from './services/redirects/interface.js';
@@ -47,7 +50,13 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
  */
 @Global()
 @Module({
-  controllers: [HealthController, ResolveController, TaxonomyController, AuthController],
+  controllers: [
+    HealthController,
+    ResolveController,
+    TaxonomyController,
+    ProductController,
+    AuthController,
+  ],
   providers: [
     {
       provide: APP_CONFIG,
@@ -75,6 +84,11 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     {
       provide: TAXONOMY_SERVICE,
       useFactory: (daos: DaoManager) => new TaxonomyServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: PRODUCT_QUERY_SERVICE,
+      useFactory: (daos: DaoManager) => new ProductQueryServiceImpl(daos),
       inject: [DAO_MANAGER],
     },
     {
