@@ -290,4 +290,84 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
     await daos.pages.insert({ pageType: slug('trung') });
     await expect(daos.pages.insert({ pageType: slug('trung') })).rejects.toThrow();
   });
+
+  // ══════════════════ `where` cua listPublicByLocale ══════════════════
+  /**
+   * BA PHEP KIEM NAY RA DOI TU MOT PHEP TIEM LOI KHONG DAT.
+   *
+   * F4 them mot bo phan trong `TranslationSupport.listPublicByLocale`: bo cac khoa
+   * `where` co gia tri `undefined`, va doi `null` thanh `IS NULL`. Phep tiem loi
+   * (`scripts/inject-f4.mjs`) go bo phan do di va MOI bai kiem van xanh — tuc no
+   * hoan toan khong duoc do.
+   *
+   * Do khong phai chuyen nho. Ca hai truong hop deu tra ve KET QUA RONG mot cach im
+   * lang, va ca hai deu la cach goi tu nhien:
+   *
+   *   `{ is_featured: filter?.featured }`  khi `featured` chua dat -> `= NULL`
+   *   `{ parent_id: null }`                y la "chi lay nut goc"  -> `= NULL`
+   *
+   * `x = NULL` trong SQL khong bao gio dung. Khong co ngoai le, khong co canh bao —
+   * chi la mot danh sach rong. Dung loai loi ma `tsc` xanh, test xanh, va nguoi
+   * dung thay mot trang trong.
+   */
+  describe('`where` — undefined bi bo, null thanh IS NULL', () => {
+    it('khoa `undefined` duoc BO, khong thanh `= NULL`', async () => {
+      const s = await makeService('w-undef');
+      await daos.services.publishTranslation(s.id, 'vi', new Date());
+      await daos.services.publish(s.id, new Date());
+
+      const khong = await daos.services.listPublicByLocale('vi', { limit: 100, offset: 0 });
+      const voiUndefined = await daos.services.listPublicByLocale(
+        'vi',
+        { limit: 100, offset: 0 },
+        // `is_featured: undefined` phai co NGHIA HET NHU khong truyen `where`.
+        { is_featured: undefined },
+      );
+      expect(voiUndefined.total).toBe(khong.total);
+      expect(voiUndefined.rows.map((r) => r.slug)).toContain(slug('w-undef-vi'));
+    });
+
+    it('`parent_id: null` nghia la NUT GOC, khong phai tap rong', async () => {
+      const goc = await makeService('w-goc');
+      await daos.services.publishTranslation(goc.id, 'vi', new Date());
+      await daos.services.publish(goc.id, new Date());
+
+      const con = await daos.services.insert({ serviceType: 'calibration', parentId: goc.id });
+      await daos.services.upsertTranslation(con.id, {
+        locale: 'vi', name: 'Con', slug: slug('w-con-vi'),
+      });
+      await daos.services.publishTranslation(con.id, 'vi', new Date());
+      await daos.services.publish(con.id, new Date());
+
+      const r = await daos.services.listPublicByLocale(
+        'vi',
+        { limit: 100, offset: 0 },
+        { parent_id: null },
+      );
+      const slugs = r.rows.map((x) => x.slug);
+      expect(slugs, 'nut goc phai co mat').toContain(slug('w-goc-vi'));
+      expect(slugs, 'nut con phai bi loai').not.toContain(slug('w-con-vi'));
+      expect(r.total).toBeGreaterThan(0);
+    });
+
+    it('bo loc THAT su van loc (khong phai luon bo qua)', async () => {
+      const nb = await makeService('w-nb');
+      await daos.services.update(nb.id, { isFeatured: true });
+      await daos.services.publishTranslation(nb.id, 'vi', new Date());
+      await daos.services.publish(nb.id, new Date());
+
+      const thuong = await makeService('w-thuong');
+      await daos.services.publishTranslation(thuong.id, 'vi', new Date());
+      await daos.services.publish(thuong.id, new Date());
+
+      const r = await daos.services.listPublicByLocale(
+        'vi',
+        { limit: 100, offset: 0 },
+        { is_featured: true },
+      );
+      const slugs = r.rows.map((x) => x.slug);
+      expect(slugs).toContain(slug('w-nb-vi'));
+      expect(slugs).not.toContain(slug('w-thuong-vi'));
+    });
+  });
 });

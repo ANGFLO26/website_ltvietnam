@@ -13,6 +13,7 @@ import type {
   ServiceDetailView,
   ServiceTreeView,
 } from '@ltv/contracts';
+import { chiCo } from '../../shared/omit-undefined.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { PublicTranslationRow } from '../../dao/translation.support.js';
 import type { PageArg, PagedResult } from '../taxonomy/interface.js';
@@ -81,12 +82,26 @@ export class ContentServiceImpl implements ContentService {
   }
 
   // ══════════════════════════ services ══════════════════════════
-  async listServices(locale: Locale, page?: PageArg): Promise<PagedResult<ServiceCardView>> {
+  async listServices(
+    locale: Locale,
+    filter?: { featured?: boolean | undefined },
+    page?: PageArg,
+  ): Promise<PagedResult<ServiceCardView>> {
     const p = trang(page);
-    const r = await this.daos.services.listPublicByLocale(locale, {
-      limit: p.pageSize,
-      offset: (p.page - 1) * p.pageSize,
-    });
+    const r = await this.daos.services.listPublicByLocale(
+      locale,
+      { limit: p.pageSize, offset: (p.page - 1) * p.pageSize },
+      /**
+       * BO HAN khoa khi khong loc, khong truyen `{ is_featured: undefined }`.
+       *
+       * `exactOptionalPropertyTypes` chan viec gan `undefined` cho mot khoa tuy
+       * chon, nhung day khong phai chuyen cua trinh bien dich: `listPublicByLocale`
+       * duyet `Object.entries(where)` va mot khoa co gia tri `undefined` se sinh
+       * ra `AND p.is_featured = NULL` — luon SAI, tuc danh sach dich vu tra ve
+       * RONG. Bo han khoa la cach duy nhat dung.
+       */
+      filter?.featured !== undefined ? { is_featured: filter.featured } : undefined,
+    );
     return {
       items: await this.serviceCards(r.rows),
       page: p.page,
@@ -190,14 +205,26 @@ export class ContentServiceImpl implements ContentService {
   // ══════════════════════════ projects ══════════════════════════
   async listProjects(
     locale: Locale,
-    filter?: { projectType?: string | undefined },
+    filter?: { projectType?: string | undefined; featured?: boolean | undefined },
     page?: PageArg,
   ): Promise<PagedResult<ProjectCardView>> {
     const p = trang(page);
     const r = await this.daos.projects.listPublicByLocale(
       locale,
       { limit: p.pageSize, offset: (p.page - 1) * p.pageSize },
-      filter?.projectType !== undefined ? { project_type: filter.projectType } : undefined,
+      /**
+       * `chiCo` bo cac khoa chua dat.
+       *
+       * Hai bo loc doc lap nen khong the dung mot toan tu ba ngoi nhu truoc: voi
+       * `{ project_type: x }` va `{ is_featured: true }` cung co mat thi ca hai
+       * phai vao `where`. `TranslationSupport` gio da bo khoa `undefined`, nhung
+       * dua ra `undefined` roi trong cho tang duoi don la dat bao dam o xa cho
+       * gay loi — noi nao biet thi noi do bo.
+       */
+      chiCo({
+        project_type: filter?.projectType,
+        is_featured: filter?.featured,
+      }),
     );
 
     /**

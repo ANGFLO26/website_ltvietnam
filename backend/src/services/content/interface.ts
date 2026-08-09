@@ -37,15 +37,40 @@ export interface ContentService {
   // ── pages (co ban dich) ──
   findPage(locale: Locale, slug: string): Promise<PageDetailView | null>;
 
+  /**
+   * `featured` la MO RONG CUA F4, khong phai cua trang danh sach.
+   *
+   * Trang chu can "dich vu noi bat" va "du an noi bat". Hai cach lam:
+   *
+   *   a. `SiteService` goi thang `services.listPublicByLocale(locale, p,
+   *      { is_featured: true })` roi tu dung the
+   *   b. them mot bo loc vao day
+   *
+   * Chon (b) vi (a) nghia la ham dung THE dich vu (`serviceCards`) — cai biet
+   * dieu kien hai trang thai, biet cach lay anh dai dien theo lo, biet `depth`
+   * lay tu bang cha — bi viet lan thu hai o mot service khac. Hai ban se lech,
+   * va ban o trang chu se lech theo huong "thieu mot dieu kien".
+   *
+   * `featured` la mot bo loc THAT tren `services.is_featured`, khong phai mot
+   * duong rieng cho trang chu: `GET /services?featured=true` la mot cau hoi hop
+   * le, va F8 se can no cho man hinh quan tri.
+   */
   // ── services (co ban dich + CAY) ──
-  listServices(locale: Locale, page?: PageArg): Promise<PagedResult<ServiceCardView>>;
+  listServices(
+    locale: Locale,
+    filter?: { readonly featured?: boolean | undefined },
+    page?: PageArg,
+  ): Promise<PagedResult<ServiceCardView>>;
   serviceTree(locale: Locale): Promise<readonly ServiceTreeView[]>;
   findService(locale: Locale, slug: string): Promise<ServiceDetailView | null>;
 
   // ── projects (co ban dich) ──
   listProjects(
     locale: Locale,
-    filter?: { readonly projectType?: string | undefined },
+    filter?: {
+      readonly projectType?: string | undefined;
+      readonly featured?: boolean | undefined;
+    },
     page?: PageArg,
   ): Promise<PagedResult<ProjectCardView>>;
   findProject(locale: Locale, slug: string): Promise<ProjectDetailView | null>;

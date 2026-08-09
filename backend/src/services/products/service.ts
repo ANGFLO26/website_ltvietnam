@@ -1,3 +1,5 @@
+import { chiCo } from '../../shared/omit-undefined.js';
+import type { TtlCache } from '../../shared/cache.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { ProductCard, ProductDetail } from '../../dao/products/object.js';
 import type {
@@ -99,16 +101,24 @@ function detailView(d: ProductDetail): ProductDetailView {
   };
 }
 
-/** Bo khoa khong xac dinh — xem chu thich cung ten o `taxonomy/service.ts`. */
-type BoUndefined<T> = { [K in keyof T]?: Exclude<T[K], undefined> };
-function chiCo<T extends Record<string, unknown>>(o: T): BoUndefined<T> {
-  return Object.fromEntries(
-    Object.entries(o).filter((e) => e[1] !== undefined),
-  ) as BoUndefined<T>;
-}
-
 export class ProductQueryServiceImpl implements ProductQueryService {
-  constructor(private readonly daos: ProductDaos) {}
+  /**
+   * `cache` la TUY CHON.
+   *
+   * `list()` va `findBySlug()` KHONG dung cache — chung nhan bo loc tu nguoi dung,
+   * va mot khoa cache ghep tu bo loc la mot khoa khong gioi han: `?brand=` co bao
+   * nhieu gia tri thi co bao nhieu khoa. Chi `landing()` duoc cache, va no khong
+   * co tham so nao.
+   *
+   * De tuy chon vi ca bai kiem lan `seed-demo` khoi tao service nay truc tiep. Bat
+   * buoc truyen cache o do nghia la moi noi phai biet ve mot thu chung khong dung;
+   * `undefined` thi `landing()` tinh that moi lan, va do dung la hanh vi bai kiem
+   * can (khong co cache nghia la khong co ket qua cu lan sang).
+   */
+  constructor(
+    private readonly daos: ProductDaos,
+    private readonly cache?: TtlCache,
+  ) {}
 
   async list(
     filter: PublicProductFilter,
@@ -162,6 +172,36 @@ export class ProductQueryServiceImpl implements ProductQueryService {
   }
 
   async landing(): Promise<ProductLandingView> {
+    const t = this.cache;
+    return t === undefined ? this.landingThat() : t.lay('landing', () => this.landingThat());
+  }
+
+  /**
+   * NAM cau `COUNT(*)` bi bo di — mot cho toi da ghi lai o F2 va hoan sang F4.
+   *
+   * Bon lan `list()` va mot lan `findFeaturedCards()` moi cai chay HAI cau: mot lay
+   * dong, mot dem. Nhung `landing()` khong tra `total_items` cho nhom nao ca —
+   * `ProductLandingView` la nam mang, khong co `meta`. Nen nam cau dem la cong viec
+   * bi bo di hoan toan.
+   *
+   * Hai cach sua, va toi da can nhac ca hai:
+   *
+   *   a. them `listFeatured(limit)` cho bon DAO taxonomy -> bo duoc nam cau dem
+   *   b. cache ket qua -> bo duoc CA MUOI cau, cho moi luot xem trong TTL
+   *
+   * Chon (b). Ly do do duoc: (a) van ton nam truy van MOI luot xem, con (b) ton
+   * muoi truy van MOT LAN moi 60 giay cho ca tien trinh. Trang `/products` la trang
+   * catalogue chinh — so luot xem cao hon so lan bien tap doi `is_featured` vai bac
+   * do lon.
+   *
+   * NOI RO PHAN (b) KHONG SUA: lan tinh dau tien (cache lanh) VAN chay du muoi cau,
+   * ke ca nam cau dem vo ich. Neu sau nay do duoc rang lan lanh do la van de — vi
+   * du khi chay nhieu ban sao va moi ban co cache rieng, tuc so lan lanh nhan len
+   * theo so ban — thi (a) la buoc tiep theo, va no cong duoc voi (b) chu khong thay
+   * the. Toi khong lam (a) bay gio vi bon cau dem do la dem co chi muc tren bang
+   * vai chuc dong.
+   */
+  private async landingThat(): Promise<ProductLandingView> {
     /**
      * NAM truy van SONG SONG, khong tuan tu.
      *

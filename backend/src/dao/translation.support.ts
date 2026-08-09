@@ -231,7 +231,30 @@ export class TranslationSupport<TCol extends string = never> {
     if (restrictToIds !== undefined && restrictToIds.length === 0) {
       return { rows: [], total: 0 };
     }
-    const dieuKien = Object.entries(where ?? {}) as [string, string | boolean | null][];
+    /**
+     * HAI cho phai xu ly truoc khi dung `Object.entries`, va ca hai deu la loi IM
+     * LANG — `tsc` sach, khong ngoai le luc chay, chi ket qua sai.
+     *
+     *   `undefined`  Kysely gan tham so `undefined` -> `pg` doi thanh NULL, va
+     *                `p.is_featured = NULL` KHONG BAO GIO dung. Danh sach tra ve
+     *                RONG. Nguoi goi viet `{ is_featured: filter.featured }` voi
+     *                `featured` chua dat la mot cach viet tu nhien den muc chac
+     *                chan se xay ra; `exactOptionalPropertyTypes` chan duoc cho
+     *                goi truc tiep nhung khong chan `Record` dung dong.
+     *                -> BO khoa, tuc khong loc gi.
+     *
+     *   `null`       `= NULL` cung khong bao gio dung, nhung o day nguoi goi CO Y:
+     *                `parent_id: null` nghia la "chi lay nut goc" — va `parent_id`
+     *                nam trong `TCol` cua `ServiceDao`, nen day la mot cach goi
+     *                duoc kieu cho phep. Sinh `= NULL` cho no la tra ve rong cho
+     *                mot cau hoi dung.
+     *                -> sinh `IS NULL`.
+     *
+     * Toi phat hien cho nay khi them bo loc `featured` cho F4 va dinh viet
+     * `{ is_featured: filter?.featured }`.
+     */
+    const dieuKien = (Object.entries(where ?? {}) as [string, string | boolean | null | undefined][])
+      .filter((e): e is [string, string | boolean | null] => e[1] !== undefined);
     /**
      * `sql.join([])` NEM LOI — nen phai kiem TRUOC khi goi, khong phai sau.
      *
@@ -252,7 +275,11 @@ export class TranslationSupport<TCol extends string = never> {
       dieuKien.length === 0
         ? sql``
         : sql.join(
-            dieuKien.map(([k, v]) => sql`AND p.${sql.ref(k)} = ${v}`),
+            dieuKien.map(([k, v]) =>
+              v === null
+                ? sql`AND p.${sql.ref(k)} IS NULL`
+                : sql`AND p.${sql.ref(k)} = ${v}`,
+            ),
             sql` `,
           );
 

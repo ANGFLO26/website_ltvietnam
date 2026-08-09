@@ -907,3 +907,196 @@ bỏ AND t.status='published' khỏi SQL   -> BAN DICH nhap -> vang           FA
 chi tiết chỉ kiểm CHA                 -> draft-translation-only -> 404   FAIL
 hreflang luôn trả 1 mục               -> cả hai bài hreflang               FAIL
 ```
+
+---
+
+# 22. F4 — khung site: bốn phát hiện, hai trong số đó là chú thích của tôi sai
+
+F4 thêm 5 endpoint (`/home`, `/navigation/:location`, `/customers`, `/offices`,
+`/search`) và trả nợ 5 câu `COUNT(*)` bị bỏ của `/products/landing`. Phần đáng ghi
+lại không phải mã, mà là bốn thứ **đo được** đã lộ ra khi làm.
+
+## 22.1. Liên kết đa hình không có khóa ngoại — và menu nằm trên MỌI trang
+
+`menu_items.link_target_id` và `banners.link_target_id` trỏ tới một trong tám loại
+thực thể, **không có khóa ngoại**. Chú thích của chính tầng DAO đã nói trước hậu quả:
+
+> "Tầng trên phải chịu được trường hợp đích đã bị xóa — bỏ qua mục đó chứ không
+> phát một liên kết gãy lên menu."
+
+Chưa ai làm việc đó, vì trước F4 chưa ai đọc hai bảng này qua HTTP. Nếu để nguyên và
+trả cặp `(link_type, link_target_id)` ra cho frontend thì có hai hệ quả, và cái thứ
+hai tệ hơn:
+
+1. luật dựng URL bị sao chép sang một kho mã khác, và hai bản sẽ lệch
+2. frontend **không biết** đích còn tồn tại và đã publish hay chưa → một mục trỏ tới
+   nội dung đã xóa thành một liên kết 404 **trên toàn bộ site**
+
+`LinkResolver` giải `(loại, id)` → đường dẫn theo **LÔ** (một truy vấn cho mỗi LOẠI
+có mặt, không phải mỗi mục), và id không có trong `Map` nghĩa là **bỏ mục đó**.
+
+Bốn quyết định trong đó, mỗi cái một lý do khác nhau:
+
+| trường hợp | xử lý | vì sao |
+|---|---|---|
+| mục menu giải không ra | **BỎ** mục | một dòng chữ trỏ tới 404; bỏ đi thì không ai thấy |
+| **banner** giải không ra | **GIỮ ảnh**, bỏ liên kết | banner là ảnh lớn đầu trang chủ; bỏ đi thì băng chạy trống, trang chủ trông như bị hỏng |
+| `link_type='none'` | **GIỮ**, `url=null` | đó là **tiêu đề nhóm** (cột chân trang thường có dòng đầu không bấm được) |
+| cha giải không ra nhưng **có con sống** | **GIỮ** cha làm tiêu đề | bỏ cả nhánh là mất luôn năm liên kết đúng vì một liên kết sai |
+
+Và một cửa nữa: `custom_url` chỉ được nhận nếu bắt đầu bằng `https://` hoặc `/`.
+Đầu vào này đến từ **màn hình quản trị**, không từ mã nguồn — một
+`javascript:alert(1)` người biên tập dán vào sẽ thành liên kết thực thi được trên mọi
+trang. Có phép kiểm cho cả năm trường hợp, và cả năm đều được **tiêm lỗi** xác nhận.
+
+## 22.2. `x = NULL` — hai đường trả về TẬP RỖNG trong im lặng
+
+`TranslationSupport.listPublicByLocale(locale, page, where)` duyệt
+`Object.entries(where)` và sinh `AND p.<cột> = <giá trị>`. Hai cách gọi **tự nhiên**
+đều sinh ra `= NULL`, và `x = NULL` trong SQL **không bao giờ đúng**:
+
+```ts
+{ is_featured: filter?.featured }   // `featured` chưa đặt -> = NULL -> danh sách RỖNG
+{ parent_id: null }                 // ý là "chỉ lấy nút gốc"  -> = NULL -> RỖNG
+```
+
+Không ngoại lệ, không cảnh báo, `tsc` xanh. Chỉ là một danh sách trống. Tôi phát hiện
+khi định viết đúng dòng thứ nhất cho bộ lọc `featured` của F4.
+
+Đã vá tại **nguồn** chứ không tại nơi gọi: `undefined` → bỏ hẳn khóa,
+`null` → `IS NULL`. Vá ở nơi gọi thì cách gọi thứ hai vẫn sai, và `parent_id` **nằm
+trong** `TCol` của `ServiceDao` — tức đó là một cách gọi kiểu-cho-phép.
+
+**Phép tiêm đầu tiên KHÔNG ĐẠT**: bỏ bộ lọc đi thì mọi bài kiểm vẫn xanh — không bài
+nào truyền `undefined` hay `null` vào `where`. Đã thêm ba phép kiểm ở tầng DAO
+(`translation.integration.test.ts`), và tiêm lại thì cả hai nửa đều đỏ.
+
+## 22.3. Chú thích của tôi về `maxKeys` là SAI — và bài kiểm cho nó RỖNG
+
+`TtlCache` dọn mục hết hạn trước khi ép trần số khóa. Tôi viết:
+
+> "Không dọn thì một khóa hết hạn vẫn chiếm chỗ, và trần sẽ bỏ một khóa **còn hiệu
+> lực** để nhường cho rác."
+
+Phép tiêm (bỏ hẳn vòng dọn) cho bài kiểm **vẫn xanh**. Tìm hiểu thì câu trên **không
+thể đúng**: TTL là **một** con số cho cả cache, nên thứ tự hết hạn luôn trùng thứ tự
+chèn, và vòng `while` (bỏ từ đầu `Map`) đã bỏ đúng cái hết hạn sớm nhất rồi. Trường
+hợp tôi mô tả không tồn tại.
+
+Đã sửa chú thích, **xóa** bài kiểm rỗng, và giữ vòng dọn với lý do thật của nó: nó
+giải phóng *tất cả* mục hết hạn trong một lần, và nó ở đó cho lúc TTL trở thành tham
+số **theo khóa** (khi `/navigation` muốn TTL dài hơn `/home`) — lúc đó câu sai ở trên
+mới thành câu đúng.
+
+Thử phép tiêm thứ hai (`while (size >= maxKeys)` → `while (size > 0)`) cũng **không
+đạt**: `set()` chạy sau vòng dọn nên khóa mới vẫn có mặt. Kết luận: bảo đảm "khóa mới
+nhất còn lại" bền với mọi biến thể bỏ-từ-đầu, nên không có phép tiêm hợp lý nào phá
+được nó. **Để trống trong `inject-f4.mjs`, có ghi lý do** — một dòng "đạt" giả còn tệ
+hơn không có dòng nào.
+
+## 22.4. `ltv.offices.status` mặc định là `'published'` — năm bảng như vậy
+
+Seed demo của tôi ghi "chưa publish → phép kiểm ngược", rồi `/offices` trả về **cả ba**
+hàng, kể cả hàng tôi tưởng là bản nháp. Đối chiếu toàn bộ schema:
+
+```
+draft:      banners brands customers documents pages posts products projects services
+            + 4 bảng *_translations
+published:  applications  industries  offices  post_categories  standards
+active:     menus  menu_items  redirects  users
+```
+
+Năm bảng `published` là nhóm **dữ liệu tham chiếu**, và mặc định đó **có lý**: ASTM D86
+là một sự thật, không phải một bài viết cần duyệt; địa chỉ công ty cũng vậy.
+
+Nhưng nó có một hệ quả cho **F8** cần ghi trước: màn hình quản trị của năm nhóm này
+tạo ra bản ghi **đã công khai ngay từ lúc bấm Lưu**. Một văn phòng điền nửa (địa chỉ
+trống) sẽ xuất hiện trên trang liên hệ trước khi người biên tập điền xong. Cần một
+trong hai: hoặc form tạo phải đầy đủ mới cho Lưu, hoặc luồng tạo phải `unpublish()`
+ngay sau `insert()`.
+
+Cùng chỗ này còn một khoảng mở nữa: **không có ràng buộc nào chặn hai `head_office`
+cùng `published`**, và `findHeadOffice()` chỉ `orderBy('display_order')` rồi
+`executeTakeFirst()` — với hai hàng cùng `display_order` thì kết quả là **bất kỳ**.
+Hàm này là nguồn cho `schema.org LocalBusiness` của toàn site. Chưa vá (cần một chỉ
+mục UNIQUE có điều kiện, tức một migration); ghi lại ở đây.
+
+Và một bài kiểm cũ hóa ra **vừa rỗng vừa giòn**:
+
+```ts
+it('tim tru so chinh — chi lay ban da xuat ban', async () => {
+  const found = await daos.offices.findHeadOffice();
+  expect(found?.name).toBe(`${tag} Tru so`);   // mac dinh status = 'published'
+});
+```
+
+Nó **không** kiểm điều nó nói: bài kiểm chưa bao giờ tạo một trụ sở *chưa* xuất bản,
+nên điều kiện `status='published'` trong `findHeadOffice()` không được đo. Bỏ hẳn điều
+kiện đó đi thì bài kiểm cũ **vẫn xanh**. Và nó cho rằng trụ sở của nó là trụ sở duy
+nhất trong database — nên khi dữ liệu demo F4 thêm một `head_office`, nó đỏ vì một lý
+do không liên quan gì tới điều nó muốn kiểm. Đã viết lại.
+
+## 22.5. Năm câu `COUNT(*)` bị bỏ của `/products/landing` — vá bằng cache
+
+Đã ghi ở F2 và hoãn sang đây. `landing()` gọi bốn `list()` + một
+`findFeaturedCards()`; mỗi cái chạy **hai** câu (một lấy dòng, một đếm), nhưng
+`ProductLandingView` là năm mảng **không có `meta`** — nên năm câu đếm là công việc bị
+bỏ đi hoàn toàn.
+
+Hai cách sửa, và tôi nói rõ đã chọn cái nào **và cái nào chưa làm**:
+
+| | bỏ được | còn lại |
+|---|---|---|
+| (a) thêm `listFeatured(limit)` cho 4 DAO | 5 câu đếm, **mọi** lượt xem | 5 truy vấn mỗi lượt xem |
+| (b) cache 60s **(đã chọn)** | cả 10 câu, trong TTL | lần cache lạnh vẫn đủ 10 câu |
+
+Chọn (b) vì số lượt xem cao hơn số lần biên tập đổi `is_featured` vài bậc độ lớn. **(a)
+chưa làm**, và nó **cộng** được với (b) chứ không thay thế — nếu sau này chạy nhiều bản
+sao (mỗi bản một cache riêng, số lần lạnh nhân theo số bản) thì (a) là bước tiếp.
+
+Hai giới hạn của cache này là **thật** và đã viết vào `shared/cache.ts`:
+nó nằm trong bộ nhớ **một tiến trình**, và **không có cơ chế vô hiệu hóa** — biên tập
+đổi `is_featured` thì phải đợi hết TTL. Đó là lý do TTL phải **ngắn** (60s), không phải
+"vài phút cho hiệu quả hơn". Có một bài kiểm **nêu thẳng cái giá đó** thay vì để nó
+trong chú thích: đổi dữ liệu → phản hồi vẫn cũ → `clear()` → mới.
+
+## 22.6. Tìm kiếm theo tên hãng: `EXISTS`, KHÔNG được dùng alias của `JOIN`
+
+`doc/06` PHẦN IX đòi `/search` phủ cả **hãng/danh mục/tiêu chuẩn**; `buildWhere` cũ
+chỉ có `name`/`model`/`short_description`. Ba trường kia ở bảng khác, và cách nối vào
+quan trọng: đoạn `where` được dùng cho **HAI** câu, và câu **đếm** không có `JOIN`:
+
+```sql
+SELECT ... FROM ltv.products p JOIN ltv.brands b ON ... WHERE {where}   -- có b
+SELECT count(*) AS n FROM ltv.products p WHERE {where}                 -- KHÔNG có b
+```
+
+Viết `b.name ILIKE ...` thì câu lấy dòng chạy đúng và câu đếm nổ
+`missing FROM-clause entry for table "b"` — tức `/search` trả về đúng kết quả rồi vỡ ở
+bước đếm. Tôi định viết `b.name` vì thấy `b` có sẵn ở câu trên. Nên phép kiểm phải đọc
+`total_items` (đến từ câu đếm), không chỉ đọc `data` — có phép tiêm cho đúng chỗ này.
+
+## Trạng thái sau F4 — đo, không phải tuyên bố
+
+```
+492 bài kiểm (28 tệp)          xanh
+API 48/56 endpoint             F-1 9/9 · F0 1/1 · F1 17/17 · F2 3/3 · F3 13/13 · F4 5/5
+smoke-api.mjs                  204/204   (123 -> 204)
+smoke-auth.mjs                 38/38
+HTTP 5xx trong toàn bộ phép đo 0
+pnpm -r typecheck              sạch (7 gói)
+pnpm lint                      0 lỗi
+inject-f4.mjs                  13/13 phép tiêm làm phép kiểm đỏ
+seed demo chạy lại             0 mới, 68 đã có (idempotent)
+```
+
+## Công cụ mới, để lần sau không làm lại bằng tay
+
+- `scripts/inject-f4.mjs` — 13 phép tiêm tự động. Mỗi lần tiêm có **tệp sao lưu
+  riêng** và **đối chiếu băm sau khi hoàn tác** (hai luật ra từ lần tôi tự làm hỏng
+  phép đo ở F3). Nó cũng bắt được cả trường hợp bài kiểm **đỏ từ trước** — vì lúc đó
+  phép tiêm không kết luận được gì.
+- `scripts/sandbox-pg.sh` — khởi động PostgreSQL trong hộp cát. Dùng `pg_isready` chứ
+  **không** dùng `[ -S socket ]`: tệp socket **vẫn còn** sau khi tiến trình chết, nên
+  phép kiểm "có socket không" báo là đang chạy rồi mọi lệnh sau đó thất bại với
+  "Connection refused". Tôi đã dính đúng cái bẫy đó.

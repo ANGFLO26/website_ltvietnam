@@ -745,6 +745,316 @@ async function seedTrang(daos: DaoManager): Promise<void> {
   log(`  trang tinh      ${n}`);
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  F4 — KHUNG SITE: anh, banner, khach hang, van phong, menu
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * MOT hang `media` kieu anh, dung chung cho banner va logo khach hang.
+ *
+ * `banners.image_id` la NOT NULL va `customers.logo_id` di qua `innerJoin`, nen
+ * khong co hang media thi khong the seed hai nhom kia. Tep KHONG ton tai va do la
+ * co y: luu tru that la viec cua F7. Duong `/media/...` se 404 cho den luc do, con
+ * moi phep kiem cua F4 (banner con hieu luc, logo duoc phep hien) khong phu thuoc
+ * vao tep.
+ */
+async function seedAnh(daos: DaoManager): Promise<string> {
+  const co = await daos.media.findByChecksum?.('demo-image').catch(() => null);
+  if (co) {
+    dem.daCo += 1;
+    return co.id;
+  }
+  const m = await daos.media.insert({
+    fileName: 'demo-image.jpg',
+    originalName: 'demo-image.jpg',
+    storageClass: 'public',
+    storagePath: 'public/demo-image.jpg',
+    publicUrl: '/media/public/demo-image.jpg',
+    mimeType: 'image/jpeg',
+    fileExtension: 'jpg',
+    fileSize: 2048,
+    width: 1920,
+    height: 720,
+    checksum: 'demo-image',
+    title: 'Anh thay the cho banner va logo demo',
+    altText: 'Anh thay the',
+  });
+  dem.moi += 1;
+  return m.id;
+}
+
+/**
+ * BON banner, va ba trong so do ton tai de CHUNG MINH mot dieu kien loc.
+ *
+ *   `san pham`        published, khong cua so thoi gian, tro toi mot san pham THAT
+ *                     -> phai co mat, kem `url` da giai
+ *   `lien ket chet`   published, tro toi mot UUID khong ton tai -> phai co mat
+ *                     NHUNG `url` la `null` (giu anh, bo lien ket)
+ *   `da het han`      published, `end_at` o qua khu -> phai KHONG co mat
+ *   `ban nhap`        chua publish -> phai KHONG co mat
+ *
+ * Hai cai cuoi la phep kiem NGUOC. Khong co chung thi "banner het han bien mat"
+ * khong co gi de do — va mot phep kiem khong co gi de do thi luon xanh.
+ */
+async function seedBanner(daos: DaoManager, anhId: string, sanPhamId: string): Promise<void> {
+  const co = await daos.banners.list({});
+  if (co.some((b) => b.title.startsWith('DEMO'))) {
+    dem.daCo += 1;
+    log('  banner          4 (da co)');
+    return;
+  }
+
+  const qua = new Date(Date.now() - 7 * 86_400_000);
+  const b1 = await daos.banners.insert({
+    imageId: anhId,
+    // Ten KHONG nhac ten may cu the: banner nay tro toi san pham DA PUBLISH dau
+    // tien, va cai do doi theo thu tu seed. Mot ten nhu "DEMO Hero — OptiDist" se
+    // thanh mot loi noi sai ngay khi thu tu doi.
+    title: 'DEMO Hero — san pham',
+    subtitle: VAN_BAN_THAY_THE,
+    buttonLabel: 'Xem san pham',
+    imageAlt: 'Anh thay the',
+    linkType: 'product',
+    linkTargetId: sanPhamId,
+  });
+  await daos.banners.publish(b1.id);
+
+  const b2 = await daos.banners.insert({
+    imageId: anhId,
+    title: 'DEMO Hero — lien ket chet',
+    // UUID hop le nhung khong tro toi hang nao. `link_target_id` KHONG co khoa
+    // ngoai (lien ket da hinh), nen database chap nhan gia tri nay — va do dung la
+    // cai gia phai tra ma `dao/banners/object.ts` da ghi.
+    linkType: 'product',
+    linkTargetId: randomUUID(),
+  });
+  await daos.banners.publish(b2.id);
+
+  const b3 = await daos.banners.insert({
+    imageId: anhId,
+    title: 'DEMO Hero — da het han',
+    linkType: 'none',
+    startAt: new Date(qua.getTime() - 86_400_000),
+    endAt: qua,
+  });
+  await daos.banners.publish(b3.id);
+
+  await daos.banners.insert({
+    imageId: anhId,
+    title: 'DEMO Hero — ban nhap',
+    linkType: 'none',
+  });
+
+  dem.moi += 4;
+  log('  banner          4 (1 song, 1 lien ket chet, 1 het han, 1 nhap)');
+}
+
+/**
+ * BA khach hang, va hai trong so do KHONG duoc phep hien.
+ *
+ * `status` va `is_public` la HAI co che doc lap (xem `dao/customers/object.ts`):
+ * mot khach co the da duyet noi dung nhung chua ky giay dong y dung logo. Dung
+ * logo khi chua duoc phep la chuyen phap ly, khong phai loi giao dien — nen phai
+ * co du lieu chung minh duong cong khai ap CA HAI dieu kien.
+ */
+async function seedKhachHang(daos: DaoManager, anhId: string): Promise<void> {
+  const co = await daos.customers.list({});
+  if (co.data.some((c) => c.name.startsWith('DEMO'))) {
+    dem.daCo += 1;
+    log('  khach hang      3 (da co)');
+    return;
+  }
+
+  const k1 = await daos.customers.insert({
+    name: 'DEMO Petro Lab JSC',
+    shortDescription: VAN_BAN_THAY_THE,
+    logoId: anhId,
+    websiteUrl: 'https://example.com',
+  });
+  await daos.customers.update(k1.id, { isPublic: true });
+  await daos.customers.publish(k1.id, new Date());
+
+  // Da duyet noi dung NHUNG chua cho phep dung logo -> khong duoc hien.
+  const k2 = await daos.customers.insert({ name: 'DEMO Quiet Refinery Ltd', logoId: anhId });
+  await daos.customers.publish(k2.id, new Date());
+
+  // Cho phep dung logo NHUNG khong co logo -> `innerJoin` loai ra.
+  const k3 = await daos.customers.insert({ name: 'DEMO No Logo Co' });
+  await daos.customers.update(k3.id, { isPublic: true });
+  await daos.customers.publish(k3.id, new Date());
+
+  dem.moi += 3;
+  log('  khach hang      3 (1 hien duoc, 1 chua cho phep, 1 khong co logo)');
+}
+
+async function seedVanPhong(daos: DaoManager): Promise<void> {
+  const co = await daos.offices.list({});
+  if (co.some((o) => o.name.startsWith('DEMO'))) {
+    dem.daCo += 1;
+    log('  van phong       3 (da co)');
+    return;
+  }
+  const o1 = await daos.offices.insert({
+    officeType: 'head_office',
+    name: 'DEMO LT Vietnam — Head Office',
+    address: '123 Duong Thay The, Quan 1, TP. Ho Chi Minh',
+    workingHours: 'Mon–Fri 08:00–17:00',
+    phone: '+84 28 0000 0000',
+    email: 'info@example.com',
+    // NUMERIC(10,7) — mapper doi tu chuoi cua `pg` sang `number`.
+    latitude: 10.7769,
+    longitude: 106.7009,
+  });
+  await daos.offices.publish(o1.id);
+
+  const o2 = await daos.offices.insert({
+    officeType: 'branch',
+    name: 'DEMO LT Vietnam — Ha Noi Branch',
+    address: '456 Duong Thay The, Ba Dinh, Ha Noi',
+  });
+  await daos.offices.publish(o2.id);
+
+  /**
+   * `unpublish()` — KHONG phai "chi insert roi khong publish".
+   *
+   * `ltv.offices.status` co MAC DINH LA `'published'`. Toi viet ban dau la "chua
+   * publish" roi do thay `/offices` tra ve ca ba hang, ke ca hang toi tuong la ban
+   * nhap.
+   *
+   * NAM bang trong so do lam vay: `offices`, `standards`, `applications`,
+   * `industries`, `post_categories` — nhom du lieu THAM CHIEU. ASTM D86 la mot su
+   * that, khong phai mot bai viet can duyet; mot dia chi cong ty cung vay. Nen mac
+   * dinh do la co y — nhung no co mot hau qua cho F8: man hinh quan tri cua nam
+   * nhom nay tao ra ban ghi DA CONG KHAI ngay tu luc bam Luu. Ghi o `doc/13`.
+   */
+  const o3 = await daos.offices.insert({
+    officeType: 'workshop',
+    name: 'DEMO Workshop — an',
+    address: '789 Duong Thay The',
+  });
+  await daos.offices.unpublish(o3.id);
+
+  dem.moi += 3;
+  log('  van phong       3 (2 hien, 1 an)');
+}
+
+/**
+ * DANH DAU NOI BAT cho dich vu va du an.
+ *
+ * `is_featured` la NGUON DUY NHAT quyet dinh cai gi len trang chu (doc/06 PHAN
+ * VIII). Seed cua F3 khong dat co nay — dung, vi F3 chi lo danh sach va trang chi
+ * tiet. Nhung de nguyen thi `featured_services` va `featured_projects` cua `/home`
+ * LUON RONG, va moi phep kiem chung se xanh MA KHONG DO GI CA.
+ */
+async function seedNoiBat(daos: DaoManager): Promise<void> {
+  const dv = await daos.services.list({ status: 'published' }, { page: 1, pageSize: 100 });
+  const da = await daos.projects.list({ status: 'published' }, { page: 1, pageSize: 100 });
+  let n = 0;
+  for (const x of dv.data.slice(0, 2)) {
+    if (x.isFeatured) continue;
+    await daos.services.update(x.id, { isFeatured: true });
+    n += 1;
+  }
+  for (const x of da.data.slice(0, 1)) {
+    if (x.isFeatured) continue;
+    await daos.projects.update(x.id, { isFeatured: true });
+    n += 1;
+  }
+  log(`  noi bat         2 dich vu, 1 du an (${n} moi)`);
+}
+
+/**
+ * MUC MENU co LIEN KET THAT — va nam truong hop bien cua `/navigation`.
+ *
+ * Base seed dat chin muc `custom_url` cho menu `header`. Chung dung, nhung chung
+ * khong kiem duoc gi: `custom_url` khong phai di qua tang giai lien ket. Cai can do
+ * la duong `(link_type, link_target_id)`:
+ *
+ *   muc tro toi san pham/hang/danh muc THAT  -> `url` phai duoc giai dung
+ *   muc tro toi UUID khong ton tai           -> phai BI BO khoi menu
+ *   muc `link_type = 'none'`                 -> phai CO MAT voi `url = null`
+ *   muc cha CHET nhung co con SONG           -> phai CO MAT nhu tieu de, khong keo
+ *                                               ca nhanh con di theo
+ *   `custom_url = 'javascript:...'`           -> phai BI BO
+ *
+ * Bon truong hop cuoi la ly do ham nay ton tai. Khong co chung thi `LinkResolver`
+ * chi duoc do o duong sang.
+ */
+async function seedMenu(
+  daos: DaoManager,
+  sanPhamId: string,
+  hangId: string,
+  danhMucId: string,
+): Promise<void> {
+  const m = await daos.menus.findByCode('footer_products');
+  if (!m) {
+    log('  muc menu        0 (khong tim thay menu footer_products — bo qua)');
+    return;
+  }
+  const dangCo = await daos.menus.listItems(m.id);
+  if (dangCo.some((i) => i.label.startsWith('DEMO'))) {
+    dem.daCo += 1;
+    log('  muc menu        8 (da co)');
+    return;
+  }
+
+  /**
+   * `id` sinh o DAY, khong de database sinh.
+   *
+   * `replaceItems` ghi muc goc truoc roi muc con sau, va muc con phai mang
+   * `parentId` la mot UUID CU THE. De database sinh id thi khong co cach nao tro
+   * toi cha trong cung mot lan goi.
+   */
+  const chaChet = randomUUID();
+
+  await daos.menus.replaceItems(m.id, [
+    // Giu nguyen muc dang co: `replaceItems` THAY toan bo, nen khong ghi lai chung
+    // la xoa chung.
+    ...dangCo.map((i) => ({
+      id: i.id,
+      parentId: i.parentId,
+      label: i.label,
+      linkType: i.linkType,
+      linkTargetId: i.linkTargetId,
+      customUrl: i.customUrl,
+      displayOrder: i.displayOrder,
+    })),
+    { label: 'DEMO Product link', linkType: 'product', linkTargetId: sanPhamId, displayOrder: 10 },
+    { label: 'DEMO Brand link', linkType: 'brand', linkTargetId: hangId, displayOrder: 11 },
+    {
+      label: 'DEMO Category link',
+      linkType: 'product_category',
+      linkTargetId: danhMucId,
+      displayOrder: 12,
+    },
+    { label: 'DEMO Dead link', linkType: 'product', linkTargetId: randomUUID(), displayOrder: 13 },
+    { label: 'DEMO Heading', linkType: 'none', displayOrder: 14 },
+    {
+      label: 'DEMO Unsafe link',
+      linkType: 'custom_url',
+      customUrl: 'javascript:alert(1)',
+      displayOrder: 15,
+    },
+    {
+      id: chaChet,
+      label: 'DEMO Dead parent',
+      linkType: 'product',
+      linkTargetId: randomUUID(),
+      displayOrder: 16,
+    },
+    {
+      parentId: chaChet,
+      label: 'DEMO Live child',
+      linkType: 'product',
+      linkTargetId: sanPhamId,
+      displayOrder: 0,
+    },
+  ]);
+  dem.moi += 8;
+  log('  muc menu        8 (3 song, 1 chet, 1 tieu de, 1 khong an toan, 1 cha chet + 1 con)');
+}
+
 // ══════════════════════════════════════════════════════════════
 async function main(): Promise<void> {
   const cfg = loadConfig();
@@ -768,6 +1078,21 @@ async function main(): Promise<void> {
     await seedTin(daos);
     await seedTaiLieu(daos);
     await seedTrang(daos);
+
+    // ── F4: khung site ──
+    const anhId = await seedAnh(daos);
+    const spDau = (await daos.products.list({ status: 'published' }, { page: 1, pageSize: 1 }))
+      .data[0];
+    const hangDau = hang.get('pac') ?? [...hang.values()][0];
+    const dmDau = danhMuc.get('petroleum-testing') ?? [...danhMuc.values()][0];
+    if (spDau === undefined || hangDau === undefined || dmDau === undefined) {
+      throw new Error('Khong co san pham/hang/danh muc de gan lien ket menu va banner');
+    }
+    await seedBanner(daos, anhId, spDau.id);
+    await seedKhachHang(daos, anhId);
+    await seedVanPhong(daos);
+    await seedNoiBat(daos);
+    await seedMenu(daos, spDau.id, hangDau, dmDau);
 
     /**
      * KIEM BAT BIEN CUA CAY ngay sau khi ghi.

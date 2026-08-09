@@ -11,11 +11,15 @@ import { ResolveController } from './api/public/resolve.controller.js';
 import { TaxonomyController } from './api/public/taxonomy.controller.js';
 import { ProductController } from './api/public/product.controller.js';
 import { ContentController } from './api/public/content.controller.js';
-import { CONTENT_SERVICE } from './services/content/interface.js';
+import { SiteController } from './api/public/site.controller.js';
+import { SITE_SERVICE } from './services/site/interface.js';
+import { SiteServiceImpl } from './services/site/service.js';
+import { TtlCache } from './shared/cache.js';
+import { CONTENT_SERVICE, type ContentService } from './services/content/interface.js';
 import { ContentServiceImpl } from './services/content/service.js';
-import { PRODUCT_QUERY_SERVICE } from './services/products/interface.js';
+import { PRODUCT_QUERY_SERVICE, type ProductQueryService } from './services/products/interface.js';
 import { ProductQueryServiceImpl } from './services/products/service.js';
-import { TAXONOMY_SERVICE } from './services/taxonomy/interface.js';
+import { TAXONOMY_SERVICE, type TaxonomyService } from './services/taxonomy/interface.js';
 import { TaxonomyServiceImpl } from './services/taxonomy/service.js';
 import { ROUTE_RESOLVER_SERVICE } from './services/redirects/interface.js';
 import { RouteResolverImpl } from './services/redirects/service.js';
@@ -39,6 +43,16 @@ import type { DaoManager } from './dao/dao-manager.js';
 
 const RESET_SIGNER = Symbol('RESET_SIGNER');
 
+/**
+ * Cache dung chung cua tang API cong khai.
+ *
+ * La mot PROVIDER chu khong phai mot bien module: `SiteServiceImpl` va
+ * `ProductQueryServiceImpl` phai nhan CUNG mot the hien, va mot bien toan cuc thi
+ * khong the thay the trong bai kiem — moi bai kiem se ke thua cache cua bai truoc,
+ * va thu tu chay se anh huong ket qua.
+ */
+const SITE_CACHE = Symbol('SITE_CACHE');
+
 const DAO_RUNTIME = Symbol('DAO_RUNTIME');
 
 /**
@@ -59,6 +73,7 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     TaxonomyController,
     ProductController,
     ContentController,
+    SiteController,
     AuthController,
   ],
   providers: [
@@ -92,13 +107,34 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     },
     {
       provide: PRODUCT_QUERY_SERVICE,
-      useFactory: (daos: DaoManager) => new ProductQueryServiceImpl(daos),
-      inject: [DAO_MANAGER],
+      useFactory: (daos: DaoManager, cache: TtlCache) => new ProductQueryServiceImpl(daos, cache),
+      inject: [DAO_MANAGER, SITE_CACHE],
     },
     {
       provide: CONTENT_SERVICE,
       useFactory: (daos: DaoManager) => new ContentServiceImpl(daos),
       inject: [DAO_MANAGER],
+    },
+    /**
+     * MOT ban cache dung chung cho `/home`, `/navigation/*` va `/products/landing`.
+     *
+     * Mot ban chu khong phai ba: tran so khoa (`maxKeys`) la de chan mot loi lap
+     * trinh lam phinh bo nho, va ba ban cache moi cai mot tran nghia la tran that
+     * la ba lan con so viet trong ma. Cac khoa da co tien to (`home:`, `nav:`,
+     * `landing`) nen chung khong dam nhau.
+     *
+     * TTL 60s: bien tap doi `is_featured` roi tai lai trang trong vong mot phut
+     * phai thay duoc thay doi. Xem `shared/cache.ts` cho hai gioi han co that cua
+     * cach lam nay (mot tien trinh, khong vo hieu hoa duoc).
+     */
+    { provide: SITE_CACHE, useFactory: (): TtlCache => new TtlCache(60_000) },
+    {
+      provide: SITE_SERVICE,
+      useFactory: (
+        daos: DaoManager, tx: TaxonomyService, ct: ContentService,
+        pr: ProductQueryService, cache: TtlCache,
+      ) => new SiteServiceImpl(daos, tx, ct, pr, cache),
+      inject: [DAO_MANAGER, TAXONOMY_SERVICE, CONTENT_SERVICE, PRODUCT_QUERY_SERVICE, SITE_CACHE],
     },
     {
       provide: ROUTE_RESOLVER_SERVICE,

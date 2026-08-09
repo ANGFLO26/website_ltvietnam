@@ -34,8 +34,8 @@ export class ContentController {
   // ══════════════════════════ services ══════════════════════════
   @Get('services')
   async services(@Query() q: unknown) {
-    const dto = doc(phanTrangQuery, q);
-    return toPage(await this.cs.listServices(dto.locale, dto));
+    const dto = doc(featuredQuery, q);
+    return toPage(await this.cs.listServices(dto.locale, { featured: dto.featured }, dto));
   }
 
   /** TRUOC `:slug` — neu khong thi `tree` bi hieu la mot slug. */
@@ -54,7 +54,13 @@ export class ContentController {
   @Get('projects')
   async projects(@Query() q: unknown) {
     const dto = doc(projectQuery, q);
-    return toPage(await this.cs.listProjects(dto.locale, { projectType: dto.type }, dto));
+    return toPage(
+      await this.cs.listProjects(
+        dto.locale,
+        { projectType: dto.type, featured: dto.featured },
+        dto,
+      ),
+    );
   }
 
   @Get('projects/:slug')
@@ -154,8 +160,29 @@ const localeQuery = z.object({ ...loc }).strict();
 const coBanQuery = z.object({ ...phanTrang }).strict();
 const phanTrangQuery = z.object({ ...loc, ...phanTrang }).strict();
 
+/**
+ * `featured` nhan `true`/`false` TUONG MINH, khong nhan "co mat la true".
+ *
+ * Cung ly do da ghi o `taxonomy.controller.ts`: `?featured` tran thanh chuoi
+ * rong, va coi chuoi rong la `true` se lam `?featured` va `?featured=false` cho
+ * ket qua nguoc nhau ma khong ai doan duoc.
+ */
+const coFeatured = {
+  featured: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional(),
+};
+
+const featuredQuery = z.object({ ...loc, ...phanTrang, ...coFeatured }).strict();
+
 const projectQuery = z
-  .object({ ...loc, ...phanTrang, type: z.string().min(1).max(50).optional() })
+  .object({
+    ...loc,
+    ...phanTrang,
+    ...coFeatured,
+    type: z.string().min(1).max(50).optional(),
+  })
   .strict();
 
 const postQuery = z

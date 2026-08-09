@@ -1,3 +1,4 @@
+import { chiCo } from '../../shared/omit-undefined.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { Brand } from '../../dao/brands/object.js';
 import type { ProductCategory } from '../../dao/product-categories/object.js';
@@ -32,34 +33,6 @@ export type TaxonomyDaos = DaoScope<
  * vi doc bang mat khong phai mot bao dam.
  */
 const CHI_DA_PUBLISH = { status: 'published' } as const;
-
-/**
- * Bo khoa KHONG XAC DINH thay vi truyen `undefined`.
- *
- * `exactOptionalPropertyTypes` cua du an phan biet "khong co khoa" voi "co khoa
- * bang undefined", va do la mot phan biet DUNG: `{ isFeatured: undefined }` doc
- * nhu "loc theo isFeatured, gia tri undefined" con khong co khoa doc nhu "khong
- * loc theo truong nay". DAO nhan cai thu hai.
- *
- * Truoc khi co helper nay toi da dinh doi chu ky cua nam `*Filter` o tang DAO
- * cho de truyen. Do la de kieu du lieu chay theo cho goi tien tay, thay vi giu
- * y nghia — va no lam moi DAO chap nhan mot trang thai vo nghia.
- */
-type BoUndefined<T> = { [K in keyof T]?: Exclude<T[K], undefined> };
-
-function chiCo<T extends Record<string, unknown>>(o: T): BoUndefined<T> {
-  /**
-   * `BoUndefined` chu khong phai `Partial`.
-   *
-   * `Partial<T>` cho ra `boolean | undefined` cho khoa tuy chon, va duoi
-   * `exactOptionalPropertyTypes` do KHONG khop `readonly isFeatured?: boolean`
-   * cua DAO. `Exclude<T[K], undefined>` noi dung dieu ham nay bao dam: khoa nao
-   * con lai thi gia tri cua no chac chan khong phai `undefined`.
-   */
-  return Object.fromEntries(
-    Object.entries(o).filter(([, v]) => v !== undefined),
-  ) as BoUndefined<T>;
-}
 
 /** Tran trang theo `doc/06` PHAN II muc 2. */
 const TRAN_TRANG = 100;

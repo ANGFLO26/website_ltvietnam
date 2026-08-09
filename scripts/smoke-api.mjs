@@ -252,6 +252,179 @@ check('du an confidential -> VAN 200 (chi che ten)', duAn2.status, 200);
 check('du an confidential KHONG neu ten khach hang',
   duAn2.body?.data?.customer_name, null);
 
+// ════════════════ F4 — khung site ════════════════
+console.log('\n-- F4: /home --');
+const home = await call('/home');
+check('GET /home', home.status, 200);
+vo('/home', home);
+const hd = home.body?.data ?? {};
+check('/home: mang locale trong than', hd.locale, 'en');
+check('/home: sections co thu tu', Array.isArray(hd.sections) && hd.sections.length > 0, true);
+for (const k of [
+  'featured_categories', 'featured_brands', 'featured_applications',
+  'featured_products', 'featured_services', 'featured_projects',
+  'latest_posts', 'customers',
+]) {
+  check(`/home: nhom ${k} co du lieu (can db:seed:demo)`, (hd[k]?.length ?? 0) > 0, true);
+}
+/**
+ * KHONG LO `id`/`status` — kiem tren CA phan hoi, khong tren mot the mau.
+ *
+ * `/home` gop tam nhom the tu bon service khac nhau. Kiem mot the cua mot nhom
+ * roi coi nhu da kiem ca trang la dung loi toi mac o F2 (kiem `brands` roi coi
+ * nhu ca bon nhom taxonomy deu sach).
+ */
+const homeJson = JSON.stringify(hd);
+check('/home: khong lo "id" o bat ky nhom nao', /"id"\s*:/.test(homeJson), false);
+check('/home: khong lo "status"', /"status"\s*:/.test(homeJson), false);
+check('/home: khong lo camelCase', /"[a-z]+[A-Z]\w*"\s*:/.test(homeJson), false);
+
+console.log('\n-- F4: /home — banner co CUA SO THOI GIAN va LIEN KET DA HINH --');
+const bTitles = (hd.banners ?? []).map((x) => x.title);
+check('banner con hieu luc CO mat', bTitles.includes('DEMO Hero — san pham'), true);
+check('banner DA HET HAN khong xuat hien', bTitles.includes('DEMO Hero — da het han'), false);
+check('banner BAN NHAP khong xuat hien', bTitles.includes('DEMO Hero — ban nhap'), false);
+/**
+ * Banner lien ket CHET: GIU ANH, BO LIEN KET — khac voi muc menu (bi bo han).
+ * Mot banner la anh lon dau trang chu; bo di thi bang chay tro trong nhu bi hong.
+ */
+const bChet = (hd.banners ?? []).find((x) => x.title === 'DEMO Hero — lien ket chet');
+check('banner lien ket chet VAN co mat', bChet !== undefined, true);
+/**
+ * `bChet?.url` TRAN, khong `?? 'co'`.
+ *
+ * Toi viet ban dau `check(..., bChet?.url ?? 'co', null)` va ca ba phep kiem
+ * "url = null" deu do: `null ?? 'co'` la `'co'`, nen chung KHONG THE dat. May la
+ * loai sai nay do on ao. Neu viet nguoc lai (`?? null` cho mot phep kiem "phai co
+ * gia tri") thi no se dat sai va khong ai biet.
+ */
+check('banner lien ket chet co url = null', bChet?.url, null);
+const bSong = (hd.banners ?? []).find((x) => x.title === 'DEMO Hero — san pham');
+check('banner song co url da giai (bat dau /products/)',
+  typeof bSong?.url === 'string' && bSong.url.startsWith('/products/'), true);
+
+console.log('\n-- F4: /navigation --');
+for (const loc of ['header', 'mobile', 'footer']) {
+  const r = await call(`/navigation/${loc}`);
+  check(`GET /navigation/${loc}`, r.status, 200);
+  vo(`/navigation/${loc}`, r);
+  check(`/navigation/${loc}: location dung`, r.body?.data?.location, loc);
+}
+const nav = await call('/navigation/header');
+check('/navigation/header: CO mega menu tu sinh',
+  nav.body?.data?.product_mega_menu !== null, true);
+check('/navigation/footer: KHONG co mega menu',
+  (await call('/navigation/footer')).body?.data?.product_mega_menu, null);
+check('/navigation/footer: gop nhieu menu footer_*',
+  ((await call('/navigation/footer')).body?.data?.menus ?? []).length > 1, true);
+check('/navigation/khong-co -> 422', (await call('/navigation/khong-co')).status, 422);
+check('/navigation/%00 -> 422', (await call('/navigation/%00')).status, 422);
+
+console.log('\n-- F4: /navigation KHONG PHAT LIEN KET CHET --');
+/**
+ * Nam phep kiem duoi day la ly do `LinkResolver` ton tai. `link_target_id` la da
+ * hinh va KHONG co khoa ngoai, nen database khong bao dam dich con ton tai — va
+ * menu nam tren MOI trang.
+ */
+const ft = (await call('/navigation/footer')).body?.data?.menus ?? [];
+const mucPhang = [];
+const duyet = (xs) => { for (const x of xs) { mucPhang.push(x); duyet(x.children ?? []); } };
+for (const m of ft) duyet(m.items ?? []);
+const nhan = mucPhang.map((x) => x.label);
+check('muc menu tro toi noi dung THAT co url', 
+  mucPhang.find((x) => x.label === 'DEMO Product link')?.url?.startsWith('/products/') ?? false,
+  true);
+check('muc menu LIEN KET CHET bi bo han', nhan.includes('DEMO Dead link'), false);
+check('muc menu `javascript:` bi bo han', nhan.includes('DEMO Unsafe link'), false);
+check('muc `link_type=none` GIU lai lam tieu de', nhan.includes('DEMO Heading'), true);
+check('tieu de co url = null',
+  mucPhang.find((x) => x.label === 'DEMO Heading')?.url, null);
+/** Cha chet + con song: bo ca nhanh nghia la mat luon nhung lien ket con dung. */
+const chaChet = mucPhang.find((x) => x.label === 'DEMO Dead parent');
+check('cha CHET co con SONG thi VAN duoc giu', chaChet !== undefined, true);
+check('cha chet co url = null', chaChet?.url, null);
+check('con song van co url', nhan.includes('DEMO Live child'), true);
+check('KHONG muc nao co url la "javascript:..."',
+  mucPhang.some((x) => typeof x.url === 'string' && x.url.startsWith('javascript:')), false);
+
+console.log('\n-- F4: /customers — HAI dieu kien (published VA is_public) --');
+const kh = await call('/customers');
+check('GET /customers', kh.status, 200);
+vo('/customers', kh);
+const khTen = (kh.body?.data ?? []).map((x) => x.name);
+check('khach da duyet VA duoc phep VA co logo -> co mat',
+  khTen.includes('DEMO Petro Lab JSC'), true);
+check('khach da duyet nhung CHUA cho phep -> khong co mat',
+  khTen.includes('DEMO Quiet Refinery Ltd'), false);
+check('khach duoc phep nhung KHONG co logo -> khong co mat',
+  khTen.includes('DEMO No Logo Co'), false);
+khongLoNoiBo('/customers[0]', (kh.body?.data ?? [])[0]);
+check('/customers?limit=1 -> mot muc', (await call('/customers?limit=1')).body?.data?.length, 1);
+check('/customers?limit=0 -> 422', (await call('/customers?limit=0')).status, 422);
+check('/customers?limit=abc -> 422', (await call('/customers?limit=abc')).status, 422);
+
+console.log('\n-- F4: /offices --');
+const vp = await call('/offices');
+check('GET /offices', vp.status, 200);
+vo('/offices', vp);
+const vpTen = (vp.body?.data ?? []).map((x) => x.name);
+check('van phong da duyet co mat', vpTen.includes('DEMO LT Vietnam — Head Office'), true);
+check('van phong AN khong co mat', vpTen.includes('DEMO Workshop — an'), false);
+khongLoNoiBo('/offices[0]', (vp.body?.data ?? [])[0]);
+/** NUMERIC(10,7) phai ve dang SO, khong phai chuoi — `pg` tra NUMERIC la chuoi. */
+const truSo = (vp.body?.data ?? []).find((x) => x.office_type === 'head_office');
+check('toa do la SO, khong phai chuoi', typeof truSo?.latitude, 'number');
+
+console.log('\n-- F4: /search --');
+const s1 = await call('/search?q=OptiDist');
+check('GET /search?q=OptiDist', s1.status, 200);
+vo('/search', s1, { coMeta: true });
+check('/search: co ket qua', (s1.body?.data?.length ?? 0) > 0, true);
+check('/search: moi ket qua co type=product',
+  (s1.body?.data ?? []).every((x) => x.type === 'product'), true);
+/**
+ * TIM THEO TEN HANG — phep kiem quan trong nhat cua `/search`.
+ *
+ * `doc/06` PHAN IX doi tim kiem phu ca hang/danh muc/tieu chuan. Ba truong do o
+ * bang KHAC, va chung phai duoc noi bang `EXISTS` chu khong bang alias cua `JOIN`:
+ * doan `where` dung cho CA HAI cau, va cau DEM khong co `JOIN ltv.brands b`. Nen
+ * phep kiem phai doc `total_items` (den tu cau dem), khong chi doc `data`.
+ */
+const s2 = await call('/search?q=PAC');
+check('/search theo TEN HANG -> co ket qua', (s2.body?.data?.length ?? 0) > 0, true);
+check('/search: cau DEM chay duoc (total_items > 0)', (s2.body?.meta?.total_items ?? 0) > 0, true);
+check('/search: total_items khop so dong khi chi mot trang',
+  s2.body?.meta?.total_pages === 1 ? s2.body.meta.total_items === s2.body.data.length : true,
+  true);
+const s3 = await call('/search?q=D86');
+check('/search theo MA TIEU CHUAN -> co ket qua', (s3.body?.data?.length ?? 0) > 0, true);
+check('/search?q=a (mot ky tu) -> 422', (await call('/search?q=a')).status, 422);
+check('/search khong co q -> 422', (await call('/search')).status, 422);
+check('/search?q= rong -> 422', (await call('/search?q=')).status, 422);
+check('/search: tham so la -> 422', (await call('/search?q=abc&kieu=x')).status, 422);
+
+console.log('\n-- F4: /products/landing van dung sau khi them cache --');
+const lp = await call('/products/landing');
+check('GET /products/landing', lp.status, 200);
+vo('/products/landing', lp);
+check('/products/landing: van du nam nhom',
+  ['featured_categories', 'featured_brands', 'featured_standards',
+   'featured_applications', 'featured_products'].every((k) => Array.isArray(lp.body?.data?.[k])),
+  true);
+/**
+ * CACHE khong duoc lam sai phan hoi. Goi hai lan phai ra ket qua GIONG HET —
+ * neu khac thi hoac cache tra ban cua khoa khac, hoac no dang giu tham chieu bi
+ * nguoi khac sua.
+ */
+const lp2 = await call('/products/landing');
+check('/products/landing: hai lan goi cho ket qua giong het',
+  JSON.stringify(lp.body) === JSON.stringify(lp2.body), true);
+const home2 = await call('/home?locale=vi');
+check('/home?locale=vi -> 200', home2.status, 200);
+check('/home?locale=vi: locale dung (khong lay ban cache cua en)',
+  home2.body?.data?.locale, 'vi');
+check('/home?locale=fr -> 422', (await call('/home?locale=fr')).status, 422);
+
 // ════════════════ dau vao rac ════════════════
 console.log('\n-- dau vao rac: phai 4xx, KHONG BAO GIO 5xx --');
 const rac = [

@@ -315,8 +315,45 @@ function buildWhere(f: ProductFilter): RawBuilder<unknown> {
     // `%` va `_` cua nguoi dung la ky tu thuong. ILIKE dung duoc chi muc
     // trigram `idx_products_*_trgm` nen khong phai quet toan bang.
     const needle = `%${escapeLike(f.search.trim())}%`;
+    /**
+     * SAU truong, khong phai ba — `doc/06` PHAN IX: "ten/model/HANG/DANH MUC/
+     * TIEU CHUAN/mo ta".
+     *
+     * Ba truong con lai o BANG KHAC, va cach noi chung vao day quan trong:
+     *
+     * PHAI dung `EXISTS`, KHONG duoc dung alias cua JOIN (`b.name`). Doan `where`
+     * nay duoc dung cho HAI cau — cau lay dong co `JOIN ltv.brands b`, nhung cau
+     * dem thi khong:
+     *
+     *     SELECT count(*) AS n FROM ltv.products p WHERE ${where}
+     *
+     * Viet `b.name ILIKE ...` thi cau lay dong chay binh thuong va cau dem nem
+     * `missing FROM-clause entry for table "b"` — tuc `/search` tra ve dung ket
+     * qua roi vo o buoc dem. Toi da dinh viet `b.name` vi thay `b` co san o cau
+     * tren; cho nay chi lo ra khi doc CA HAI cau cung luc.
+     *
+     * `standards` gop `code` va `name`: nguoi dung go "D86" chu khong go
+     * "Standard Test Method for Distillation".
+     */
     parts.push(sql`(
-      p.name ILIKE ${needle} OR p.model ILIKE ${needle} OR p.short_description ILIKE ${needle}
+      p.name ILIKE ${needle}
+      OR p.model ILIKE ${needle}
+      OR p.short_description ILIKE ${needle}
+      OR EXISTS (
+        SELECT 1 FROM ltv.brands b
+        WHERE b.id = p.brand_id AND b.deleted_at IS NULL AND b.name ILIKE ${needle}
+      )
+      OR EXISTS (
+        SELECT 1 FROM ltv.product_categories c
+        JOIN ltv.product_category_links l ON l.category_id = c.id
+        WHERE l.product_id = p.id AND c.deleted_at IS NULL AND c.name ILIKE ${needle}
+      )
+      OR EXISTS (
+        SELECT 1 FROM ltv.standards s
+        JOIN ltv.product_standards ps ON ps.standard_id = s.id
+        WHERE ps.product_id = p.id AND s.deleted_at IS NULL
+          AND (s.code ILIKE ${needle} OR s.name ILIKE ${needle})
+      )
     )`);
   }
 

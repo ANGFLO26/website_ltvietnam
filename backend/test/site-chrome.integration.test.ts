@@ -56,9 +56,42 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
     ).rejects.toThrow();
   });
 
-  it('tim tru so chinh — chi lay ban da xuat ban', async () => {
+  /**
+   * VIET LAI o F4 — ban cu VUA VACUOUS VUA GION.
+   *
+   * Ban cu:
+   *
+   *     const found = await daos.offices.findHeadOffice();
+   *     expect(found?.name).toBe(`${tag} Tru so`);   // mac dinh status = 'published'
+   *
+   * Hai van de:
+   *
+   *  1. No khong kiem dieu no NOI. Ten bai kiem la "chi lay ban da xuat ban",
+   *     nhung bai kiem khong bao gio tao mot tru so CHUA xuat ban — nen dieu kien
+   *     `status = 'published'` trong `findHeadOffice()` khong duoc do gi ca. Bo han
+   *     dieu kien do di thi bai kiem cu VAN XANH.
+   *
+   *  2. No cho rang tru so cua no la tru so DUY NHAT trong database. Khi du lieu
+   *     demo cua F4 them mot `head_office`, bai kiem do — va no do vi mot ly do
+   *     khong lien quan gi den dieu no muon kiem.
+   *
+   * `ltv.offices` KHONG co rang buoc nao chan hai `head_office` cung `published`,
+   * va `findHeadOffice()` chi lay `orderBy('display_order')` roi `executeTakeFirst`
+   * — tuc voi hai hang cung `display_order` thi ket qua la BAT KY. Do la mot cho mo
+   * that (schema.org LocalBusiness cua toan site lay tu ham nay); ghi o `doc/13`.
+   * O day bai kiem khong duoc dua vao su mo ho do.
+   */
+  it('tim tru so chinh — BO QUA ban chua xuat ban', async () => {
+    const an = await daos.offices.insert({
+      officeType: 'head_office', name: `${tag} Tru so an`, address: 'x',
+    });
+    // `unpublish()` la BAT BUOC: `offices.status` mac dinh la 'published'.
+    await daos.offices.unpublish(an.id);
+
     const found = await daos.offices.findHeadOffice();
-    expect(found?.name).toBe(`${tag} Tru so`);   // mac dinh status = 'published'
+    expect(found, 'phai co mot tru so da xuat ban').not.toBeNull();
+    expect(found!.status).toBe('published');
+    expect(found!.name).not.toBe(`${tag} Tru so an`);
   });
 
   // ══════════════════ banners: cua so thoi gian ══════════════════

@@ -152,13 +152,13 @@ export const API_ENDPOINTS = [
     note: 'can duong doc co ban dich cua F3; ServiceDao chua co truy van theo nganh' },
 
   // ══════════════ F4 — khung site ══════════════
-  { method: 'GET', path: '/home', area: 'public', auth: false, phase: 'F4', status: 'todo',
+  { method: 'GET', path: '/home', area: 'public', auth: false, phase: 'F4', status: 'done',
     note: 'CHI trang chu; khong dung cho /products' },
-  { method: 'GET', path: '/navigation/:location', area: 'public', auth: false, phase: 'F4', status: 'todo',
+  { method: 'GET', path: '/navigation/:location', area: 'public', auth: false, phase: 'F4', status: 'done',
     note: 'header | mobile | footer; mega menu tu sinh' },
-  { method: 'GET', path: '/customers', area: 'public', auth: false, phase: 'F4', status: 'todo' },
-  { method: 'GET', path: '/offices', area: 'public', auth: false, phase: 'F4', status: 'todo' },
-  { method: 'GET', path: '/search', area: 'public', auth: false, phase: 'F4', status: 'todo',
+  { method: 'GET', path: '/customers', area: 'public', auth: false, phase: 'F4', status: 'done' },
+  { method: 'GET', path: '/offices', area: 'public', auth: false, phase: 'F4', status: 'done' },
+  { method: 'GET', path: '/search', area: 'public', auth: false, phase: 'F4', status: 'done',
     note: 'MVP: san pham, pg_trgm' },
 
   // ══════════════ F5 — yeu cau bao gia ══════════════

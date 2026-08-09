@@ -231,10 +231,29 @@ Những gì mọi trang cần.
 
 ```
 GET /home                    (HomepageQueryService — CHỈ trang chủ)
-GET /navigation/:location    (header/mobile/footer_*)
-GET /settings                (chỉ setting công khai, secret bị che)
-GET /search                  (MVP: sản phẩm, pg_trgm)
+GET /navigation/:location    (header | mobile | footer)
+GET /customers               (logo khách hàng: published VÀ is_public VÀ có logo)
+GET /offices
+GET /search                  (MVP: sản phẩm)
 ```
+
+**Đính chính (viết khi làm F4):** bản kế hoạch ban đầu ghi `GET /settings` ở đây và
+**không** ghi `/customers` với `/offices`. Cả hai đều sai so với `doc/06`:
+
+- `doc/06` PHẦN IV (danh sách API **công khai**) không có `/settings`. Setting chỉ lộ
+  qua `GET /admin/settings` + `GET/PATCH /admin/settings/:group` (PHẦN IX), tức **F8**,
+  và ở đó mới có chuyện che `smtp_password`. Kéo nó vào F4 sẽ tạo một đường công khai
+  mà `doc/06` không định nghĩa.
+- `/customers` và `/offices` **có** trong PHẦN IV và chúng đúng là "thứ mọi trang cần"
+  (chân trang, trang liên hệ) — chúng thuộc F4.
+
+Nên tự kiểm "`/settings` không bao giờ trả `smtp_password`" **chuyển sang F8**. Nó vẫn
+là một phép kiểm phải có, chỉ là không phải ở đây.
+
+Một khoảng mở khác phát hiện cùng lúc: **ba endpoint `/admin/settings` không có trong
+`API_ENDPOINTS`** — Luật 16 đối chiếu bảng với mã theo cả hai chiều, nhưng nó không
+phát hiện được một dòng **chưa từng được thêm**. Bảng đó tự nhận là bản kiểm kê
+endpoint, nên khoảng mở này phải được đóng ở F8 (thêm dòng trước khi viết mã).
 
 ### Tự kiểm
 
@@ -242,9 +261,13 @@ GET /search                  (MVP: sản phẩm, pg_trgm)
   đang bật — không theo số phần tử
 - `/navigation/footer_company` + 3 menu footer khác lấy bằng **2 truy vấn** cho
   cả bốn (`findTreesByLocations`), không phải 8
-- `/settings` không bao giờ trả `smtp_password` — kiểm bằng cách đặt giá trị thật
-  rồi xác nhận phản hồi là `********`
-- tắt một `homepage_sections` → khối biến mất khỏi `/home`
+- tắt một `homepage_sections` → khối biến mất khỏi `/home` (có bài kiểm; và nó bật
+  lại rồi khẳng định khối **quay về** — chỉ kiểm nửa "biến mất" thì một hàm luôn trả
+  mảng rỗng cũng xanh)
+- menu/banner trỏ tới nội dung **đã xóa hoặc chưa publish** không được phát ra ngoài —
+  `link_target_id` là đa hình và **không có khóa ngoại**, xem `doc/13` mục 22.1
+- ~~`/settings` không bao giờ trả `smtp_password`~~ → **chuyển sang F8** (xem đính
+  chính ở trên)
 
 ### Kiểm liên kết
 
