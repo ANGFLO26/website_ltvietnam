@@ -6,6 +6,12 @@ dùng cho backend — mỗi phase kết thúc bằng một lệnh chạy đượ
 Đọc kèm: `doc/02` (sitemap), `doc/08` (wireframe công khai), `doc/09` (ADR),
 `doc/12` (kế hoạch backend — bản mẫu của tài liệu này), `doc/14` (trạng thái backend).
 
+> **Bản kế hoạch CODE cụ thể đến từng tệp:**
+> [`doc/19_KE_HOACH_CODE_FRONTEND.md`](19_KE_HOACH_CODE_FRONTEND.md).
+> Tài liệu này giữ phần **chia phase và luật kiến trúc**; `doc/19` trả lời **viết tệp nào,
+> thứ tự nào, xong khi nào** — và điều chỉnh ngưỡng nghiệm thu theo mục tiêu mới (kiểm
+> chức năng trước, làm đẹp sau).
+
 ---
 
 # 0. Hai mâu thuẫn tài liệu phải chốt TRƯỚC khi viết dòng mã nào
