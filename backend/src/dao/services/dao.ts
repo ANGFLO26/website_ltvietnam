@@ -1,4 +1,5 @@
 import { TreeDao, type TreeTableName } from '../tree.dao.js';
+import type { PublicTranslationRow } from '../translation.support.js';
 import { TranslationSupport, type HreflangAlternate, type Locale, type TranslationStatus } from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
@@ -22,11 +23,11 @@ import { toService, toServiceTranslation } from './mapper.js';
  */
 export class KyselyServiceDao extends TreeDao implements ServiceDao {
   protected readonly table: TreeTableName = 'services';
-  private readonly tr: TranslationSupport;
+  private readonly tr: TranslationSupport<'parent_id' | 'is_featured'>;
 
   constructor(db: KyselyExecutor) {
     super(db);
-    this.tr = new TranslationSupport(db, {
+    this.tr = new TranslationSupport<'parent_id' | 'is_featured'>(db, {
       parentTable: 'services',
       trTable: 'service_translations',
       parentKey: 'service_id',
@@ -255,5 +256,24 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
       brandIds: br.map((x) => x.brand_id),
       industryIds: ind.map((x) => x.industry_id),
     };
+  }
+
+  /** Uy quyen — dieu kien hai trang thai nam o `TranslationSupport`. */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<'parent_id' | 'is_featured', string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
+  }
+
+  async idsByIndustry(industryId: string): Promise<string[]> {
+    const r = await this.db
+      .selectFrom('service_industries')
+      .select('service_id')
+      .where('industry_id', '=', industryId)
+      .execute();
+    return r.map((x) => x.service_id);
   }
 }

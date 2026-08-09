@@ -1,11 +1,11 @@
 import { sql } from 'kysely';
+import type { PublicTranslationRow } from '../translation.support.js';
 import { BaseDao } from '../base.dao.js';
 import {
   TranslationSupport,
   type HreflangAlternate,
   type Locale,
-  type TranslationStatus,
-} from '../translation.support.js';
+  type TranslationStatus, } from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
@@ -23,11 +23,11 @@ import type {
 import { toProject, toProjectTranslation } from './mapper.js';
 
 export class KyselyProjectDao extends BaseDao implements ProjectDao {
-  private readonly tr: TranslationSupport;
+  private readonly tr: TranslationSupport<'project_type' | 'is_featured'>;
 
   constructor(db: KyselyExecutor) {
     super(db);
-    this.tr = new TranslationSupport(db, {
+    this.tr = new TranslationSupport<'project_type' | 'is_featured'>(db, {
       parentTable: 'projects',
       trTable: 'project_translations',
       parentKey: 'project_id',
@@ -286,5 +286,15 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
       SELECT count(*) AS n FROM ltv.project_media WHERE project_id = ${id}
     `.execute(this.db);
     return Number(r.rows[0]?.n ?? 0);
+  }
+
+  /** Uy quyen — dieu kien hai trang thai nam o `TranslationSupport`. */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<'project_type' | 'is_featured', string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
   }
 }

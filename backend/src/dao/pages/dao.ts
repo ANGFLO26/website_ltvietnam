@@ -1,11 +1,11 @@
 import { sql } from 'kysely';
+import type { PublicTranslationRow } from '../translation.support.js';
 import { BaseDao } from '../base.dao.js';
 import {
   TranslationSupport,
   type HreflangAlternate,
   type Locale,
-  type TranslationStatus,
-} from '../translation.support.js';
+  type TranslationStatus, } from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import type { PageDao } from './dao.interface.js';
@@ -20,11 +20,11 @@ import type {
 import { toPage, toPageTranslation } from './mapper.js';
 
 export class KyselyPageDao extends BaseDao implements PageDao {
-  private readonly tr: TranslationSupport;
+  private readonly tr: TranslationSupport<never>;
 
   constructor(db: KyselyExecutor) {
     super(db);
-    this.tr = new TranslationSupport(db, {
+    this.tr = new TranslationSupport<never>(db, {
       parentTable: 'pages',
       trTable: 'page_translations',
       parentKey: 'page_id',
@@ -192,5 +192,15 @@ export class KyselyPageDao extends BaseDao implements PageDao {
   }
   assertLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<void> {
     return this.tr.assertLocaleSlugAvailable(locale, slug, exceptId);
+  }
+
+  /** Uy quyen — dieu kien hai trang thai nam o `TranslationSupport`. */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<never, string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
   }
 }

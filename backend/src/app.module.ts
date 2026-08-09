@@ -10,6 +10,9 @@ import { HealthController } from './api/public/health.controller.js';
 import { ResolveController } from './api/public/resolve.controller.js';
 import { TaxonomyController } from './api/public/taxonomy.controller.js';
 import { ProductController } from './api/public/product.controller.js';
+import { ContentController } from './api/public/content.controller.js';
+import { CONTENT_SERVICE } from './services/content/interface.js';
+import { ContentServiceImpl } from './services/content/service.js';
 import { PRODUCT_QUERY_SERVICE } from './services/products/interface.js';
 import { ProductQueryServiceImpl } from './services/products/service.js';
 import { TAXONOMY_SERVICE } from './services/taxonomy/interface.js';
@@ -55,6 +58,7 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     ResolveController,
     TaxonomyController,
     ProductController,
+    ContentController,
     AuthController,
   ],
   providers: [
@@ -89,6 +93,11 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     {
       provide: PRODUCT_QUERY_SERVICE,
       useFactory: (daos: DaoManager) => new ProductQueryServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: CONTENT_SERVICE,
+      useFactory: (daos: DaoManager) => new ContentServiceImpl(daos),
       inject: [DAO_MANAGER],
     },
     {

@@ -1,6 +1,6 @@
 import type { Page, Paged } from '../helpers.js';
 import type { TreeNode } from '../tree.dao.js';
-import type { HreflangAlternate, Locale, TranslationStatus } from '../translation.support.js';
+import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
 import type {
   CreateServiceInput,
   Service,
@@ -54,4 +54,27 @@ export interface ServiceDao {
   /** Thay ca tap quan he trong mot lan goi (ADR-008). */
   replaceLinks(id: string, links: ServiceLinks): Promise<void>;
   findLinks(id: string): Promise<Required<ServiceLinks>>;
+
+  /**
+   * DANH SACH CONG KHAI theo locale — MOT truy van, khong N+1.
+   *
+   * Uy quyen cho `TranslationSupport.listPublicByLocale`: dieu kien HAI TRANG
+   * THAI (cha `published` + ban dich `published`) viet mot lan cho ca bon nhom.
+   * Ten cot trong `where` duoc kiem kieu: `'parent_id' | 'is_featured'`.
+   */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<'parent_id' | 'is_featured', string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
+
+  /**
+   * Id dich vu thuoc mot nganh — qua bang lien ket `service_industries`.
+   *
+   * Tra ve ID chu khong tra ve dich vu: nguoi goi con phai lay ban dich theo
+   * locale, va tron hai viec vao mot truy van se sinh ra mot ham chi dung duoc
+   * o dung mot cho.
+   */
+  idsByIndustry(industryId: string): Promise<string[]>;
 }

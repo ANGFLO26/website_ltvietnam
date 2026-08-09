@@ -1,5 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
-import type { HreflangAlternate, Locale, TranslationStatus } from '../translation.support.js';
+import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
 import type {
   CreateProjectInput,
   Project,
@@ -46,4 +46,18 @@ export interface ProjectDao {
   replaceMedia(id: string, media: readonly { mediaId: string; caption?: string | null }[]): Promise<void>;
   findLinks(id: string): Promise<Required<ProjectLinks>>;
   countMedia(id: string): Promise<number>;
+
+  /**
+   * DANH SACH CONG KHAI theo locale — MOT truy van, khong N+1.
+   *
+   * Uy quyen cho `TranslationSupport.listPublicByLocale`: dieu kien HAI TRANG
+   * THAI (cha `published` + ban dich `published`) viet mot lan cho ca bon nhom.
+   * Ten cot trong `where` duoc kiem kieu: `'project_type' | 'is_featured'`.
+   */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<'project_type' | 'is_featured', string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
 }

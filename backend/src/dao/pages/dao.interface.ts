@@ -1,4 +1,4 @@
-import type { HreflangAlternate, Locale, TranslationStatus } from '../translation.support.js';
+import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
 import type {
   AppPage,
   CreatePageInput,
@@ -47,4 +47,18 @@ export interface PageDao {
   publishedLocales(id: string): Promise<Locale[]>;
   isLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<boolean>;
   assertLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<void>;
+
+  /**
+   * DANH SACH CONG KHAI theo locale — MOT truy van, khong N+1.
+   *
+   * Uy quyen cho `TranslationSupport.listPublicByLocale`: dieu kien HAI TRANG
+   * THAI (cha `published` + ban dich `published`) viet mot lan cho ca bon nhom.
+   * Ten cot trong `where` duoc kiem kieu: `never`.
+   */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<never, string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
 }

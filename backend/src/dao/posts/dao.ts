@@ -1,10 +1,10 @@
 import { BaseDao } from '../base.dao.js';
+import type { PublicTranslationRow } from '../translation.support.js';
 import {
   TranslationSupport,
   type HreflangAlternate,
   type Locale,
-  type TranslationStatus,
-} from '../translation.support.js';
+  type TranslationStatus, } from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
@@ -22,11 +22,11 @@ import type {
 import { toPost, toPostTranslation } from './mapper.js';
 
 export class KyselyPostDao extends BaseDao implements PostDao {
-  private readonly tr: TranslationSupport;
+  private readonly tr: TranslationSupport<'category_id' | 'is_featured'>;
 
   constructor(db: KyselyExecutor) {
     super(db);
-    this.tr = new TranslationSupport(db, {
+    this.tr = new TranslationSupport<'category_id' | 'is_featured'>(db, {
       parentTable: 'posts',
       trTable: 'post_translations',
       parentKey: 'post_id',
@@ -226,5 +226,15 @@ export class KyselyPostDao extends BaseDao implements PostDao {
       projectIds: pj.map((x) => x.project_id),
       brandIds: br.map((x) => x.brand_id),
     };
+  }
+
+  /** Uy quyen — dieu kien hai trang thai nam o `TranslationSupport`. */
+  listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    where?: Readonly<Partial<Record<'category_id' | 'is_featured', string | boolean | null>>>,
+    restrictToIds?: readonly string[],
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
   }
 }

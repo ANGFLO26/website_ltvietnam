@@ -91,7 +91,21 @@ export interface TranslationConfig {
   readonly titleColumn: 'name' | 'title';
 }
 
-export class TranslationSupport {
+/**
+ * `TCol` — ten cot duoc phep loc tren bang CHA.
+ *
+ * Tham so kieu nay la ban va cho han che toi da ghi lai o lan truoc: ten cot
+ * trong `where` khong duoc kiem, nen go sai cho ra loi luc CHAY
+ * (`column p.post_type does not exist` — toi dinh dung do that khi thu ham).
+ *
+ * Moi DAO khai bao dung nhung cot cua bang minh:
+ *
+ *     new TranslationSupport<'category_id' | 'post_type'>(db, {...})
+ *
+ * Go sai gio la loi BIEN DICH. Mac dinh `never` nghia la khong khai bao thi
+ * khong duoc loc gi — an toan hon la cho phep tat ca.
+ */
+export class TranslationSupport<TCol extends string = never> {
   private readonly parentTable: TranslatedParentTableName;
   private readonly trTable: TranslationTableName;
   private readonly parentKey: string;
@@ -192,19 +206,32 @@ export class TranslationSupport {
      * Nhan CAP KHOA-GIA TRI chu khong nhan chuoi SQL: mot tham so chuoi o day
      * la mot duong tiem SQL di thang qua moi tang xac thuc phia tren.
      *
-     * HAN CHE con lai, noi ro: ten cot KHONG duoc kiem kieu. Go sai
-     * (`post_type` thay vi `article_type`) cho ra loi luc CHAY —
-     * `column p.post_type does not exist` — chu khong phai luc bien dich. Toi
-     * dinh dung do that khi thu ham nay.
-     *
-     * Chua sua vi nguoi goi duy nhat la bon `dao.ts` cua chinh tang nay, va
-     * moi cach goi deu co test di qua. Sua dung cach la mot ban do kieu tu
-     * `Database` sang ten cot cua tung bang cha; do la viec dang lam khi so
-     * dieu kien phu tang len, khong phai khi con hai cho dung.
+     * Ten cot duoc kiem KIEU qua tham so `TCol` cua lop: go sai la loi bien
+     * dich, khong phai loi luc chay. Ban dau ham nay nhan `Record<string, ...>`
+     * va toi dinh dung `column p.post_type does not exist` khi thu no.
      */
-    where: Readonly<Record<string, string | boolean | null>> = {},
+    where?: Readonly<Partial<Record<TCol, string | boolean | null>>>,
+    /**
+     * Gioi han vao mot tap id cua bang CHA — dung cho quan he qua bang lien ket.
+     *
+     * `/industries/:slug/services` can "dich vu thuoc nganh X", ma quan he do
+     * nam o bang `service_industries`. `where` chi dien dat duoc dieu kien tren
+     * COT cua bang cha, nen khong the lam viec nay.
+     *
+     * DINH CHINH chu thich cu cua chinh toi: ban dau toi viet "bo qua bo loc khi
+     * mang rong se tra ve MOI dich vu". Do la SAI — `p.id = ANY('{}'::uuid[])`
+     * von da khong khop gi ca, nen bo cai `return` som di thi ket qua VAN rong.
+     *
+     * Nen dong `return` som la DUONG NGAN, khong phai ban va: no tranh mot vong
+     * di den database cho mot cau tra loi da biet. Toi phat hien dieu nay khi
+     * tiem loi (bo cai `return`) va bai kiem KHONG do — vi khong co gi de do.
+     */
+    restrictToIds?: readonly string[],
   ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
-    const dieuKien = Object.entries(where);
+    if (restrictToIds !== undefined && restrictToIds.length === 0) {
+      return { rows: [], total: 0 };
+    }
+    const dieuKien = Object.entries(where ?? {}) as [string, string | boolean | null][];
     /**
      * `sql.join([])` NEM LOI — nen phai kiem TRUOC khi goi, khong phai sau.
      *
@@ -229,6 +256,11 @@ export class TranslationSupport {
             sql` `,
           );
 
+    const gioiHan =
+      restrictToIds === undefined
+        ? sql``
+        : sql`AND p.id = ANY(${sql.val(restrictToIds)}::uuid[])`;
+
     const r = await sql<{
       id: string; slug: string; title: string;
       published_at: Date | null; total: string;
@@ -244,6 +276,7 @@ export class TranslationSupport {
         AND p.status = 'published'
         AND p.deleted_at IS NULL
         ${them}
+        ${gioiHan}
       ORDER BY t.published_at DESC NULLS LAST, p.id ASC
       LIMIT ${page.limit} OFFSET ${page.offset}
     `.execute(this.db);
@@ -259,7 +292,14 @@ export class TranslationSupport {
      * `p.id ASC` o cuoi la moc pha vo the: `published_at` co the trung nhau
      * (nhap hang loat), va khong co moc duy nhat thi thu tu giua cac trang
      * KHONG on dinh — mot ban ghi co the xuat hien o ca trang 1 va trang 2, hoac
-     * khong o trang nao. Do la loai loi chi lo ra khi co du du lieu.
+     * khong o trang nao.
+     *
+     * Bai kiem cho dieu nay phai doc SQL SINH RA, khong phai chay thu: tren bang
+     * nho PostgreSQL van tra ve thu tu on dinh (theo thu tu quet), nen mot phep
+     * do thuc nghiem se XANH du moc bi bo. Toi da dinh dung cai bay do o mot bai
+     * kiem on dinh phan trang truoc day; lan nay bo `p.id ASC` va phep do khong
+     * he do. Nen `test/content-service.integration.test.ts` khang dinh tren
+     * chinh chuoi SQL.
      */
     return {
       rows: r.rows.map((x) => ({

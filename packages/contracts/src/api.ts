@@ -128,18 +128,18 @@ export const API_ENDPOINTS = [
     note: 'discontinued VAN tra, kem co + hang thay the (ADR-011)' },
 
   // ══════════════ F3 — noi dung co ban dich ══════════════
-  { method: 'GET', path: '/pages/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/services', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/services/tree', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/services/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/projects', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/projects/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/posts', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/posts/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/post-categories', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/post-categories/:slug/posts', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/documents', area: 'public', auth: false, phase: 'F3', status: 'todo' },
-  { method: 'GET', path: '/documents/:slug', area: 'public', auth: false, phase: 'F3', status: 'todo' },
+  { method: 'GET', path: '/pages/:slug', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/services', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/services/tree', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/services/:slug', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/projects', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/projects/:slug', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/posts', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/posts/:slug', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/post-categories', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/post-categories/:slug/posts', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/documents', area: 'public', auth: false, phase: 'F3', status: 'done' },
+  { method: 'GET', path: '/documents/:slug', area: 'public', auth: false, phase: 'F3', status: 'done' },
   /**
    * DOI TU F1 SANG F3 — mot dinh chinh pham vi, khong phai mot cho tranh.
    *
@@ -148,7 +148,7 @@ export const API_ENDPOINTS = [
    * viec cua F3. Xep no o F1 nghia la F1 phai dung mot nua duong dich, roi F3
    * viet lai — hoac te hon, F1 tra ve dich vu chua qua luat locale.
    */
-  { method: 'GET', path: '/industries/:slug/services', area: 'public', auth: false, phase: 'F3', status: 'todo',
+  { method: 'GET', path: '/industries/:slug/services', area: 'public', auth: false, phase: 'F3', status: 'done',
     note: 'can duong doc co ban dich cua F3; ServiceDao chua co truy van theo nganh' },
 
   // ══════════════ F4 — khung site ══════════════
