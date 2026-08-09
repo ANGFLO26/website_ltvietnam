@@ -74,7 +74,7 @@ Tổng manifest API là 198/198 endpoint, bao gồm F-1 và F0 ngoài phạm vi 
 | Migration runner | 13/13 xanh |
 | Worker | 5/5 xanh |
 | Smoke API qua HTTP | 228/228 xanh |
-| Smoke auth qua HTTP | 41/41 xanh |
+| Smoke auth qua HTTP | 38/38 xanh (41/41 o lan chay dau tren DB chua co tai khoan) |
 | Kiến trúc/manifest | 198/198 endpoint |
 | PostgreSQL migration | 37/37 đã apply, còn lại 0 |
 | Migration verify | 37 migration liên tục, đủ cặp up/down, manifest hợp lệ |
@@ -90,15 +90,12 @@ cục bộ. Demo seed cũng được chạy lại và xác nhận idempotent.
 
 ## 6. Giới hạn và việc cần cấu hình trước triển khai
 
-- **Toàn bộ F5–F8 chưa được commit.** Working tree có 204 file thay đổi, 57 file mới;
-  commit gần nhất là `e0a9be5` (F4). Cho tới khi commit và push, kết luận của báo cáo này
-  mô tả một trạng thái **không tồn tại trong lịch sử Git**.
-- **Tiêm lỗi chỉ phủ F4.** `inject-f4.mjs` có 14 phép tiêm và tất cả đều cho F4. Mười bản
-  sửa ở mục 3 — kể cả bản mức *Nghiêm trọng* (`hard=false` biến xóa mềm thành xóa cứng) —
-  có test hồi quy, nhưng **chưa có phép tiêm nào chứng minh các test đó không rỗng**. Câu
-  "không còn lỗi chức năng đã xác nhận" ở mục 7 nên được đọc trong giới hạn này: nó nói
-  rằng không lỗi nào *tái hiện được*, không nói rằng các test mới sẽ *bắt được* lỗi nếu nó
-  quay lại.
+- ~~**Toàn bộ F5–F8 chưa được commit.**~~ **Đã xử lý** — commit `6a9b4bf`, đã đẩy lên
+  `origin/feat/p0-scaffold`.
+- ~~**Tiêm lỗi chỉ phủ F4.**~~ **Đã xử lý** — `scripts/inject-f5-f8.mjs` thêm 24 phép tiêm
+  phủ F5–F8, trong đó có cả mười bản sửa ở mục 3. Quá trình làm việc đó tìm thêm một lỗ
+  hổng phủ thật (`storage_class` của `/media` chỉ được kiểm bằng DAO giả) — xem `doc/13`
+  mục 23.
 - Smoke HTTP hiện tập trung vào API công khai F1–F6. F7 và F8 được kiểm bằng unit test,
   integration test PostgreSQL, luật kiến trúc và hợp đồng endpoint; chưa có một smoke suite
   đăng nhập chạy tuần tự qua toàn bộ 136 endpoint admin.
@@ -129,10 +126,14 @@ config 8, migration runner 13, worker 5), manifest 198/198 endpoint và không c
 trùng lặp, 37 migration đủ cặp up/down, smoke API 228/228, typecheck 7 gói, ESLint 0 lỗi,
 `prettier --check` sạch, `pnpm build` đạt, `git diff --check` sạch.
 
-**Hai chỗ sai:**
+**Một chỗ sai, và một chỗ tôi đã đính chính SAI:**
 
-1. Smoke auth là **41/41**, không phải 38/38. Con số 38 có từ trước F5.
-2. `inject-f4.mjs` chỉ còn **11/14** tại thời điểm rà soát, không phải 14/14.
+1. `inject-f4.mjs` chỉ còn **11/14** tại thời điểm rà soát, không phải 14/14.
+2. Smoke auth: bản đính chính đầu của tôi viết "là 41/41 chứ không phải 38/38". **Câu đó
+   sai.** Số phép kiểm phụ thuộc trạng thái DB — **41/41** ở lần chạy đầu (chưa có tài
+   khoản quản trị), **38/38** ở mọi lần sau, vì `POST /auth/bootstrap` trả 409 và ba phép
+   kiểm bootstrap bị bỏ qua. Báo cáo gốc ghi 38 là **đúng**. Tôi đo một lần trên DB sạch
+   rồi kết luận con số kia sai — đúng loại lỗi mà chính báo cáo này cảnh báo.
 
 Chỗ thứ hai đáng chú ý hơn con số. Đợt dọn dẹp ở `doc/16` chạy Prettier trên 146 file;
 formatter ngắt lại dòng và thêm dấu phẩy cuối ở ba đoạn mà `inject-f4.mjs` trỏ tới bằng
@@ -146,3 +147,20 @@ mà công cụ này sinh ra để ngăn.
 Bài học cho các đợt sau: **định dạng lại toàn kho là một thay đổi có thể phá công cụ đo,
 không chỉ phá diff.** Sau mỗi lần chạy formatter diện rộng, phải chạy lại bộ tiêm lỗi
 trước khi trích số vào báo cáo.
+
+---
+
+## 9. Bổ sung 2026-08-10 — tiêm lỗi cho F5–F8
+
+Giới hạn lớn nhất ở mục 8 đã được đóng. `scripts/inject-f5-f8.mjs`: **24/24** phép tiêm,
+mỗi phép làm đúng bài kiểm của nó chuyển sang đỏ. Bộ khung tách ra
+`scripts/lib/inject-harness.mjs` và dùng chung với `inject-f4.mjs` (14/14).
+
+Năm phép tiêm **không đạt ở lần chạy đầu**, và điều tra chúng cho ra bốn kết quả khác
+nhau — chi tiết ở `doc/13` mục 23. Đáng chú ý nhất: bài kiểm "protected PDF không qua
+/media" dùng một **DAO giả**, nên điều kiện `storage_class = 'public'` trong SQL — ranh
+giới giữa "ai cũng tải được" và "phải qua cổng tài liệu" — **chưa từng được kiểm**. Đã
+thêm bài kiểm tích hợp chạy trên PostgreSQL thật.
+
+Kèm theo: `pnpm build` sinh `frontend/next-env.d.ts` làm `pnpm lint` đỏ (đã sửa bằng
+`.gitignore` + `ignores` của ESLint) — xem `doc/14` §9.3.

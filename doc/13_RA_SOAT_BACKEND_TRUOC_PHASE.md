@@ -1101,3 +1101,163 @@ seed demo chạy lại             0 mới, 68 đã có (idempotent)
   **không** dùng `[ -S socket ]`: tệp socket **vẫn còn** sau khi tiến trình chết, nên
   phép kiểm "có socket không" báo là đang chạy rồi mọi lệnh sau đó thất bại với
   "Connection refused". Tôi đã dính đúng cái bẫy đó.
+
+---
+
+# 23. Tiêm lỗi cho F5–F8 — năm phép tiêm đầu tiên **không đạt**, và mỗi cái nói một chuyện khác
+
+`doc/15` rà soát F1–F8, sửa 10 lỗi và kết luận "không còn lỗi chức năng". Mỗi bản sửa có
+một test hồi quy. Nhưng một test hồi quy chỉ có giá trị nếu nó **đỏ khi lỗi quay lại** —
+và điều đó chưa từng được đo: toàn bộ 14 phép tiêm của kho mã đều thuộc F4.
+
+`scripts/inject-f5-f8.mjs` bổ sung **24 phép tiêm** cho F5 (báo giá, outbox), F6 (SEO),
+F7 (media) và F8 (136 endpoint quản trị). Bộ khung tách ra `scripts/lib/inject-harness.mjs`.
+
+**19 phép đạt ngay.** Phần đáng ghi là năm cái còn lại.
+
+## 23.1. Hai phép tiêm nhắm trượt — và bộ khung phải tự bắt được việc đó
+
+**a. `FOR UPDATE SKIP LOCKED` vá vào một dòng chú thích.** Chuỗi đó xuất hiện ba lần
+trong `dao/inquiries/dao.ts`: hai lần trong chú thích (dòng 189, 191) và một lần trong
+câu SQL thật (dòng 206). `String.replace` lấy **cái đầu tiên** — nên phép tiêm sửa một
+dòng chú thích, không đổi hành vi gì, và báo cáo ra là *"phép kiểm RỖNG"*.
+
+**b. `t.status = 'published'` khớp `pt.status = 'published'`** — chuỗi con nằm trong một
+định danh khác, ở một truy vấn không liên quan.
+
+Cả hai **nguy hiểm hơn một phép tiêm thất bại**: chúng cho ra kết luận sai *về bài kiểm*,
+và người đọc sẽ đi sửa một bài kiểm hoàn toàn tốt.
+
+Đã vá ở bộ khung, không ở từng phép tiêm: **mẫu khớp nhiều hơn một chỗ → từ chối**, buộc
+người viết thêm ngữ cảnh cho tới khi nó chỉ trỏ tới một chỗ.
+
+## 23.2. Bài kiểm tôi tưởng là yếu hoá ra đã lường trước đúng điều đó
+
+Phép tiêm "bỏ `SKIP LOCKED`" chạy vào bài kiểm *"hai worker lấy được hai tập riêng biệt"*
+và bài đó **vẫn xanh**. Không phải vì nó rỗng — mà vì `FOR UPDATE` trần cũng cho hai tập
+riêng biệt: worker B chỉ **đứng chờ** worker A rồi đọc lại. Tính chất mất đi là *không
+chặn*, không phải *không trùng*.
+
+Người viết trước đã biết điều này và viết hẳn một bài kiểm riêng cho nó, kèm chú thích:
+
+> "Bài kiểm 'hai worker lấy hai tập riêng biệt' ở trên vẫn PASS khi tôi cố ý đổi
+> `SKIP LOCKED` thành `FOR UPDATE` trần. […] Tính chất thật sự cần chứng minh là KHÔNG
+> CHẶN."
+
+Nó đo bằng `statement_timeout` ngắn và khẳng định thời gian trả về `< 1000ms`. Phép tiêm
+trỏ sang bài đó thì đỏ ngay. Lỗi ở phép tiêm của tôi, không ở bộ test.
+
+## 23.3. Hai bộ lọc thừa so với nhau → phải tiêm vào **cơ chế**, không vào một dòng
+
+`sitemap()` loại URL đã có redirect ở **hai** chỗ: `continue` trong vòng lặp, và
+`.filter()` sau vòng lặp. Bỏ **cái nào** thì bài kiểm cũng vẫn xanh — cái còn lại bắt
+được. Đo tiếp thì thấy `.filter()` mạnh hơn hẳn: nó phủ cả URL **tĩnh** (`/products`,
+`/news`), thứ mà vòng lặp không chạm tới.
+
+Nên phép tiêm nhắm vào **nguồn**: nếu danh sách redirect không được tra cứu thì cả hai bộ
+lọc đều vô hiệu. Đó là cách diễn đạt đúng bảo đảm ("sitemap không chứa URL đã có
+redirect") thay vì diễn đạt một dòng mã cụ thể.
+
+## 23.4. Lỗ hổng phủ THẬT — `storage_class` chỉ được kiểm bằng DAO giả
+
+Phép tiêm cuối là cái đắt nhất. `test/media-service.test.ts` có bài **"protected PDF
+không qua /media"**. Tên đúng, ý đúng. Nhưng nó truyền vào một DAO giả:
+
+```ts
+const findAsset = vi.fn(async (path) => (path === image.storagePath ? image : null));
+```
+
+— nên nó đo **tầng service**, không đo điều kiện thật. Khi tôi bỏ
+`.where('storage_class', '=', 'public')` khỏi câu SQL, **toàn bộ bộ test vẫn xanh**.
+
+`storage_class` là ranh giới giữa "ai cũng tải được" và "phải qua cổng tài liệu". Mất nó
+thì mọi PDF nội bộ thành công khai qua một URL **đoán được**, không cần đăng nhập, và
+không lỗi nào được ghi. Đây là loại rò rỉ chỉ phát hiện khi nó đã xảy ra.
+
+Đã thêm `test/media-redirect.integration.test.ts` → **"LỖ HỔNG F7 — /media KHÔNG được mở
+tệp protected"**, chạy trên PostgreSQL thật, phủ cả `storage_class` lẫn `deleted_at`. Hai
+phép tiêm tương ứng giờ đều đỏ.
+
+**Bài học:** một bài kiểm dùng mock cho chính thứ nó tuyên bố kiểm thì không kiểm gì cả —
+và tên bài kiểm sẽ khiến không ai nhìn lại nó. Đây đúng là loại lỗ hổng chỉ tiêm lỗi mới
+tìm ra; đọc lại mã sẽ không thấy, vì mã trông hoàn toàn hợp lý.
+
+## 23.5. Một khoảng trống được ghi rõ thay vì che đi
+
+`lockActiveAdmins()` (`SELECT ... FOR UPDATE`) chống **hai yêu cầu đồng thời** cùng vô
+hiệu hóa hai tài khoản quản trị cuối. Bỏ dòng khóa đó đi thì bộ test **vẫn xanh**, vì test
+chạy một luồng. Phép tiêm dùng thay là điều kiện `<= 1` → `<= 0` (bài kiểm đỏ đúng).
+
+Bản thân dòng khóa **chưa được đo**, và điều đó ghi thẳng trong `inject-f5-f8.mjs` thay vì
+để trống. Kiểm được nó cần hai kết nối song song và một điểm đồng bộ — cùng kỹ thuật mà
+bài kiểm `SKIP LOCKED` ở 23.2 đã dùng.
+
+## 23.6. Kèm theo: `pnpm build` làm `pnpm lint` đỏ
+
+`next build` sinh `frontend/next-env.d.ts` chứa
+`/// <reference path="./.next/types/routes.d.ts" />` — đúng thứ luật
+`@typescript-eslint/triple-slash-reference` cấm, và file này không nằm trong `.gitignore`.
+
+Trên bản checkout sạch `pnpm lint` xanh; chạy `pnpm build` rồi `pnpm lint` thì **đỏ**.
+`doc/15` §5 ghi cả hai "Đạt" — cả hai đều đạt thật, chỉ là không đạt **cùng một lúc**.
+Một CI làm `build` trước `lint` sẽ đỏ trên một kho mã "không có vấn đề gì". Đã thêm vào
+`.gitignore` và `ignores` của ESLint.
+
+## 23.7. Và một BUG THẬT, tìm ra bởi rác dữ liệu chứ không bởi phép kiểm
+
+Sau khi chạy bộ tiêm nhiều lần, ba bài kiểm F4 chuyển đỏ với thông báo trông như hỏng
+hạ tầng: `Cannot read properties of undefined (reading 'url')`. Nguyên nhân hoá ra là
+một lỗi thật trong mã sản phẩm.
+
+`LinkResolver` giải `(link_type, link_target_id)` bằng cách lấy **100 bản ghi đầu** rồi
+lọc trong bộ nhớ:
+
+```ts
+const r = await this.daos.products.list({ status: 'published' }, { page: 1, pageSize: 100 });
+```
+
+Một mục menu hoặc banner trỏ tới **sản phẩm thứ 101 trở đi** giải không ra — và theo
+đúng luật của `resolve()`, mục đó bị **bỏ khỏi menu trong im lặng**. Đúng loại hỏng mà cả
+F4 được xây ra để ngăn.
+
+LT Vietnam là nhà phân phối thiết bị: **hơn 100 sản phẩm đã publish là trạng thái bình
+thường**, không phải trường hợp biên. Cả bộ test không bắt được vì cơ sở dữ liệu demo chỉ
+có 12 sản phẩm. Nó chỉ lộ ra khi các đợt chạy test tích hợp tích tụ 119 sản phẩm — tức là
+**được phát hiện bởi rác dữ liệu, không bởi một phép kiểm**.
+
+Bốn nhóm có bản dịch chuyển sang `restrictToIds` (chỉ hỏi đúng id cần, một câu lệnh); bốn
+nhóm còn lại duyệt trang cho tới khi tìm đủ, dừng ngay khi không còn id nào thiếu.
+
+**Bản vá đầu của tôi cũng sai, và sai cùng một kiểu.** Nó viết
+`if (r.data.length < CO_TRANG) return` — tức **giả định** tầng DAO trả về đúng số dòng đã
+yêu cầu. `normalizePage` kẹp `pageSize` xuống `MAX_PAGE_SIZE = 100`, nên xin 200 thì nhận
+100 và vòng lặp dừng ngay sau trang đầu: y hệt lỗi cũ, chỉ khác con số. Bản hiện tại đọc
+mọi con số điều khiển vòng lặp **từ phản hồi**, không từ tham số gửi đi.
+
+Đã thêm bài kiểm *"mục menu trỏ tới bản ghi NGOÀI trang đầu vẫn giải được"* (chèn 205 sản
+phẩm rồi khẳng định mục menu còn nguyên), và dọn `afterAll` của bài kiểm F4 — nó để lại
+sản phẩm/hãng sau mỗi lần chạy, chính là nguồn rác nói trên. Chạy hai lần liên tiếp giờ
+đều xanh và catalogue giữ nguyên 12 sản phẩm.
+
+Ghi lại vì nó đáng: **rác dữ liệu là một dạng fuzzing tình cờ.** Nó tạo ra tình huống mà
+dữ liệu demo sạch sẽ không bao giờ tạo ra. Bộ test cần sạch để kết luận đọc được — nhưng
+lần này chính sự không sạch đã tìm ra thứ mà một tuần rà soát không tìm ra.
+
+## Số đo sau mục 23
+
+```
+535 bài kiểm backend (35 tệp)   xanh   (+2: ranh giới storage_class, mục menu ngoài trang đầu)
+594 bài kiểm workspace          xanh   (535 + 33 contracts + 13 db + 8 config + 5 worker)
+inject-f4.mjs                   14/14
+inject-f5-f8.mjs                24/24   (MỚI)
+smoke-api / smoke-auth          228/228 · 38/38 (41/41 lần chạy đầu)
+chạy test hai lần liên tiếp     xanh cả hai; catalogue giữ nguyên 12 sản phẩm
+typecheck · lint · format       sạch
+```
+
+**Cách chạy:**
+
+```bash
+DATABASE_URL=... pnpm inject          # cả hai bộ
+DATABASE_URL=... pnpm inject:f5-f8
+```

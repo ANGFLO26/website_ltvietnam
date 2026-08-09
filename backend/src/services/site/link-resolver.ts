@@ -127,57 +127,80 @@ export class LinkResolver {
      * tai, va do la loai loi chi nguoi dung phat hien.
      */
     switch (loai) {
-      case 'product': {
-        const r = await this.daos.products.list(
-          { status: 'published' },
-          { page: 1, pageSize: 100 },
+      case 'product':
+        await duyetHet(
+          (p) => this.daos.products.list({ status: 'published' }, p),
+          can,
+          (x) => them(x.id, `/products/${x.slug}`),
         );
-        for (const x of r.data) them(x.id, `/products/${x.slug}`);
         return ra;
-      }
-      case 'product_category': {
-        const r = await this.daos.productCategories.list(
-          { status: 'published' },
-          { page: 1, pageSize: 100 },
+      case 'product_category':
+        await duyetHet(
+          (p) => this.daos.productCategories.list({ status: 'published' }, p),
+          can,
+          (x) => them(x.id, `/products/category/${x.slug}`),
         );
-        for (const x of r.data) them(x.id, `/products/category/${x.slug}`);
         return ra;
-      }
-      case 'brand': {
-        const r = await this.daos.brands.list({ status: 'published' }, { page: 1, pageSize: 100 });
-        for (const x of r.data) them(x.id, `/brands/${x.slug}`);
-        return ra;
-      }
-      case 'post_category': {
-        const r = await this.daos.postCategories.list(
-          { status: 'published' },
-          { page: 1, pageSize: 100 },
+      case 'brand':
+        await duyetHet(
+          (p) => this.daos.brands.list({ status: 'published' }, p),
+          can,
+          (x) => them(x.id, `/brands/${x.slug}`),
         );
-        for (const x of r.data) them(x.id, `/news/category/${x.slug}`);
         return ra;
-      }
+      case 'post_category':
+        await duyetHet(
+          (p) => this.daos.postCategories.list({ status: 'published' }, p),
+          can,
+          (x) => them(x.id, `/news/category/${x.slug}`),
+        );
+        return ra;
       /**
        * Bon nhom co BAN DICH: slug phu thuoc locale, va dieu kien la HAI trang
        * thai (cha publish + ban dich publish). `listPublicByLocale` da ap ca hai
        * — dung lai no thay vi viet lai dieu kien lan thu hai.
+       *
+       * Bon nhom nay dung `restrictToIds`, tuc CHI hoi dung nhung id can: mot cau
+       * lenh, khong phai duyet trang. Bon nhom tren khong co duong tuong duong nen
+       * phai duyet — xem `duyetHet`.
        */
       case 'page': {
-        const r = await this.daos.pages.listPublicByLocale(locale, { limit: 100, offset: 0 });
+        const r = await this.daos.pages.listPublicByLocale(
+          locale,
+          { limit: ids.length, offset: 0 },
+          undefined,
+          ids,
+        );
         for (const x of r.rows) them(x.entityId, `/about/${x.slug}`);
         return ra;
       }
       case 'service': {
-        const r = await this.daos.services.listPublicByLocale(locale, { limit: 100, offset: 0 });
+        const r = await this.daos.services.listPublicByLocale(
+          locale,
+          { limit: ids.length, offset: 0 },
+          undefined,
+          ids,
+        );
         for (const x of r.rows) them(x.entityId, `/services/${x.slug}`);
         return ra;
       }
       case 'post': {
-        const r = await this.daos.posts.listPublicByLocale(locale, { limit: 100, offset: 0 });
+        const r = await this.daos.posts.listPublicByLocale(
+          locale,
+          { limit: ids.length, offset: 0 },
+          undefined,
+          ids,
+        );
         for (const x of r.rows) them(x.entityId, `/news/${x.slug}`);
         return ra;
       }
       case 'project': {
-        const r = await this.daos.projects.listPublicByLocale(locale, { limit: 100, offset: 0 });
+        const r = await this.daos.projects.listPublicByLocale(
+          locale,
+          { limit: ids.length, offset: 0 },
+          undefined,
+          ids,
+        );
         for (const x of r.rows) them(x.entityId, `/projects/${x.slug}`);
         return ra;
       }
@@ -191,5 +214,67 @@ export class LinkResolver {
          */
         return ra;
     }
+  }
+}
+
+/**
+ * Kich thuoc trang MONG MUON. `normalizePage` cua tang dao kep no xuong
+ * `MAX_PAGE_SIZE`, nen day chi la mot de nghi — vong lap duoi doc kich thuoc THAT tu
+ * phan hoi chu khong tin con so nay.
+ */
+const CO_TRANG = 100;
+
+/**
+ * Tran so trang, de mot bang lon bat thuong khong lam treo mot yeu cau HTTP. Muc menu
+ * chua giai duoc se bi BO, dung theo luat cua `resolve()` — bo mot muc menu con hon
+ * treo ca trang.
+ */
+const TRAN_TRANG = 50;
+
+/**
+ * DUYET CHO DEN KHI TIM DU — khong phai "lay 100 dong dau roi hy vong".
+ *
+ * BAN CU CO MOT LOI THAT, va no chi lo ra khi du lieu du lon:
+ *
+ *     const r = await this.daos.products.list({ status: 'published' },
+ *                                             { page: 1, pageSize: 100 });
+ *
+ * Chi 100 san pham DAU TIEN duoc xet. Mot muc menu hay banner tro toi san pham thu
+ * 101 tro di se giai khong ra — va theo dung luat cua `resolve()`, muc do bi BO khoi
+ * menu TRONG IM LANG. LT Vietnam la nha phan phoi thiet bi: hon 100 san pham da
+ * publish la trang thai BINH THUONG, khong phai truong hop bien.
+ *
+ * Ca bo test khong bat duoc vi co so du lieu demo chi co 12 san pham. No lo ra khi
+ * mot dot chay test tich hop de lai 119 san pham va ba bai kiem F4 chuyen do — tuc no
+ * duoc phat hien boi RAC DU LIEU, khong phai boi mot phep kiem. Gio da co bai kiem
+ * ("muc menu tro toi ban ghi NGOAI trang dau van giai duoc").
+ *
+ * BAN VA DAU CUA CHINH TOI CUNG SAI, va sai cung mot kieu: no viet
+ * `if (r.data.length < CO_TRANG) return`, tuc GIA DINH tang dao tra ve dung so dong
+ * da yeu cau. `normalizePage` kep `pageSize` xuong `MAX_PAGE_SIZE = 100`, nen khi toi
+ * xin 200 thi nhan 100 va vong lap dung ngay sau trang dau — y het loi cu. Nen moi
+ * con so dieu khien vong lap duoi day deu doc TU PHAN HOI, khong tu tham so gui di.
+ *
+ * Dung lai NGAY khi da tim du id can, nen truong hop pho bien (menu tro toi san pham
+ * noi bat, nam o dau danh sach) van chi ton mot cau lenh.
+ */
+async function duyetHet<T extends { readonly id: string }>(
+  lay: (p: { page: number; pageSize: number }) => Promise<{
+    data: readonly T[];
+    meta: { pageSize: number; totalItems: number };
+  }>,
+  can: ReadonlySet<string>,
+  nhan: (x: T) => void,
+): Promise<void> {
+  const conThieu = new Set(can);
+  let daXem = 0;
+  for (let trang = 1; trang <= TRAN_TRANG && conThieu.size > 0; trang += 1) {
+    const r = await lay({ page: trang, pageSize: CO_TRANG });
+    for (const x of r.data) {
+      if (conThieu.delete(x.id)) nhan(x);
+    }
+    daXem += r.data.length;
+    // Ca hai dieu kien deu doc tu PHAN HOI: het dong, hoac da xem het tong so.
+    if (r.data.length === 0 || daXem >= r.meta.totalItems) return;
   }
 }

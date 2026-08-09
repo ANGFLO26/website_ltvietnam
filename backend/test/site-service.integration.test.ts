@@ -210,11 +210,35 @@ run('SiteService tren PostgreSQL that', () => {
     ]);
   });
 
+  /**
+   * DON CA SAN PHAM VA HANG — ban dau khong don, va cai gia rat cu the.
+   *
+   * Ban cu chi xoa menu, banner, van phong va khach hang. San pham + hang o lai sau
+   * MOI lan chay, nen sau vai chuc lan chay bo test tich hop thi co so du lieu co 119
+   * san pham da publish — va ba bai kiem F4 chuyen do vi mot ly do trong nhu khong
+   * lien quan gi (`Cannot read properties of undefined`).
+   *
+   * Cho tot: dong rac do da lam LO RA mot loi that (`LinkResolver` chi xet 100 ban
+   * ghi dau — xem bai kiem "ngoai trang dau"). Cho xau: mot bo test tu lam ban moi
+   * truong cua chinh no thi lan sau se do vi ly do khac, va nguoi doc mat thoi gian o
+   * sai cho. `doc/15` da co lap ba bai kiem khac vi dung ly do nay; day la cho thu tu.
+   */
   afterAll(async () => {
     await daos.menus.delete(id['menu']!);
     for (const k of ['b1', 'b2', 'b3', 'b4']) await daos.banners.delete(id[k]!);
     for (const k of ['v1', 'v2']) await daos.offices.delete(id[k]!);
-    for (const k of ['k1', 'k2', 'k3']) await daos.customers.softDelete(id[k]!, new Date());
+    for (const k of ['sp', 'spNhap']) await daos.products.hardDelete(id[k]!);
+    await pool.query(`DELETE FROM ltv.products WHERE slug LIKE $1`, [`${tag}-%`]);
+    await pool.query(`DELETE FROM ltv.brands WHERE slug LIKE $1`, [`${tag}-%`]);
+    /**
+     * THU TU quan trong: `customers.logo_id` co khoa ngoai tro toi `media`.
+     *
+     * Ban dau doan nay dung `customers.softDelete()` — xoa MEM van de lai hang, va
+     * hang do van giu `logo_id`, nen lenh xoa media ke tiep do voi
+     * `customers_logo_id_fkey`. Du lieu cua bai kiem thi phai xoa THAT.
+     */
+    await pool.query(`DELETE FROM ltv.customers WHERE name LIKE $1`, [`%${tag}%`]);
+    await pool.query(`DELETE FROM ltv.media WHERE checksum = $1`, [`${tag}-anh`]);
     await pool.end();
   });
 
@@ -301,6 +325,49 @@ run('SiteService tren PostgreSQL that', () => {
       expect(cha!.url).toBeNull();
       expect(cha!.children.map((c) => c.label)).toEqual(['Con song']);
       expect(cha!.children[0]!.url).toBe(`/products/${s('sp')}`);
+    });
+
+    /**
+     * MUC TIEU NAM NGOAI TRANG DAU — bai kiem ra doi tu mot loi THAT.
+     *
+     * Ban dau `LinkResolver` lay `{ page: 1, pageSize: 100 }` roi loc trong bo nho.
+     * Nghia la chi 100 ban ghi DAU TIEN duoc xet: mot muc menu tro toi san pham thu
+     * 101 tro di giai khong ra, va theo dung luat cua `resolve()` no bi BO khoi menu
+     * TRONG IM LANG.
+     *
+     * LT Vietnam la nha phan phoi thiet bi — hon 100 san pham da publish la trang
+     * thai BINH THUONG. Nhung ca bo test khong bat duoc, vi co so du lieu demo chi co
+     * 12 san pham. No chi lo ra khi mot dot chay test tich hop de lai 119 san pham va
+     * ba bai kiem F4 chuyen do; tuc no duoc phat hien boi RAC DU LIEU, khong phai boi
+     * mot phep kiem.
+     *
+     * Bai kiem nay dung dung dieu kien do: chen du san pham de muc tieu chac chan
+     * KHONG nam trong trang dau, roi doi muc menu van phai giai duoc.
+     */
+    it('muc menu tro toi ban ghi NGOAI trang dau van giai duoc', async () => {
+      const them: string[] = [];
+      // `CO_TRANG` cua resolver la 200 — chen du de vuot mot trang.
+      for (let i = 0; i < 205; i += 1) {
+        const p = await daos.products.insert({
+          brandId: id['hang']!,
+          name: `May lot ${tag} ${i}`,
+          slug: s(`lot-${i}`),
+        });
+        them.push(p.id);
+        await daos.products.publish(p.id, new Date());
+      }
+      try {
+        cache.clear();
+        const nav = await site.navigation('header', 'en');
+        const m = nav.menus.find((x) => x.code === s('menu'))!;
+        expect(
+          m.items.find((x) => x.label === 'Song')?.url,
+          'muc menu bien mat khi catalogue vuot mot trang',
+        ).toBe(`/products/${s('sp')}`);
+      } finally {
+        for (const pid of them) await daos.products.hardDelete(pid);
+        cache.clear();
+      }
     });
 
     it('`footer` gop bon menu va KHONG co mega menu', async () => {

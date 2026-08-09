@@ -1,6 +1,6 @@
 # Trạng thái backend — cập nhật sau rà soát F1–F8
 
-> Cập nhật: 2026-08-09 · nhánh `feat/p0-scaffold` · commit nền `e0a9be5`
+> Cập nhật: 2026-08-10 · nhánh `feat/p0-scaffold` · commit nền `6a9b4bf`
 > File này trả lời hai câu: **đang ở đâu** và **làm gì tiếp**.
 > Mọi con số dưới đây là **đo được**, không phải tuyên bố — cách chạy lại ở mục 6.
 
@@ -38,8 +38,8 @@ catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đ�
 ### Số đo hiện tại
 
 ```
-workspace test                 592/592 xanh
-backend test                   533/533 xanh; integration chạy trên PostgreSQL thật, không skip
+workspace test                 594/594 xanh
+backend test                   535/535 xanh; integration chạy trên PostgreSQL thật, không skip
 worker test                    5/5 xanh
 contracts test                 33/33 xanh
 config test                    8/8 xanh
@@ -47,8 +47,9 @@ db migration-runner            13/13 xanh
 API                            198/198 endpoint (F8: 136/136)
 PostgreSQL migration           37/37 đã apply; manifest 37/37 hợp lệ
 smoke-api.mjs                  228/228 qua HTTP thật
-smoke-auth.mjs                 41/41
+smoke-auth.mjs                 38/38 (41/41 o lan chay dau — xem muc 9)
 inject-f4.mjs                  14/14 (đã sửa: trước đó 11/14 — xem mục 9)
+inject-f5-f8.mjs               24/24 (MỚI — F5–F8 trước đây không có phép tiêm nào)
 pnpm build                     đạt; Next.js cảnh báo chưa khai báo plugin ESLint frontend
 pnpm typecheck                 sạch (7 gói; tự build package dependency)
 pnpm lint                      0 lỗi
@@ -66,13 +67,9 @@ pnpm format:check              sạch
 Ngoài backend: **frontend gần như trống** (`layout.tsx`, `page.tsx`, `middleware.ts`).
 Worker đã có claim/reaper/backoff và adapter file/SMTP.
 
-> **Rủi ro cao nhất hiện nay không phải là mã còn thiếu, mà là mã chưa được lưu.**
-> Toàn bộ F5–F8 đang nằm trong working tree **chưa commit**: 204 file thay đổi, trong
-> đó 57 file hoàn toàn mới (`git status --short`). Commit gần nhất là `e0a9be5`, tức
-> **F4**. Một lần `git checkout .`, `git clean -fd` hay một sự cố ổ đĩa sẽ xoá sạch
-> toàn bộ F5, F6, F7 và 136 endpoint F8.
->
-> Việc cần làm trước mọi việc khác: `git add -A && git commit` rồi `git push`.
+> **F5–F8 đã được commit** (`6a9b4bf`) và đẩy lên `origin/feat/p0-scaffold`. Cảnh báo
+> "204 file chưa commit" ở bản trước của mục này **không còn đúng** — giữ lại một dòng
+> ở đây để ai đọc bản cũ không đi tìm một rủi ro đã hết.
 
 ---
 
@@ -131,19 +128,21 @@ pnpm db:seed:demo     # dữ liệu demo, idempotent
 
 pnpm typecheck
 pnpm lint
-pnpm --filter @ltv/backend test        # tổng 533; integration cần DATABASE_URL
+pnpm --filter @ltv/backend test        # tổng 535; integration cần DATABASE_URL
 pnpm --filter @ltv/worker test         # 5 bài kiểm worker email
 pnpm --filter @ltv/db test             # 13 bài kiểm migration runner
 
 pnpm dev:backend                       # cửa sổ khác
 pnpm smoke:api                         # 228 phép kiểm (gồm F5 + F6)
-pnpm smoke:auth                        # 41 phép kiểm
+pnpm smoke:auth                        # 38 phép kiểm (41 ở lần đầu)
 ```
 
 Integration PostgreSQL, smoke HTTP và phép tiêm lỗi cần `DATABASE_URL` cùng backend đang chạy:
 
 ```bash
-DATABASE_URL=... node scripts/inject-f4.mjs   # 14/14 phải ĐỎ đúng chỗ
+DATABASE_URL=... pnpm inject          # 14/14 (F4) + 24/24 (F5–F8) phải ĐỎ đúng chỗ
+DATABASE_URL=... pnpm inject:f4
+DATABASE_URL=... pnpm inject:f5-f8
 ```
 
 ---
@@ -165,8 +164,8 @@ DATABASE_URL=... node scripts/inject-f4.mjs   # 14/14 phải ĐỎ đúng chỗ
 | | Vấn đề | Khi nào làm |
 |---|---|---|
 | 1 | `/products/landing` **lần cache lạnh vẫn chạy đủ 10 câu**, gồm 5 câu `COUNT(*)` bị bỏ. Cache 60s chỉ xử lý trạng thái nóng. | chỉ làm khi đo được là vấn đề (khi chạy nhiều bản sao) |
-| 2 | **Tiêm lỗi chỉ phủ F4.** `inject-f4.mjs` có 14 phép tiêm, tất cả cho F4. F5–F8 — gồm 136 endpoint admin, upload media và luồng email — có test hồi quy nhưng **chưa có phép tiêm nào chứng minh các test đó không rỗng.** Trong đó có bản sửa mức *Nghiêm trọng* (`hard=false` thành xóa cứng). | trước khi coi F8 là đã kiểm xong |
-| 3 | Chưa có smoke HTTP đăng nhập chạy qua 136 endpoint admin (đã ghi ở `doc/15` §6) | khi làm UI quản trị |
+| 2 | Chưa có smoke HTTP đăng nhập chạy qua 136 endpoint admin (đã ghi ở `doc/15` §6) | khi làm UI quản trị |
+| 3 | `lockActiveAdmins()` (`SELECT ... FOR UPDATE`) chống **hai yêu cầu đồng thời** cùng vô hiệu hóa hai admin cuối. Bỏ dòng khóa đó đi thì bộ test **vẫn xanh** — test chạy một luồng. Kiểm được nó cần hai kết nối song song và một điểm đồng bộ. | khi có thời gian; đã ghi rõ trong `inject-f5-f8.mjs` |
 
 ---
 
@@ -189,29 +188,54 @@ Báo cáo chi tiết: [`doc/15_BAO_CAO_RA_SOAT_F1_F8.md`](15_BAO_CAO_RA_SOAT_F1_
 
 ---
 
-## 9. Đính chính sau khi kiểm chứng lại (2026-08-09)
+## 9. Đính chính sau khi kiểm chứng lại
 
-Toàn bộ số đo ở mục 2 đã được **chạy lại từ đầu** trên PostgreSQL thật (37 migration
-áp dụng từ cơ sở dữ liệu trống, seed bootstrap + demo, backend khởi động thật). Hai
-con số sai và một công cụ hỏng:
+Toàn bộ số đo ở mục 2 đã được **chạy lại từ đầu** trên PostgreSQL thật (37 migration áp
+dụng từ cơ sở dữ liệu trống, seed bootstrap + demo, backend khởi động thật).
 
-| Chỗ | Báo cáo ghi | Đo được | Ghi chú |
-|---|---|---|---|
-| `smoke-auth.mjs` | 38/38 | **41/41** | số cũ có từ trước F5; F5 thêm 3 phép kiểm |
-| `inject-f4.mjs` | 14/14 | **11/14** (lúc đó) | 3 phép tiêm im lặng chuyển sang "BO QUA" |
+### 9.1. `inject-f4.mjs` đã tự hỏng — và hỏng đúng theo kiểu nó sinh ra để bắt
 
-**`inject-f4.mjs` đã tự hỏng, và hỏng đúng theo kiểu nó sinh ra để bắt.** Đợt dọn dẹp
-chạy Prettier trên 146 file; formatter ngắt lại dòng và thêm dấu phẩy cuối ở ba chỗ mà
-kịch bản trỏ tới bằng chuỗi nguyên văn, nên `src.includes(...)` không còn khớp. Ba phép
-tiêm chuyển sang "BO QUA" — script vẫn **thoát 0**, và báo cáo chép con số cũ sang.
+Báo cáo ghi 14/14; đo được **11/14**. Đợt dọn dẹp chạy Prettier trên 146 file; formatter
+ngắt lại dòng và thêm dấu phẩy cuối ở ba chỗ mà kịch bản trỏ tới bằng chuỗi nguyên văn,
+nên `src.includes(...)` không còn khớp. Ba phép tiêm chuyển sang "BO QUA", script **vẫn
+thoát 0**, và báo cáo chép con số cũ sang.
 
-Ba bảo đảm đó vẫn còn nguyên trong mã; chỉ *phép đo* mất. Nhưng đó chính là trạng thái
-nguy hiểm: nếu lần refactor sau làm mất bảo đảm thật thì không còn gì phát hiện.
+Ba bảo đảm đó vẫn còn nguyên trong mã; chỉ *phép đo* mất. Đã sửa hàm so khớp (bỏ qua
+xuống dòng và dấu phẩy cuối, vẫn cắt đúng đoạn nguyên văn để phép hoàn tác bằng băm còn
+hiệu lực). Sau khi sửa: **14/14**.
 
-Đã sửa: `timDoan()` so khớp trên bản đã gom khoảng trắng và bỏ qua dấu phẩy cuối, rồi
-cắt đúng đoạn **nguyên văn** trong file để phép hoàn tác bằng băm vẫn đúng. Đổi tên
-biến hay đổi logic vẫn làm nó không khớp — và đó là cố ý. Sau khi sửa: **14/14**.
+### 9.2. `smoke-auth` 38 hay 41 — **tôi đã đính chính SAI ở bản trước**
 
-Những con số còn lại **đúng nguyên văn**: 592 test workspace (533 backend / 35 file, 33
-contracts, 8 config, 13 db, 5 worker), 198/198 endpoint, 37 migration, smoke-api
-228/228, typecheck + lint + format:check + build đều sạch.
+Bản trước của mục này viết: "smoke-auth là 41/41, không phải 38/38; con số 38 có từ trước
+F5." Câu đó **sai**. Số phép kiểm **phụ thuộc trạng thái cơ sở dữ liệu**, và đã đo:
+
+| Trạng thái | Kết quả |
+|---|---|
+| DB **chưa có** tài khoản quản trị (lần chạy đầu) | **41/41** |
+| DB **đã có** tài khoản (mọi lần sau) | **38/38** |
+
+`smoke-auth.mjs` gọi `POST /auth/bootstrap`; gặp 409 thì nó bỏ qua ba phép kiểm bootstrap
+và dùng tiếp tài khoản sẵn có. Cả hai con số đều đúng, và báo cáo gốc ghi 38 là đúng cho
+lần chạy lặp lại — tôi đo một lần trên DB sạch rồi kết luận con số kia sai.
+
+Bài học chung hơn: **một bộ smoke có số phép kiểm phụ thuộc trạng thái thì không trích
+được thành một con số cố định.** Cách ghi đúng là nêu cả hai cùng điều kiện.
+
+### 9.3. `pnpm build` làm `pnpm lint` đỏ
+
+`next build` sinh `frontend/next-env.d.ts`, trong đó có
+`/// <reference path="./.next/types/routes.d.ts" />` — đúng thứ mà luật
+`@typescript-eslint/triple-slash-reference` cấm. File này **không** nằm trong
+`.gitignore`.
+
+Hệ quả: trên bản checkout sạch thì `pnpm lint` xanh; chạy `pnpm build` rồi `pnpm lint`
+thì **đỏ**. `doc/15` §5 ghi cả hai đều "Đạt" — cả hai đều đạt thật, chỉ là không đạt cùng
+một lúc. Một pipeline CI làm `build` trước `lint` (thứ tự bình thường) sẽ đỏ trên một kho
+mã "không có vấn đề gì". Đã thêm file vào `.gitignore` và vào `ignores` của ESLint.
+
+### 9.4. Những con số đúng nguyên văn
+
+592 test workspace (533 backend / 35 file, 33 contracts, 8 config, 13 db, 5 worker) — nay
+là **594** sau khi thêm hai bài kiểm (ranh giới `storage_class`, và mục menu trỏ tới bản
+ghi ngoài trang đầu — xem `doc/13` mục 23), 198/198 endpoint, 37 migration, smoke-api 228/228, typecheck + lint +
+format:check + build đều sạch.

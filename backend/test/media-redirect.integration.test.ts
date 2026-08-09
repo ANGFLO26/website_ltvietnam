@@ -159,6 +159,52 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
     expect(after.map((x) => x.id)).not.toContain(m.id); // khong don hai lan
   });
 
+  /**
+   * RANH GIOI `storage_class` — kiem tren SQL THAT, khong tren DAO gia.
+   *
+   * Bai kiem nay ra doi tu mot phep tiem KHONG DAT. `test/media-service.test.ts` co
+   * bai "protected PDF khong qua /media", nhung no dung mot DAO gia
+   * (`findActiveByPublicAssetPath: vi.fn(...)`) — nen no do TANG SERVICE, khong do
+   * dieu kien that. Khi toi bo `.where('storage_class', '=', 'public')` khoi cau SQL,
+   * bo test VAN XANH.
+   *
+   * Do la khoang trong dat gia nhat co the: `storage_class` la ranh gioi giua "ai
+   * cung tai duoc" va "phai qua cong tai lieu". Mat no thi moi PDF noi bo tro thanh
+   * cong khai qua mot URL DOAN DUOC, khong can dang nhap — va khong loi nao duoc ghi.
+   *
+   * `openPublic` ghep duong dan tu tham so nguoi dung roi hoi DAO. Neu DAO tra ve ca
+   * ban ghi `protected` thi service khong con gi de chan.
+   */
+  it('LO HONG F7 — /media KHONG duoc mo tep protected', async () => {
+    const anh = await upload('public-asset');
+    const pdf = await upload('tai-lieu-noi-bo', {
+      fileName: `${tag}-tai-lieu-noi-bo.pdf`,
+      originalName: `${tag}-tai-lieu-noi-bo goc.pdf`,
+      storageClass: 'protected',
+      storagePath: `protected-documents/${tag}/noi-bo.pdf`,
+      mimeType: 'application/pdf',
+      fileExtension: 'pdf',
+    });
+
+    expect(
+      (await daos.media.findActiveByPublicAssetPath(anh.storagePath))?.id,
+      'anh public phai mo duoc',
+    ).toBe(anh.id);
+
+    expect(
+      await daos.media.findActiveByPublicAssetPath(pdf.storagePath),
+      'PDF protected KHONG duoc tra ve qua duong /media',
+    ).toBeNull();
+
+    /** Xoa mem cung phai chan — tep da go van con tren dia mot thoi gian. */
+    await daos.media.softDelete(anh.id, new Date());
+    expect(
+      await daos.media.findActiveByPublicAssetPath(anh.storagePath),
+      'tep da xoa mem KHONG duoc phuc vu',
+    ).toBeNull();
+    await daos.media.restore(anh.id);
+  });
+
   // ── redirects ──────────────────────────────────────────────────
   it('chi tra ve ban ghi active', async () => {
     const r = await daos.redirects.upsert({ sourcePath: `/${tag}/cu`, targetPath: `/${tag}/moi` });

@@ -1,202 +1,22 @@
 #!/usr/bin/env node
 /**
- * TIEM LOI — chung minh cac phep kiem cua F4 KHONG RONG.
+ * TIEM LOI CHO F4 — chung minh cac phep kiem cua khung site KHONG RONG.
  *
- *     node scripts/inject-f4.mjs
+ *     DATABASE_URL=... node scripts/inject-f4.mjs
  *
- * Mot phep kiem xanh khong noi len dieu gi ca cho den khi ta pha ma nguon va thay
- * no DO. Trong du an nay toi da viet vai phep kiem xanh vi khong co gi de do:
- * `sort=newest` khong bao gio do thu tu, trang landing chi kiem mot nhom trong nam,
- * `findHeadOffice` khong bao gio tao ban chua xuat ban.
- *
- * HAI LUAT ra tu mot lan toi tu lam hong phep do cua chinh minh:
- *
- *  1. MOI lan tiem co MOT tep sao luu RIENG. Lan truoc toi dung chung mot
- *     `/tmp/bak` cho cac lan tiem long nhau, va "hoan tac" de lai tep thieu mot
- *     dieu kien — roi toi do tiep tren ma nguon DA HONG trong nua gio.
- *  2. Sau khi hoan tac phai DOI CHIEU BAM. Khong doi chieu thi "da hoan tac" chi
- *     la mot y dinh.
+ * Bo khung nam o `scripts/lib/inject-harness.mjs` (dung chung voi
+ * `inject-f5-f8.mjs`); o day chi con DANH SACH phep tiem.
  */
-import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { copyFileSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { taoBoTiem } from './lib/inject-harness.mjs';
 
-const ROOT = process.cwd();
-const DB = process.env.DATABASE_URL;
-if (!DB) {
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+if (!process.env.DATABASE_URL) {
   console.error('Can DATABASE_URL (PostgreSQL that) — cac phep kiem la test tich hop.\n');
   process.exit(1);
 }
-
-const bam = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
-
-let pass = 0;
-const loi = [];
-
-/**
- * Chay mot bai kiem va tra ve `true` neu no XANH.
- *
- * `--reporter=dot` de dau ra ngan; ma thoat la thu duy nhat duoc dung de quyet
- * dinh, khong phai viec doc van ban ket qua.
- */
-function testXanh(file, ten) {
-  try {
-    execFileSync(
-      join(ROOT, 'node_modules/.bin/vitest'),
-      ['run', file, '-t', ten, '--reporter=dot'],
-      { cwd: join(ROOT, 'backend'), env: { ...process.env, DATABASE_URL: DB }, stdio: 'pipe' },
-    );
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Tim mot doan ma BAT KE cach xuong dong.
- *
- * Ra doi tu mot lan hong that. Dot don dep 2026-08-09 chay Prettier tren 146 tep,
- * va formatter ngat lai dong o BA cho ma kich ban nay tro toi:
- *
- *     const r = await this.daos.products.list({ status: 'published' }, { page: 1, ... });
- *     -> const r = await this.daos.products.list(
- *          { status: 'published' },
- *          { page: 1, ... },
- *        );
- *
- * `src.includes(tim)` khong con khop, va ba phep tiem chuyen sang "BO QUA". Bao cao
- * thi van chep con so cu (14/14) sang. Tuc la: cong cu dung de chung minh phep kiem
- * khong rong DA TU HONG, va hong theo dung kieu no sinh ra de bat.
- *
- * Nen so khop bay gio bo qua KHOANG TRANG: moi cum khoang trang trong mau doi thanh
- * `\s+`. Doi ten bien hay doi logic van lam no khong khop (dung — luc do phai xem
- * lai phep tiem), nhung dinh dang lai thi khong.
- */
-const DAU = /[(){}[\],;:=><+\-*/&|!?.]/;
-
-/**
- * Gom khoang trang, GIU dau vet vi tri goc.
- *
- * Tra ve mang `{ c, i }`: `c` la ky tu sau khi gom, `i` la vi tri cua no trong
- * chuoi goc. Nho `i` ma sau khi khop tren ban da gom, ta cat duoc dung doan
- * NGUYEN VAN trong tep — khong phai ghi lai tep bang ban da gom (lam vay se pha
- * dinh dang cua ca tep, va phep hoan tac bang bam se bao dong dung).
- *
- * Khoang trang canh mot DAU CAU bi bo han (`list( {` va `list({` la mot), con
- * giua hai ky tu chu thi thu lai mot dau cach (`const r` khong duoc dinh thanh
- * `constr` — de nhu vay se khop nham).
- */
-function gom(s) {
-  const ra = [];
-  let cho = false;
-  for (let i = 0; i < s.length; i += 1) {
-    const c = s[i];
-    if (/\s/.test(c)) {
-      cho = true;
-      continue;
-    }
-    if (cho && ra.length > 0) {
-      const truoc = ra[ra.length - 1].c;
-      if (!DAU.test(truoc) && !DAU.test(c)) ra.push({ c: ' ', i });
-    }
-    cho = false;
-    ra.push({ c, i });
-  }
-  return ra;
-}
-
-/**
- * Tim mot doan ma BAT KE dinh dang, tra ve doan NGUYEN VAN trong tep.
- *
- * Ra doi tu mot lan hong that. Dot don dep 2026-08-09 chay Prettier tren 146 tep,
- * va formatter ngat lai dong + them dau phay cuoi o BA cho ma kich ban nay tro toi:
- *
- *     list({ status: 'published' }, { page: 1, pageSize: 100 });
- *     -> list(
- *          { status: 'published' },
- *          { page: 1, pageSize: 100 },
- *        );
- *
- * `src.includes(tim)` khong con khop, ba phep tiem chuyen sang "BO QUA", va bao cao
- * van chep con so cu (14/14) sang. Tuc la: cong cu dung de chung minh phep kiem
- * khong rong DA TU HONG — dung theo kieu no sinh ra de bat.
- *
- * Hai thu duoc bo qua, va chi hai thu do:
- *   - CACH XUONG DONG va thut le
- *   - DAU PHAY CUOI truoc mot dau dong `)` `}` `]`
- *
- * Doi ten bien hay doi logic van lam no khong khop — va do la dung: luc do phep
- * tiem phai duoc doc lai, khong duoc lang le khop vao mot doan khac.
- */
-function timDoan(src, mau) {
-  const g = gom(src);
-  const re = new RegExp(
-    gom(mau)
-      .map((x) => x.c)
-      .join('')
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\\([)\]}])/g, ',?\\$1'),
-  );
-  const m = re.exec(g.map((x) => x.c).join(''));
-  if (m === null || m.index === undefined) return null;
-  const dau = g[m.index];
-  const cuoi = g[m.index + m[0].length - 1];
-  if (dau === undefined || cuoi === undefined) return null;
-  return src.slice(dau.i, cuoi.i + 1);
-}
-
-/**
- * MOT lan tiem: sua mot chuoi trong mot tep, doi bai kiem phai DO, roi hoan tac.
- *
- * Ba dieu kien deu phai dat, va thieu cai nao thi ket luan khac nhau:
- *   - truoc khi tiem, bai kiem phai XANH   (neu khong: bai kiem dang do vi ly do khac)
- *   - sau khi tiem, bai kiem phai DO       (neu khong: bai kiem khong do gi ca)
- *   - sau khi hoan tac, bam phai khop      (neu khong: ma nguon dang hong)
- */
-function tiem({ ten, tep, tim, thay, test, phepKiem }) {
-  const p = join(ROOT, tep);
-  const sao = `${p}.bak-${ten.replace(/[^\w]+/g, '-')}`;
-  const truoc = bam(p);
-
-  process.stdout.write(`\n── ${ten}\n`);
-
-  if (!testXanh(test, phepKiem)) {
-    loi.push(`${ten}: phep kiem DO TRUOC khi tiem — khong ket luan duoc gi`);
-    process.stdout.write('   BO QUA (phep kiem do tu truoc)\n');
-    return;
-  }
-
-  copyFileSync(p, sao);
-  try {
-    const src = readFileSync(p, 'utf8');
-    const doan = timDoan(src, tim);
-    if (doan === null) {
-      loi.push(`${ten}: khong tim thay doan can sua trong ${tep}`);
-      process.stdout.write('   BO QUA (khong khop doan can sua)\n');
-      return;
-    }
-    writeFileSync(p, src.replace(doan, thay));
-
-    if (testXanh(test, phepKiem)) {
-      loi.push(`${ten}: phep kiem VAN XANH sau khi pha ma — no khong do gi ca`);
-      process.stdout.write('   KHONG DAT — phep kiem rong\n');
-    } else {
-      pass += 1;
-      process.stdout.write('   dat (pha ma -> phep kiem do)\n');
-    }
-  } finally {
-    copyFileSync(sao, p);
-    unlinkSync(sao);
-    const sau = bam(p);
-    if (sau !== truoc) {
-      loi.push(
-        `${ten}: HOAN TAC THAT BAI — ${tep} da doi (${truoc.slice(0, 12)} -> ${sau.slice(0, 12)})`,
-      );
-      process.stdout.write('   CANH BAO: hoan tac that bai\n');
-    }
-  }
-}
+const { tiem, ketLuan } = taoBoTiem({ goc: ROOT });
 
 const SITE = 'backend/src/services/site/service.ts';
 const RESOLVER = 'backend/src/services/site/link-resolver.ts';
@@ -216,8 +36,8 @@ tiem({
 tiem({
   ten: 'muc tro toi ban nhap bi bo',
   tep: RESOLVER,
-  tim: "const r = await this.daos.products.list({ status: 'published' }, { page: 1, pageSize: 100 });",
-  thay: 'const r = await this.daos.products.list({}, { page: 1, pageSize: 100 });',
+  tim: "(p) => this.daos.products.list({ status: 'published' }, p),",
+  thay: '(p) => this.daos.products.list({}, p),',
   test: T,
   phepKiem: 'muc tro toi noi dung CHUA PUBLISH bi bo',
 });
@@ -378,8 +198,4 @@ tiem({
  * gia tri vua tinh phai lay lai duoc) — chi la no khong duoc dem bang phep tiem.
  */
 
-console.log(
-  `\n${loi.length === 0 ? 'TAT CA DEU DAT' : 'CO MUC KHONG DAT'} — ${pass} phep tiem dat, ${loi.length} van de\n`,
-);
-for (const e of loi) console.error(`  - ${e}`);
-process.exit(loi.length === 0 ? 0 : 1);
+process.exit(ketLuan('F4'));

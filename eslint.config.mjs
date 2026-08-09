@@ -22,6 +22,21 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       '**/.next/**',
+      /**
+       * `next-env.d.ts` do `next build` SINH RA, va no sinh ra mot dong
+       * `/// <reference path="./.next/types/routes.d.ts" />` — dung thu ma luat
+       * `@typescript-eslint/triple-slash-reference` cam.
+       *
+       * Hau qua do duoc: tren mot ban checkout sach thi `pnpm lint` xanh, nhung
+       * chay `pnpm build` roi `pnpm lint` thi DO. Hai lenh deu duoc bao cao la
+       * "dat" o `doc/15`, va ca hai deu dat — chi la khong dat cung mot luc.
+       * Mot pipeline CI lam `build` truoc `lint` (thu tu binh thuong) se do tren
+       * mot kho ma "khong co van de gi".
+       *
+       * Tep nay khong phai ma nguon nen no khong nen di qua ESLint; no cung da
+       * duoc them vao `.gitignore` theo dung khuyen nghi cua Next.js.
+       */
+      'frontend/next-env.d.ts',
       '**/coverage/**',
       // Bang chung cua spike P0 — giu lai de doi chieu, khong phai ma san pham.
       'implementation/evidence/**',

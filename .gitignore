@@ -6,6 +6,8 @@ node_modules/
 dist/
 build/
 .next/
+# Do `next build` sinh ra; khong phai ma nguon (khuyen nghi cua Next.js).
+frontend/next-env.d.ts
 out/
 .turbo/
 coverage/
