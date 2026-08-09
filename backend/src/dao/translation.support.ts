@@ -54,6 +54,21 @@ export interface TranslationStatus {
   readonly firstPublishedAt: Date | null;
 }
 
+/**
+ * Mot dong trong danh sach cong khai theo locale.
+ *
+ * `entityId` la id cua bang CHA, khong phai id cua hang dich: tang tren lam viec
+ * voi thuc the, con hang dich chi la mot cach the hien cua no. Tang service dung
+ * id nay de lay them quan he (anh dai dien, danh muc) theo LO — mot truy van cho
+ * ca trang, khong phai mot truy van moi dong.
+ */
+export interface PublicTranslationRow {
+  readonly entityId: string;
+  readonly slug: string;
+  readonly title: string;
+  readonly publishedAt: Date | null;
+}
+
 /** Mot muc `<link rel="alternate" hreflang="...">`. */
 export interface HreflangAlternate {
   readonly locale: Locale;
@@ -135,6 +150,126 @@ export class TranslationSupport {
   async findTranslationStatus(entityId: string, locale: Locale): Promise<TranslationStatus | null> {
     const all = await this.listTranslations(entityId);
     return all.find((t) => t.locale === locale) ?? null;
+  }
+
+  /**
+   * DANH SACH CONG KHAI theo locale — id cua thuc the + slug + tieu de.
+   *
+   * Vi sao ham nay phai ton tai (va vi sao no khong co tu D3/D5):
+   *
+   * Tang dao xay xong duong GHI (`upsertTranslation`) va duong CHI TIET
+   * (`findBySlug(locale, slug)`), nhung KHONG co duong DANH SACH theo locale.
+   * F3 co ba endpoint danh sach — `/posts`, `/projects`, `/services` — va voi
+   * be mat cu thi cach duy nhat de lam la:
+   *
+   *     list(filter)              -> 20 thuc the
+   *     findTranslation(id, loc)  -> x20
+   *
+   * tuc N+1 dung nghia, tren dung nhung trang duoc xem nhieu nhat. `doc/06`
+   * cam dieu do, va mot ban dung tam roi "toi uu sau" se khong bao gio duoc
+   * quay lai.
+   *
+   * Dat o `TranslationSupport` chu khong viet bon lan trong bon `dao.ts`: dieu
+   * kien HAI TRANG THAI duoi day la thu de sai nhat trong ca nhom, va viet bon
+   * lan la bon co hoi sai khac nhau.
+   *
+   * HAI DIEU KIEN, va thieu mot cai la mot lo ro ri khac nhau:
+   *
+   *   p.status = 'published' AND p.deleted_at IS NULL   thuc the da duyet
+   *   t.status = 'published'                            BAN DICH nay da duyet
+   *
+   * Thieu dieu kien thu nhat: mot bai viet da rut xuong nhap van con URL tieng
+   * Viet song. Thieu dieu kien thu hai: ban dich dang viet nua voi bi cong bo
+   * — dung thu ADR-004 sinh ra de chan, va la loai ro ri khong ai thay vi
+   * trang VAN hien ra binh thuong.
+   */
+  async listPublicByLocale(
+    locale: Locale,
+    page: { readonly limit: number; readonly offset: number },
+    /**
+     * Dieu kien phu tren bang CHA, dang `cot = gia tri`.
+     *
+     * Nhan CAP KHOA-GIA TRI chu khong nhan chuoi SQL: mot tham so chuoi o day
+     * la mot duong tiem SQL di thang qua moi tang xac thuc phia tren.
+     *
+     * HAN CHE con lai, noi ro: ten cot KHONG duoc kiem kieu. Go sai
+     * (`post_type` thay vi `article_type`) cho ra loi luc CHAY —
+     * `column p.post_type does not exist` — chu khong phai luc bien dich. Toi
+     * dinh dung do that khi thu ham nay.
+     *
+     * Chua sua vi nguoi goi duy nhat la bon `dao.ts` cua chinh tang nay, va
+     * moi cach goi deu co test di qua. Sua dung cach la mot ban do kieu tu
+     * `Database` sang ten cot cua tung bang cha; do la viec dang lam khi so
+     * dieu kien phu tang len, khong phai khi con hai cho dung.
+     */
+    where: Readonly<Record<string, string | boolean | null>> = {},
+  ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
+    const dieuKien = Object.entries(where);
+    /**
+     * `sql.join([])` NEM LOI — nen phai kiem TRUOC khi goi, khong phai sau.
+     *
+     * Ban dau toi viet:
+     *
+     *     const loc = sql.join(dieuKien.map(...), sql` `);
+     *     const them = dieuKien.length > 0 ? loc : sql``;
+     *
+     * Toan tu ba ngoi kiem do dai, nhung `sql.join(...)` da chay XONG truoc do —
+     * JavaScript tinh ca hai nhanh cua mot bieu thuc gan. Voi mang rong, Kysely
+     * tinh `new Array(2 * 0 - 1)` va nem `RangeError: Invalid array length`.
+     *
+     * Nen duong VO la duong KHONG CO dieu kien phu — tuc la truong hop PHO BIEN
+     * NHAT (`/posts`, `/projects` khong loc gi). `tsc` sach hoan toan; chi mot
+     * lan goi that moi lo ra.
+     */
+    const them =
+      dieuKien.length === 0
+        ? sql``
+        : sql.join(
+            dieuKien.map(([k, v]) => sql`AND p.${sql.ref(k)} = ${v}`),
+            sql` `,
+          );
+
+    const r = await sql<{
+      id: string; slug: string; title: string;
+      published_at: Date | null; total: string;
+    }>`
+      SELECT p.id, t.slug, ${sql.ref(`t.${this.titleColumn}`)} AS title,
+             t.published_at,
+             count(*) OVER () AS total
+      FROM ${sql.table(`ltv.${this.trTable}`)} t
+      JOIN ${sql.table(`ltv.${this.parentTable}`)} p
+        ON p.id = t.${sql.ref(this.parentKey)}
+      WHERE t.locale = ${locale}
+        AND t.status = 'published'
+        AND p.status = 'published'
+        AND p.deleted_at IS NULL
+        ${them}
+      ORDER BY t.published_at DESC NULLS LAST, p.id ASC
+      LIMIT ${page.limit} OFFSET ${page.offset}
+    `.execute(this.db);
+
+    /**
+     * `count(*) OVER ()` — MOT truy van cho ca dong VA tong.
+     *
+     * Hai cau (rows + count) la khuon cua `Paged` o cho khac, nhung o day dieu
+     * kien loc phuc tap hon (join + hai trang thai) nen viet lai no lan thu hai
+     * la mot ban sao se lech. Window function cho tong cua tap DA LOC ma khong
+     * can cau thu hai.
+     *
+     * `p.id ASC` o cuoi la moc pha vo the: `published_at` co the trung nhau
+     * (nhap hang loat), va khong co moc duy nhat thi thu tu giua cac trang
+     * KHONG on dinh — mot ban ghi co the xuat hien o ca trang 1 va trang 2, hoac
+     * khong o trang nao. Do la loai loi chi lo ra khi co du du lieu.
+     */
+    return {
+      rows: r.rows.map((x) => ({
+        entityId: x.id,
+        slug: x.slug,
+        title: x.title,
+        publishedAt: x.published_at,
+      })),
+      total: Number(r.rows[0]?.total ?? 0),
+    };
   }
 
   /**
