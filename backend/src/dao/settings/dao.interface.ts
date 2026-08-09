@@ -1,6 +1,7 @@
 import type { Setting, UpsertSettingInput } from './object.js';
 
 export interface SettingDao {
+  listAll(): Promise<Setting[]>;
   findByGroup(group: string): Promise<Setting[]>;
   findOne(group: string, key: string): Promise<Setting | null>;
   /** Chi lay setting cong khai — dung cho frontend. */

@@ -1,4 +1,5 @@
 import type { CreateUserInput, User, UserStatus, UserWithCredentials } from './object.js';
+import type { Page, Paged } from '../helpers.js';
 
 /**
  * Hop dong truy cap du lieu cho bang `users`.
@@ -7,6 +8,10 @@ import type { CreateUserInput, User, UserStatus, UserWithCredentials } from './o
  * transaction.
  */
 export interface UserDao {
+  list(
+    filter: { status?: UserStatus; search?: string },
+    page?: Partial<Page>,
+  ): Promise<Paged<User>>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
 
@@ -17,6 +22,8 @@ export interface UserDao {
   updateLastLogin(id: string, at: Date): Promise<void>;
   updatePassword(id: string, passwordHash: string, changedAt: Date): Promise<void>;
   setStatus(id: string, status: UserStatus): Promise<void>;
+  /** Serialize changes that could remove active administrators. Call inside a transaction. */
+  lockActiveAdmins(): Promise<void>;
   countActiveAdmins(): Promise<number>;
 
   /**

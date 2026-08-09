@@ -17,9 +17,13 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
     pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
     const img = await daos.media.insert({
-      fileName: `${tag}-hero.jpg`, originalName: `${tag} hero.jpg`,
-      storageClass: 'public', storagePath: `public-media/${tag}/hero.jpg`,
-      mimeType: 'image/jpeg', fileExtension: 'jpg', fileSize: 5000,
+      fileName: `${tag}-hero.jpg`,
+      originalName: `${tag} hero.jpg`,
+      storageClass: 'public',
+      storagePath: `public-media/${tag}/hero.jpg`,
+      mimeType: 'image/jpeg',
+      fileExtension: 'jpg',
+      fileSize: 5000,
     });
     id['img'] = img.id;
   });
@@ -39,8 +43,11 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
     // NUMERIC(10,7) — khoang 1 cm. Neu di qua kieu FLOAT thi so nay lech,
     // va cai ghim tren ban do nhay sang toa nha ben canh.
     const o = await daos.offices.insert({
-      officeType: 'head_office', name: `${tag} Tru so`, address: '123 Nguyen Trai',
-      latitude: 10.7768456, longitude: 106.7009123,
+      officeType: 'branch',
+      name: `${tag} Chi nhanh`,
+      address: '123 Nguyen Trai',
+      latitude: 10.7768456,
+      longitude: 106.7009123,
     });
     const back = await daos.offices.findById(o.id);
     expect(back!.latitude).toBe(10.7768456);
@@ -51,7 +58,10 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
   it('DB tu choi toa do ngoai pham vi', async () => {
     await expect(
       daos.offices.insert({
-        officeType: 'branch', name: `${tag} Sai`, address: 'x', latitude: 91,
+        officeType: 'branch',
+        name: `${tag} Sai`,
+        address: 'x',
+        latitude: 91,
       }),
     ).rejects.toThrow();
   });
@@ -71,22 +81,18 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
    *     `status = 'published'` trong `findHeadOffice()` khong duoc do gi ca. Bo han
    *     dieu kien do di thi bai kiem cu VAN XANH.
    *
-   *  2. No cho rang tru so cua no la tru so DUY NHAT trong database. Khi du lieu
-   *     demo cua F4 them mot `head_office`, bai kiem do — va no do vi mot ly do
-   *     khong lien quan gi den dieu no muon kiem.
-   *
-   * `ltv.offices` KHONG co rang buoc nao chan hai `head_office` cung `published`,
-   * va `findHeadOffice()` chi lay `orderBy('display_order')` roi `executeTakeFirst`
-   * — tuc voi hai hang cung `display_order` thi ket qua la BAT KY. Do la mot cho mo
-   * that (schema.org LocalBusiness cua toan site lay tu ham nay); ghi o `doc/13`.
-   * O day bai kiem khong duoc dua vao su mo ho do.
+   *  2. No cho rang tru so cua no la tru so DUY NHAT trong database. Tu migration
+   *     035, DB bao dam chi co mot `head_office` dang `published`; fixture vi vay
+   *     chi tao ban nhap va kiem tra no bi bo qua, khong tranh chap voi du lieu demo.
    */
   it('tim tru so chinh — BO QUA ban chua xuat ban', async () => {
     const an = await daos.offices.insert({
-      officeType: 'head_office', name: `${tag} Tru so an`, address: 'x',
+      initialStatus: 'draft',
+      officeType: 'head_office',
+      name: `${tag} Tru so an`,
+      address: 'x',
     });
-    // `unpublish()` la BAT BUOC: `offices.status` mac dinh la 'published'.
-    await daos.offices.unpublish(an.id);
+    expect(an.status).toBe('draft');
 
     const found = await daos.offices.findHeadOffice();
     expect(found, 'phai co mot tru so da xuat ban').not.toBeNull();
@@ -98,7 +104,10 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   const mkBanner = async (key: string, startAt: Date | null, endAt: Date | null) => {
     const b = await daos.banners.insert({
-      imageId: id['img']!, title: `${tag} ${key}`, startAt, endAt,
+      imageId: id['img']!,
+      title: `${tag} ${key}`,
+      startAt,
+      endAt,
     });
     await daos.banners.publish(b.id);
     return b;
@@ -117,7 +126,9 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('banner trong cua so thi hien', async () => {
     const b = await mkBanner(
-      'dang-chay', new Date(Date.now() - 1000), new Date(Date.now() + 86_400_000),
+      'dang-chay',
+      new Date(Date.now() - 1000),
+      new Date(Date.now() + 86_400_000),
     );
     expect((await daos.banners.findActive()).map((x) => x.id)).toContain(b.id);
   });
@@ -134,9 +145,13 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('anh bi xoa mem thi banner bien mat', async () => {
     const m = await daos.media.insert({
-      fileName: `${tag}-tam.jpg`, originalName: `${tag} tam.jpg`,
-      storageClass: 'public', storagePath: `public-media/${tag}/tam.jpg`,
-      mimeType: 'image/jpeg', fileExtension: 'jpg', fileSize: 10,
+      fileName: `${tag}-tam.jpg`,
+      originalName: `${tag} tam.jpg`,
+      storageClass: 'public',
+      storagePath: `public-media/${tag}/tam.jpg`,
+      mimeType: 'image/jpeg',
+      fileExtension: 'jpg',
+      fileSize: 10,
     });
     const b = await daos.banners.insert({ imageId: m.id, title: `${tag} anh-xoa` });
     await daos.banners.publish(b.id);
@@ -149,8 +164,10 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
   it('DB tu choi cua so thoi gian nguoc', async () => {
     await expect(
       daos.banners.insert({
-        imageId: id['img']!, title: `${tag} nguoc`,
-        startAt: new Date(Date.now() + 86_400_000), endAt: new Date(),
+        imageId: id['img']!,
+        title: `${tag} nguoc`,
+        startAt: new Date(Date.now() + 86_400_000),
+        endAt: new Date(),
       }),
     ).rejects.toThrow();
   });
@@ -162,7 +179,9 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
     for (const t of types) await daos.homepageSections.upsert({ sectionType: t });
 
     await daos.homepageSections.reorder([types[2]!, types[0]!, types[1]!]);
-    const all = (await daos.homepageSections.listAll()).filter((s) => s.sectionType.startsWith(tag));
+    const all = (await daos.homepageSections.listAll()).filter((s) =>
+      s.sectionType.startsWith(tag),
+    );
     expect(all.map((s) => s.sectionType)).toEqual([types[2], types[0], types[1]]);
   });
 
@@ -176,10 +195,13 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('cau hinh JSONB hinh dang la bi loai, khong lot len tren', async () => {
     await daos.homepageSections.upsert({
-      sectionType: `${tag}-cfg`, settings: { limit: 8, title: 'Noi bat' },
+      sectionType: `${tag}-cfg`,
+      settings: { limit: 8, title: 'Noi bat' },
     });
-    expect((await daos.homepageSections.findByType(`${tag}-cfg`))!.settings)
-      .toEqual({ limit: 8, title: 'Noi bat' });
+    expect((await daos.homepageSections.findByType(`${tag}-cfg`))!.settings).toEqual({
+      limit: 8,
+      title: 'Noi bat',
+    });
 
     await pool.query(
       `UPDATE ltv.homepage_sections SET settings = '[1,2,3]'::jsonb WHERE section_type = $1`,
@@ -192,7 +214,9 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('dung cay hai cap, thu tu theo display_order', async () => {
     const m = await daos.menus.insert({
-      code: `${tag}-header`, name: 'Header', location: 'header',
+      code: `${tag}-header`,
+      name: 'Header',
+      location: 'header',
     });
     const chaId = crypto.randomUUID();
     await daos.transaction((tx) =>
@@ -206,8 +230,7 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
     const tree = await daos.menus.findTreeByCode(`${tag}-header`);
     expect(tree!.items.map((i) => i.label)).toEqual(['San pham', 'Lien he']);
-    expect(tree!.items[0]!.children.map((c) => c.label))
-      .toEqual(['May do nhot', 'May chung cat']);   // theo display_order, khong theo thu tu gui
+    expect(tree!.items[0]!.children.map((c) => c.label)).toEqual(['May do nhot', 'May chung cat']); // theo display_order, khong theo thu tu gui
     expect(tree!.items[1]!.children).toEqual([]);
   });
 
@@ -261,13 +284,15 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('xoa menu thi muc con di theo (CASCADE)', async () => {
     const m = await daos.menus.insert({
-      code: `${tag}-tam`, name: 'Tam', location: 'mobile',
+      code: `${tag}-tam`,
+      name: 'Tam',
+      location: 'mobile',
     });
-    await daos.transaction((tx) =>
-      tx.menus.replaceItems(m.id, [{ label: 'X', linkType: 'none' }]),
-    );
+    await daos.transaction((tx) => tx.menus.replaceItems(m.id, [{ label: 'X', linkType: 'none' }]));
     await daos.menus.delete(m.id);
-    const r = await pool.query(`SELECT count(*) AS n FROM ltv.menu_items WHERE menu_id = $1`, [m.id]);
+    const r = await pool.query(`SELECT count(*) AS n FROM ltv.menu_items WHERE menu_id = $1`, [
+      m.id,
+    ]);
     expect(Number(r.rows[0].n)).toBe(0);
   });
 
@@ -275,7 +300,9 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('dong bo tham chieu theo TUNG O chua khoi', async () => {
     const b = await daos.brands.insert({
-      brandType: 'manufacturer', name: `${tag} H`, slug: `${tag}-h`,
+      brandType: 'manufacturer',
+      name: `${tag} H`,
+      slug: `${tag}-h`,
     });
     const field = { entityType: 'brand', entityId: b.id, fieldName: 'overview' };
 
@@ -284,31 +311,39 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
     // Thay ca tap: bo anh khoi noi dung thi tham chieu cung di
     await daos.contentMediaRefs.replaceForField(field, []);
-    expect((await daos.contentMediaRefs.findByMedia(id['img']!))
-      .filter((r) => r.entityId === b.id)).toEqual([]);
+    expect(
+      (await daos.contentMediaRefs.findByMedia(id['img']!)).filter((r) => r.entityId === b.id),
+    ).toEqual([]);
 
     await pool.query(`DELETE FROM ltv.brands WHERE id = $1`, [b.id]);
   });
 
   it('hai O KHAC NHAU cua cung thuc the khong dam nhau', async () => {
     const b = await daos.brands.insert({
-      brandType: 'manufacturer', name: `${tag} K`, slug: `${tag}-k`,
+      brandType: 'manufacturer',
+      name: `${tag} K`,
+      slug: `${tag}-k`,
     });
     await daos.contentMediaRefs.replaceForField(
-      { entityType: 'brand', entityId: b.id, fieldName: 'overview' }, [id['img']!],
+      { entityType: 'brand', entityId: b.id, fieldName: 'overview' },
+      [id['img']!],
     );
     await daos.contentMediaRefs.replaceForField(
-      { entityType: 'brand', entityId: b.id, fieldName: 'description' }, [id['img']!],
+      { entityType: 'brand', entityId: b.id, fieldName: 'description' },
+      [id['img']!],
     );
-    expect((await daos.contentMediaRefs.findByMedia(id['img']!))
-      .filter((r) => r.entityId === b.id)).toHaveLength(2);
+    expect(
+      (await daos.contentMediaRefs.findByMedia(id['img']!)).filter((r) => r.entityId === b.id),
+    ).toHaveLength(2);
 
     // Xoa mot o khong dung toi o kia
     await daos.contentMediaRefs.replaceForField(
-      { entityType: 'brand', entityId: b.id, fieldName: 'overview' }, [],
+      { entityType: 'brand', entityId: b.id, fieldName: 'overview' },
+      [],
     );
-    const con = (await daos.contentMediaRefs.findByMedia(id['img']!))
-      .filter((r) => r.entityId === b.id);
+    const con = (await daos.contentMediaRefs.findByMedia(id['img']!)).filter(
+      (r) => r.entityId === b.id,
+    );
     expect(con).toHaveLength(1);
     expect(con[0]!.fieldName).toBe('description');
 
@@ -318,14 +353,17 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
 
   it('`locale = null` xu ly dung, khong bi `= NULL` lam hong', async () => {
     const b = await daos.brands.insert({
-      brandType: 'manufacturer', name: `${tag} L`, slug: `${tag}-l`,
+      brandType: 'manufacturer',
+      name: `${tag} L`,
+      slug: `${tag}-l`,
     });
     const f = { entityType: 'brand', entityId: b.id, fieldName: 'overview', locale: null };
     await daos.contentMediaRefs.replaceForField(f, [id['img']!]);
     // Goi lai voi cung o: phai THAY chu khong tao them hang thu hai
     await daos.contentMediaRefs.replaceForField(f, [id['img']!]);
-    expect((await daos.contentMediaRefs.findByMedia(id['img']!))
-      .filter((r) => r.entityId === b.id)).toHaveLength(1);
+    expect(
+      (await daos.contentMediaRefs.findByMedia(id['img']!)).filter((r) => r.entityId === b.id),
+    ).toHaveLength(1);
 
     await daos.contentMediaRefs.deleteForEntity('brand', b.id);
     await pool.query(`DELETE FROM ltv.brands WHERE id = $1`, [b.id]);
@@ -335,12 +373,14 @@ run('Khung giao dien: offices, banners, homepage_sections, menus', () => {
     // Thuc the khong ton tai
     await pool.query(
       `INSERT INTO ltv.content_media_refs (media_id, entity_type, entity_id, field_name)
-       VALUES ($1, 'product', gen_random_uuid(), 'overview')`, [id['img']!],
+       VALUES ($1, 'product', gen_random_uuid(), 'overview')`,
+      [id['img']!],
     );
     // Loai NGOAI danh sach kiem -> cung phai bi bao, de quen them khong im lang
     await pool.query(
       `INSERT INTO ltv.content_media_refs (media_id, entity_type, entity_id, field_name)
-       VALUES ($1, 'loai_moi_chua_khai_bao', gen_random_uuid(), 'x')`, [id['img']!],
+       VALUES ($1, 'loai_moi_chua_khai_bao', gen_random_uuid(), 'x')`,
+      [id['img']!],
     );
 
     const orphans = await daos.contentMediaRefs.findOrphans(50);

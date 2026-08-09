@@ -62,15 +62,29 @@ export class PublishServiceImpl implements PublishService {
   async unpublish(target: PublishTarget): Promise<void> {
     const { entity, id, locale } = target;
     switch (entity) {
-      case 'product': await this.daos.products.unpublish(id); return;
-      case 'brand': await this.daos.brands.unpublish(id); return;
-      case 'document': await this.daos.documents.unpublish(id); return;
+      case 'product':
+        await this.daos.products.unpublish(id);
+        return;
+      case 'brand':
+        await this.daos.brands.unpublish(id);
+        return;
+      case 'document':
+        await this.daos.documents.unpublish(id);
+        return;
       // Ha co BAN DICH, khong ha co ca thuc the: ban tieng Anh co van de
       // khong phai ly do go ban tieng Viet xuong.
-      case 'service': await this.daos.services.unpublishTranslation(id, req(locale, entity)); return;
-      case 'project': await this.daos.projects.unpublishTranslation(id, req(locale, entity)); return;
-      case 'post': await this.daos.posts.unpublishTranslation(id, req(locale, entity)); return;
-      case 'page': await this.daos.pages.unpublishTranslation(id, req(locale, entity)); return;
+      case 'service':
+        await this.daos.services.unpublishTranslation(id, req(locale, entity));
+        return;
+      case 'project':
+        await this.daos.projects.unpublishTranslation(id, req(locale, entity));
+        return;
+      case 'post':
+        await this.daos.posts.unpublishTranslation(id, req(locale, entity));
+        return;
+      case 'page':
+        await this.daos.pages.unpublishTranslation(id, req(locale, entity));
+        return;
     }
   }
 
@@ -81,13 +95,20 @@ export class PublishServiceImpl implements PublishService {
     daos: PublishTx = this.daos,
   ): Promise<PublishBlocker[]> {
     switch (target.entity) {
-      case 'product': return this.productBlockers(target.id, daos);
-      case 'brand': return this.brandBlockers(target.id, daos);
-      case 'document': return this.documentBlockers(target.id, daos);
-      case 'service': return this.serviceBlockers(target.id, req(target.locale, 'service'), daos);
-      case 'project': return this.projectBlockers(target.id, req(target.locale, 'project'), daos);
-      case 'post': return this.postBlockers(target.id, req(target.locale, 'post'), daos);
-      case 'page': return this.pageBlockers(target.id, req(target.locale, 'page'), daos);
+      case 'product':
+        return this.productBlockers(target.id, daos);
+      case 'brand':
+        return this.brandBlockers(target.id, daos);
+      case 'document':
+        return this.documentBlockers(target.id, daos);
+      case 'service':
+        return this.serviceBlockers(target.id, req(target.locale, 'service'), daos);
+      case 'project':
+        return this.projectBlockers(target.id, req(target.locale, 'project'), daos);
+      case 'post':
+        return this.postBlockers(target.id, req(target.locale, 'post'), daos);
+      case 'page':
+        return this.pageBlockers(target.id, req(target.locale, 'page'), daos);
     }
   }
 
@@ -151,7 +172,11 @@ export class PublishServiceImpl implements PublishService {
   }
 
   /** ban dich: name, slug, short_description, scope_of_work; featured_image; khong vong lap cay. */
-  private async serviceBlockers(id: string, locale: Locale, d: PublishTx): Promise<PublishBlocker[]> {
+  private async serviceBlockers(
+    id: string,
+    locale: Locale,
+    d: PublishTx,
+  ): Promise<PublishBlocker[]> {
     const s = await d.services.findById(id);
     if (!s) throw new NotFoundError('SERVICE_NOT_FOUND', `Khong tim thay dich vu ${id}`);
     const t = await d.services.findTranslation(id, locale);
@@ -177,7 +202,11 @@ export class PublishServiceImpl implements PublishService {
   }
 
   /** ban dich: title, short_description, scope_of_work; project_type, customer_visibility, >=1 anh. */
-  private async projectBlockers(id: string, locale: Locale, d: PublishTx): Promise<PublishBlocker[]> {
+  private async projectBlockers(
+    id: string,
+    locale: Locale,
+    d: PublishTx,
+  ): Promise<PublishBlocker[]> {
     const p = await d.projects.findById(id);
     if (!p) throw new NotFoundError('PROJECT_NOT_FOUND', `Khong tim thay du an ${id}`);
     const t = await d.projects.findTranslation(id, locale);
@@ -260,16 +289,18 @@ export class PublishServiceImpl implements PublishService {
 
   // ══════════════════ ghi ══════════════════
 
-  private async writePublish(
-    tx: PublishTx,
-    target: PublishTarget,
-    at: Date,
-  ): Promise<void> {
+  private async writePublish(tx: PublishTx, target: PublishTarget, at: Date): Promise<void> {
     const { entity, id, locale } = target;
     switch (entity) {
-      case 'product': await tx.products.publish(id, at); return;
-      case 'brand': await tx.brands.publish(id, at); return;
-      case 'document': await tx.documents.publish(id, at); return;
+      case 'product':
+        await tx.products.publish(id, at);
+        return;
+      case 'brand':
+        await tx.brands.publish(id, at);
+        return;
+      case 'document':
+        await tx.documents.publish(id, at);
+        return;
 
       /**
        * Nhom co ban dich: xuat ban HAI CAP, va ca hai deu can.
@@ -324,10 +355,7 @@ function isEmptyBlocks(blocks: readonly ContentBlock[] | null | undefined): bool
 
 function req(locale: Locale | undefined, entity: PublishableEntity): Locale {
   if (!locale) {
-    throw new ConflictError(
-      'PUBLISH_LOCALE_REQUIRED',
-      `Xuat ban ${entity} phai chi ro ngon ngu`,
-    );
+    throw new ConflictError('PUBLISH_LOCALE_REQUIRED', `Xuat ban ${entity} phai chi ro ngon ngu`);
   }
   return locale;
 }

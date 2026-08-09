@@ -10,7 +10,7 @@ import type { ContentBlock } from '../content.js';
  * translation di kem, va do la mot quyet dinh chu khong phai thieu sot.
  */
 export type ProductType =
-  | 'equipment' | 'spare_part' | 'accessory' | 'consumable' | 'chemical' | 'other';
+  'equipment' | 'spare_part' | 'accessory' | 'consumable' | 'chemical' | 'other';
 export type PriceVisibility = 'hidden' | 'visible' | 'contact';
 export type SaleMode = 'inquiry' | 'online';
 

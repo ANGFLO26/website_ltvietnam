@@ -127,12 +127,16 @@ ip_address, user_agent, captcha_score, created_at, expires_at
 
 ## `inquiry_outbox`
 ```text
-id, inquiry_id, channel, recipient, status, attempts,
+id, inquiry_id (nullable với password reset), notification_type, payload,
+channel, recipient, status, attempts,
 last_attempt_at, next_attempt_at, locked_at, locked_by,
 last_error, sent_at, created_at, updated_at
 UNIQUE(inquiry_id, channel, recipient)
 ```
 `status ∈ {pending, processing, sent, failed}`. Worker lấy job bằng `FOR UPDATE SKIP LOCKED`; reaper đưa job `processing` quá hạn về `pending`. **Semantics at-least-once**, Message-ID xác định từ `outbox.id`.
+`notification_type ∈ {inquiry_received, password_reset}`. Job inquiry bắt buộc có
+`inquiry_id`; job reset mật khẩu bắt buộc không có `inquiry_id`. Payload reset được xóa
+sau khi gửi thành công hoặc thất bại vĩnh viễn.
 
 ---
 

@@ -14,7 +14,8 @@ import { toRedirect } from './mapper.js';
 export class KyselyRedirectDao extends BaseDao implements RedirectDao {
   async findActiveBySource(sourcePath: string): Promise<Redirect | null> {
     const row = await this.db
-      .selectFrom('redirects').selectAll()
+      .selectFrom('redirects')
+      .selectAll()
       .where('source_path', '=', sourcePath)
       .where('status', '=', 'active')
       .executeTakeFirst();
@@ -42,7 +43,10 @@ export class KyselyRedirectDao extends BaseDao implements RedirectDao {
 
   async findById(id: string): Promise<Redirect | null> {
     const row = await this.db
-      .selectFrom('redirects').selectAll().where('id', '=', id).executeTakeFirst();
+      .selectFrom('redirects')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     return row ? toRedirect(row) : null;
   }
 
@@ -70,8 +74,11 @@ export class KyselyRedirectDao extends BaseDao implements RedirectDao {
     }
 
     const rows = await q
-      .orderBy('hit_count', 'desc').orderBy('source_path')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+      .orderBy('hit_count', 'desc')
+      .orderBy('source_path')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toRedirect), total, p);
   }
@@ -98,6 +105,32 @@ export class KyselyRedirectDao extends BaseDao implements RedirectDao {
 
     // 3. Ghi ban ghi moi.
     return this.upsert({ ...input, targetPath: finalTarget });
+  }
+
+  async retargetCollapsingChain(
+    id: string,
+    input: UpdateRedirectInput & { readonly targetPath: string },
+  ): Promise<Redirect> {
+    const current = await this.findById(id);
+    if (!current) throw new Error(`Redirect ${id} khong ton tai`);
+    if (current.sourcePath === input.targetPath) {
+      throw new RedirectLoopError(current.sourcePath, input.targetPath);
+    }
+
+    // Ignore the row being edited while resolving its new target. Otherwise
+    // following a path through its old target can hide a newly-created loop.
+    const finalTarget = await this.followChain(input.targetPath, id);
+    if (finalTarget === current.sourcePath) {
+      throw new RedirectLoopError(current.sourcePath, input.targetPath);
+    }
+
+    await this.db
+      .updateTable('redirects')
+      .set({ target_path: finalTarget })
+      .where('target_path', '=', current.sourcePath)
+      .execute();
+
+    return this.update(id, { ...input, targetPath: finalTarget });
   }
 
   async upsert(input: CreateRedirectInput): Promise<Redirect> {
@@ -192,14 +225,17 @@ export class KyselyRedirectDao extends BaseDao implements RedirectDao {
    * Gap vong lap thi dung lai va tra ve chang hien tai — nguoi goi so sanh
    * voi `sourcePath` de phat hien.
    */
-  private async followChain(from: string): Promise<string> {
+  private async followChain(from: string, excludeId?: string): Promise<string> {
     let current = from;
     const seen = new Set<string>([from]);
     for (let i = 0; i < 10; i++) {
-      const next = await this.db
-        .selectFrom('redirects').select('target_path')
-        .where('source_path', '=', current).where('status', '=', 'active')
-        .executeTakeFirst();
+      let query = this.db
+        .selectFrom('redirects')
+        .select('target_path')
+        .where('source_path', '=', current)
+        .where('status', '=', 'active');
+      if (excludeId !== undefined) query = query.where('id', '!=', excludeId);
+      const next = await query.executeTakeFirst();
       if (!next) return current;
       if (seen.has(next.target_path)) return current;
       seen.add(next.target_path);

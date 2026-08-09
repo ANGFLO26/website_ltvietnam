@@ -12,7 +12,9 @@ doc/verify/
 ├── v1.2.1-legacy/           ← KHÔNG hoạt động, giữ để tham chiếu
 │   ├── schema_up.sql        baseline 63 bảng, CHƯA TỪNG CHẠY ở đâu
 │   ├── schema_down.sql
-│   └── verify_checks.sql
+│   ├── verify_checks.sql
+│   ├── run_verification.ps1 verifier Windows lịch sử
+│   └── run_verification.sh  verifier Bash lịch sử
 └── execution/               bằng chứng chạy PostgreSQL 16 của v1.2.1
 ```
 
@@ -20,7 +22,7 @@ doc/verify/
 
 **`v1.3/schema_up.sql` là nguồn sự thật duy nhất về DDL.** Tài liệu `05` giải thích quyết định và liệt kê bảng; khi hai bên khác nhau, file SQL thắng.
 
-`v1.2.1-legacy/` giữ lại vì `doc/verify/execution/` tham chiếu tới nó. Baseline đó **chưa từng chạy trên môi trường nào**, không có dữ liệu cần chuyển đổi, và không được dùng cho triển khai mới.
+`v1.2.1-legacy/` giữ lại vì `doc/verify/execution/` tham chiếu tới nó. Baseline đó **chưa từng chạy trên môi trường nào**, không có dữ liệu cần chuyển đổi, và không được dùng cho triển khai mới. Hai script verifier v1.2.1 được đặt cùng bộ SQL để không còn trỏ tới file không tồn tại ở thư mục cha.
 
 ## Chạy kiểm chứng
 

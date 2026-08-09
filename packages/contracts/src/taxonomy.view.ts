@@ -1,3 +1,6 @@
+import type { ContentBlock } from './blocks.js';
+import type { SeoDetailView } from './seo.view.js';
+
 /**
  * HINH DANG PHAN HOI CONG KHAI cua nam nhom taxonomy.
  *
@@ -34,7 +37,7 @@ export interface BrandCardView {
   readonly is_featured: boolean;
 }
 
-export interface BrandDetailView extends BrandCardView {
+export interface BrandDetailView extends BrandCardView, SeoDetailView {
   readonly short_description: string | null;
   readonly website_url: string | null;
   readonly cover_image_id: string | null;
@@ -64,6 +67,12 @@ export interface ProductCategoryTreeView extends ProductCategoryCardView {
   readonly children: readonly ProductCategoryTreeView[];
 }
 
+export interface ProductCategoryDetailView extends ProductCategoryCardView, SeoDetailView {
+  readonly description: readonly ContentBlock[];
+  readonly seo_title: string | null;
+  readonly seo_description: string | null;
+}
+
 export interface StandardCardView {
   readonly slug: string;
   /** `ASTM`, `ISO`, `IP`... — mat bo loc nhom theo truong nay. */
@@ -72,8 +81,10 @@ export interface StandardCardView {
   readonly name: string | null;
 }
 
-export interface StandardDetailView extends StandardCardView {
+export interface StandardDetailView extends StandardCardView, SeoDetailView {
   readonly description: string | null;
+  readonly seo_title: string | null;
+  readonly seo_description: string | null;
 }
 
 export interface ApplicationCardView {
@@ -88,12 +99,25 @@ export interface ApplicationTreeView extends ApplicationCardView {
   readonly children: readonly ApplicationTreeView[];
 }
 
+export interface ApplicationDetailView extends ApplicationCardView, SeoDetailView {
+  readonly description: readonly ContentBlock[];
+  readonly seo_title: string | null;
+  readonly seo_description: string | null;
+}
+
 export interface IndustryCardView {
   readonly slug: string;
   readonly name: string;
   readonly icon_id: string | null;
   readonly featured_image_id: string | null;
   readonly is_featured: boolean;
+}
+
+/** Nganh chua co landing indexable trong P0; canonical ve danh sach san pham. */
+export interface IndustryDetailView extends IndustryCardView, SeoDetailView {
+  readonly description: readonly ContentBlock[];
+  readonly seo_title: string | null;
+  readonly seo_description: string | null;
 }
 
 /**

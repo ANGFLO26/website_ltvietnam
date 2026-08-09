@@ -48,6 +48,8 @@ import type { InquiryDao } from './inquiries/dao.interface.js';
 import { KyselyInquiryDao } from './inquiries/dao.js';
 import type { ContentMediaRefDao } from './content-media-refs/dao.interface.js';
 import { KyselyContentMediaRefDao } from './content-media-refs/dao.js';
+import type { SeoDao } from './seo/dao.interface.js';
+import { KyselySeoDao } from './seo/dao.js';
 
 /**
  * Tap hop moi DAO. Them bang moi = them mot dong o day va mot dong o `buildDaos`.
@@ -76,6 +78,8 @@ export interface AllDaos {
   readonly menus: MenuDao;
   readonly inquiries: InquiryDao;
   readonly contentMediaRefs: ContentMediaRefDao;
+  /** Truy van tong hop chi doc cho sitemap; khong dai dien mot bang rieng. */
+  readonly seo: SeoDao;
 }
 
 /** Kiem tra ket noi — dung cho `/health/ready`, khong thuoc bang nao. */
@@ -127,6 +131,7 @@ function buildDaos(db: KyselyExecutor): AllDaos {
     menus: new KyselyMenuDao(db),
     inquiries: new KyselyInquiryDao(db),
     contentMediaRefs: new KyselyContentMediaRefDao(db),
+    seo: new KyselySeoDao(db),
   };
 }
 

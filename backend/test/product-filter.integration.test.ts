@@ -46,35 +46,59 @@ run('Bo loc san pham tren PostgreSQL that', () => {
     daos = createDaoManager(db);
 
     // ── cay hang ──
-    const pac = await daos.brands.insert({ brandType: 'manufacturer', name: 'PAC', slug: slug('pac') });
+    const pac = await daos.brands.insert({
+      brandType: 'manufacturer',
+      name: 'PAC',
+      slug: slug('pac'),
+    });
     id['pac'] = pac.id;
     for (const k of ['herzog', 'isl', 'alcor']) {
       const b = await daos.brands.insert({
-        brandType: 'sub_brand', name: k.toUpperCase(), slug: slug(k), parentId: pac.id,
+        brandType: 'sub_brand',
+        name: k.toUpperCase(),
+        slug: slug(k),
+        parentId: pac.id,
       });
       id[k] = b.id;
     }
     const ap = await daos.brands.insert({
-      brandType: 'manufacturer', name: 'Anton Paar', slug: slug('anton-paar'),
+      brandType: 'manufacturer',
+      name: 'Anton Paar',
+      slug: slug('anton-paar'),
     });
     id['anton'] = ap.id;
 
     // ── cay danh muc: thiet bi > chung cat > chung cat khi quyen ──
     const c1 = await daos.productCategories.insert({ name: 'Thiet bi', slug: slug('thiet-bi') });
     const c2 = await daos.productCategories.insert({
-      name: 'Chung cat', slug: slug('chung-cat'), parentId: c1.id,
+      name: 'Chung cat',
+      slug: slug('chung-cat'),
+      parentId: c1.id,
     });
     Object.assign(id, { c1: c1.id, c2: c2.id });
 
     // ── tieu chuan ──
-    const d86 = await daos.standards.insert({ organization: 'ASTM', code: `D86-${tag}`, slug: slug('astm-d86') });
-    const iso = await daos.standards.insert({ organization: 'ISO', code: `3405-${tag}`, slug: slug('iso-3405') });
+    const d86 = await daos.standards.insert({
+      organization: 'ASTM',
+      code: `D86-${tag}`,
+      slug: slug('astm-d86'),
+    });
+    const iso = await daos.standards.insert({
+      organization: 'ISO',
+      code: `3405-${tag}`,
+      slug: slug('iso-3405'),
+    });
     Object.assign(id, { d86: d86.id, iso: iso.id });
 
     // ── ung dung (cay) ──
-    const aRoot = await daos.applications.insert({ name: 'Phan tich dau mo', slug: slug('dau-mo') });
+    const aRoot = await daos.applications.insert({
+      name: 'Phan tich dau mo',
+      slug: slug('dau-mo'),
+    });
     const aChild = await daos.applications.insert({
-      name: 'Diem soi dau', slug: slug('diem-soi'), parentId: aRoot.id,
+      name: 'Diem soi dau',
+      slug: slug('diem-soi'),
+      parentId: aRoot.id,
     });
     Object.assign(id, { aRoot: aRoot.id, aChild: aChild.id });
 
@@ -83,18 +107,32 @@ run('Bo loc san pham tren PostgreSQL that', () => {
 
     // ── san pham ──
     const mk = async (
-      key: string, brandKey: string, opts: { stds?: string[]; apps?: string[]; cats?: string[]; inds?: boolean } = {},
+      key: string,
+      brandKey: string,
+      opts: { stds?: string[]; apps?: string[]; cats?: string[]; inds?: boolean } = {},
     ) => {
       const p = await daos.products.insert({
-        brandId: id[brandKey]!, name: `${key.toUpperCase()} ${tag}`, slug: slug(key),
-        shortDescription: `May ${key}`, model: key.toUpperCase(),
+        brandId: id[brandKey]!,
+        name: `${key.toUpperCase()} ${tag}`,
+        slug: slug(key),
+        shortDescription: `May ${key}`,
+        model: key.toUpperCase(),
       });
       await daos.products.publish(p.id, new Date());
-      if (opts.stds) await daos.products.replaceStandards(p.id, opts.stds.map((s) => ({ standardId: id[s]! })));
-      if (opts.apps) await daos.products.replaceApplications(p.id, opts.apps.map((a) => ({ applicationId: id[a]! })));
+      if (opts.stds)
+        await daos.products.replaceStandards(
+          p.id,
+          opts.stds.map((s) => ({ standardId: id[s]! })),
+        );
+      if (opts.apps)
+        await daos.products.replaceApplications(
+          p.id,
+          opts.apps.map((a) => ({ applicationId: id[a]! })),
+        );
       if (opts.cats) {
         await daos.products.replaceCategories(
-          p.id, opts.cats.map((c, i) => ({ categoryId: id[c]!, isPrimary: i === 0 })),
+          p.id,
+          opts.cats.map((c, i) => ({ categoryId: id[c]!, isPrimary: i === 0 })),
         );
       }
       if (opts.inds) await daos.products.replaceIndustries(p.id, [{ industryId: id['ind']! }]);
@@ -133,17 +171,24 @@ run('Bo loc san pham tren PostgreSQL that', () => {
   });
 
   it('brand=pac&brand=herzog  →  PAC OR Herzog (hop, khong phai giao)', async () => {
-    expect(await names({ brandSlugs: [slug('pac'), slug('herzog')] }))
-      .toEqual(['fzp', 'optidist', 'sulfur']);
+    expect(await names({ brandSlugs: [slug('pac'), slug('herzog')] })).toEqual([
+      'fzp',
+      'optidist',
+      'sulfur',
+    ]);
     // Hai hang khong cung nhanh: hop that su
-    expect(await names({ brandSlugs: [slug('herzog'), slug('anton-paar')] }))
-      .toEqual(['density', 'optidist']);
+    expect(await names({ brandSlugs: [slug('herzog'), slug('anton-paar')] })).toEqual([
+      'density',
+      'optidist',
+    ]);
   });
 
   it('brand=pac&standard=astm-d86  →  PAC AND ASTM D86', async () => {
     // AND: loai FZP (trong PAC nhung ISO) va Density (co D86 nhung ngoai PAC)
-    expect(await names({ brandSlugs: [slug('pac')], standardSlugs: [slug('astm-d86')] }))
-      .toEqual(['optidist', 'sulfur']);
+    expect(await names({ brandSlugs: [slug('pac')], standardSlugs: [slug('astm-d86')] })).toEqual([
+      'optidist',
+      'sulfur',
+    ]);
   });
 
   it('brand=pac&brand=herzog&standard=astm-d86  →  (PAC OR Herzog) AND ASTM D86', async () => {
@@ -194,19 +239,23 @@ run('Bo loc san pham tren PostgreSQL that', () => {
 
   it('MAC DINH chi tra ve da xuat ban — ban nhap khong lo ra', async () => {
     const draft = await daos.products.insert({
-      brandId: id['herzog']!, name: `NHAP ${tag}`, slug: slug('nhap'),
+      brandId: id['herzog']!,
+      name: `NHAP ${tag}`,
+      slug: slug('nhap'),
     });
     expect((await names({})).includes('nhap')).toBe(false);
     // Quan tri hoi ro thi moi thay
-    const asAdmin = await daos.products.filter(
-      { status: 'draft', search: tag }, undefined, { pageSize: 100 },
-    );
+    const asAdmin = await daos.products.filter({ status: 'draft', search: tag }, undefined, {
+      pageSize: 100,
+    });
     expect(asAdmin.data.map((c) => c.id)).toContain(draft.id);
   });
 
   it('san pham xoa mem bien mat', async () => {
     const p = await daos.products.insert({
-      brandId: id['isl']!, name: `XOA ${tag}`, slug: slug('xoa'),
+      brandId: id['isl']!,
+      name: `XOA ${tag}`,
+      slug: slug('xoa'),
     });
     await daos.products.publish(p.id, new Date());
     expect((await names({})).includes('xoa')).toBe(true);
@@ -234,9 +283,9 @@ run('Bo loc san pham tren PostgreSQL that', () => {
   });
 
   it('the san pham mang san ten hang va anh — khong phai lay them', async () => {
-    const r = await daos.products.filter(
-      { brandSlugs: [slug('herzog')], search: tag }, undefined, { pageSize: 10 },
-    );
+    const r = await daos.products.filter({ brandSlugs: [slug('herzog')], search: tag }, undefined, {
+      pageSize: 10,
+    });
     const card = r.data[0]!;
     expect(card.brandName).toBe('HERZOG');
     expect(card.brandSlug).toBe(slug('herzog'));
@@ -244,9 +293,10 @@ run('Bo loc san pham tren PostgreSQL that', () => {
   });
 
   it('phan trang: dem tren CUNG bo loc, khong phai tong bang', async () => {
-    const r = await daos.products.filter(
-      { brandSlugs: [slug('pac')], search: tag }, undefined, { page: 1, pageSize: 2 },
-    );
+    const r = await daos.products.filter({ brandSlugs: [slug('pac')], search: tag }, undefined, {
+      page: 1,
+      pageSize: 2,
+    });
     expect(r.data).toHaveLength(2);
     expect(r.meta.totalItems).toBe(3);
     expect(r.meta.totalPages).toBe(2);
@@ -296,8 +346,8 @@ run('Bo loc san pham tren PostgreSQL that', () => {
     expect(one.rows).toBe(1);
     expect(many.rows).toBeGreaterThan(2);
     // Day la phep do that, khong phai loi hua trong tai lieu:
-    expect(one.queries).toBe(2);      // mot cau lay dong, mot cau dem
-    expect(many.queries).toBe(2);     // van the du tra ve gap nhieu lan
+    expect(one.queries).toBe(2); // mot cau lay dong, mot cau dem
+    expect(many.queries).toBe(2); // van the du tra ve gap nhieu lan
   });
 
   it('KHONG N+1: trang chi tiet co so cau CO DINH, khong theo so quan he', async () => {
@@ -308,13 +358,16 @@ run('Bo loc san pham tren PostgreSQL that', () => {
 
     // Them nhieu quan he vao cung san pham
     await daos.products.replaceStandards(id['optidist']!, [
-      { standardId: id['d86']! }, { standardId: id['iso']! },
+      { standardId: id['d86']! },
+      { standardId: id['iso']! },
     ]);
     await daos.products.replaceCategories(id['optidist']!, [
-      { categoryId: id['c2']!, isPrimary: true }, { categoryId: id['c1']! },
+      { categoryId: id['c2']!, isPrimary: true },
+      { categoryId: id['c1']! },
     ]);
     await daos.products.replaceApplications(id['optidist']!, [
-      { applicationId: id['aChild']! }, { applicationId: id['aRoot']! },
+      { applicationId: id['aChild']! },
+      { applicationId: id['aRoot']! },
     ]);
     await daos.products.replaceRelated(id['optidist']!, [
       { relatedProductId: id['fzp']!, relationType: 'similar' },
@@ -327,7 +380,7 @@ run('Bo loc san pham tren PostgreSQL that', () => {
 
     expect(d!.standards).toHaveLength(2);
     expect(d!.related).toHaveLength(2);
-    expect(many).toBe(few);   // gap doi du lieu, KHONG them mot cau nao
+    expect(many).toBe(few); // gap doi du lieu, KHONG them mot cau nao
   });
 
   it('chi tiet: san pham lien quan mang san the day du', async () => {

@@ -44,8 +44,16 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
 
   it('danh muc: loc cap 1 bat duoc san pham gan o cap 2 va 3', async () => {
     const l1 = await daos.productCategories.insert({ name: `${tag}-l1`, slug: `${tag}-l1` });
-    const l2 = await daos.productCategories.insert({ name: `${tag}-l2`, slug: `${tag}-l2`, parentId: l1.id });
-    const l3 = await daos.productCategories.insert({ name: `${tag}-l3`, slug: `${tag}-l3`, parentId: l2.id });
+    const l2 = await daos.productCategories.insert({
+      name: `${tag}-l2`,
+      slug: `${tag}-l2`,
+      parentId: l1.id,
+    });
+    const l3 = await daos.productCategories.insert({
+      name: `${tag}-l3`,
+      slug: `${tag}-l3`,
+      parentId: l2.id,
+    });
 
     expect(l3.depth).toBe(2);
     expect(l3.ancestorIds).toEqual([l1.id, l2.id]);
@@ -56,8 +64,16 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
 
   it('ung dung: doi cha cap nhat ca nhanh con', async () => {
     const a = await daos.applications.insert({ name: `${tag}-a`, slug: `${tag}-a` });
-    const b = await daos.applications.insert({ name: `${tag}-b`, slug: `${tag}-b`, parentId: a.id });
-    const c = await daos.applications.insert({ name: `${tag}-c`, slug: `${tag}-c`, parentId: b.id });
+    const b = await daos.applications.insert({
+      name: `${tag}-b`,
+      slug: `${tag}-b`,
+      parentId: a.id,
+    });
+    const c = await daos.applications.insert({
+      name: `${tag}-c`,
+      slug: `${tag}-c`,
+      parentId: b.id,
+    });
 
     await daos.transaction((tx) => tx.applications.moveNode(b.id, null));
     expect((await daos.applications.findById(c.id))!.ancestorIds).toEqual([b.id]);
@@ -82,7 +98,9 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
       },
     ];
     const i = await daos.industries.insert({
-      name: `${tag}-dau-khi`, slug: `${tag}-dau-khi`, description: blocks,
+      name: `${tag}-dau-khi`,
+      slug: `${tag}-dau-khi`,
+      description: blocks,
     });
     const back = await daos.industries.findById(i.id);
     expect(back!.description).toHaveLength(2);
@@ -122,7 +140,10 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
 
   it('findByCode khop DUNG cach chi muc duy nhat khop — khong phan biet hoa thuong', async () => {
     const s = await daos.standards.insert({
-      organization: ORG, code: 'D86-X', slug: `${tag}-astm-d86`, name: 'Distillation',
+      organization: ORG,
+      code: 'D86-X',
+      slug: `${tag}-astm-d86`,
+      name: 'Distillation',
     });
     expect((await daos.standards.findByCode(ORG.toLowerCase(), 'd86-x'))!.id).toBe(s.id);
     expect((await daos.standards.findByCode(ORG, 'D86-X'))!.id).toBe(s.id);
@@ -134,7 +155,9 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
     // Neu findByCode so khop kieu khac voi chi muc, thi day la cho no lo mat
     await expect(
       daos.standards.insert({
-        organization: ORG.toLowerCase(), code: '3405-x', slug: `${tag}-iso-3405-b`,
+        organization: ORG.toLowerCase(),
+        code: '3405-x',
+        slug: `${tag}-iso-3405-b`,
       }),
     ).rejects.toThrow();
   });
@@ -168,7 +191,11 @@ run('Taxonomy DAO tren PostgreSQL that', () => {
   });
 
   it('standards mac dinh la published, khac voi cac bang khac', async () => {
-    const s = await daos.standards.insert({ organization: ORG, code: 'K2254-X', slug: `${tag}-jis` });
+    const s = await daos.standards.insert({
+      organization: ORG,
+      code: 'K2254-X',
+      slug: `${tag}-jis`,
+    });
     // Tieu chuan la du kien tham chieu, khong phai noi dung bien tap —
     // bat soan thao publish tung cai la viec vo ich.
     expect(s.status).toBe('published');

@@ -6,8 +6,11 @@ import { toBanner } from './mapper.js';
 
 export class KyselyBannerDao extends BaseDao implements BannerDao {
   async findById(id: string): Promise<Banner | null> {
-    const row = await this.db.selectFrom('banners').selectAll()
-      .where('id', '=', id).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('banners')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     return row ? toBanner(row) : null;
   }
 
@@ -41,39 +44,48 @@ export class KyselyBannerDao extends BaseDao implements BannerDao {
   }
 
   async insert(input: CreateBannerInput): Promise<Banner> {
-    const row = await this.db.insertInto('banners').values({
-      image_id: input.imageId,
-      mobile_image_id: input.mobileImageId ?? null,
-      title: input.title,
-      subtitle: input.subtitle ?? null,
-      button_label: input.buttonLabel ?? null,
-      image_alt: input.imageAlt ?? null,
-      ...(input.linkType !== undefined && { link_type: input.linkType }),
-      link_target_id: input.linkTargetId ?? null,
-      custom_url: input.customUrl ?? null,
-      ...(input.openNewTab !== undefined && { open_new_tab: input.openNewTab }),
-      start_at: input.startAt ?? null,
-      end_at: input.endAt ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('banners')
+      .values({
+        image_id: input.imageId,
+        mobile_image_id: input.mobileImageId ?? null,
+        title: input.title,
+        subtitle: input.subtitle ?? null,
+        button_label: input.buttonLabel ?? null,
+        image_alt: input.imageAlt ?? null,
+        ...(input.linkType !== undefined && { link_type: input.linkType }),
+        link_target_id: input.linkTargetId ?? null,
+        custom_url: input.customUrl ?? null,
+        ...(input.openNewTab !== undefined && { open_new_tab: input.openNewTab }),
+        start_at: input.startAt ?? null,
+        end_at: input.endAt ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toBanner(row);
   }
 
   async update(id: string, input: UpdateBannerInput): Promise<Banner> {
-    const row = await this.db.updateTable('banners').set({
-      ...(input.imageId !== undefined && { image_id: input.imageId }),
-      ...(input.mobileImageId !== undefined && { mobile_image_id: input.mobileImageId }),
-      ...(input.title !== undefined && { title: input.title }),
-      ...(input.subtitle !== undefined && { subtitle: input.subtitle }),
-      ...(input.buttonLabel !== undefined && { button_label: input.buttonLabel }),
-      ...(input.imageAlt !== undefined && { image_alt: input.imageAlt }),
-      ...(input.linkType !== undefined && { link_type: input.linkType }),
-      ...(input.linkTargetId !== undefined && { link_target_id: input.linkTargetId }),
-      ...(input.customUrl !== undefined && { custom_url: input.customUrl }),
-      ...(input.openNewTab !== undefined && { open_new_tab: input.openNewTab }),
-      ...(input.startAt !== undefined && { start_at: input.startAt }),
-      ...(input.endAt !== undefined && { end_at: input.endAt }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('banners')
+      .set({
+        ...(input.imageId !== undefined && { image_id: input.imageId }),
+        ...(input.mobileImageId !== undefined && { mobile_image_id: input.mobileImageId }),
+        ...(input.title !== undefined && { title: input.title }),
+        ...(input.subtitle !== undefined && { subtitle: input.subtitle }),
+        ...(input.buttonLabel !== undefined && { button_label: input.buttonLabel }),
+        ...(input.imageAlt !== undefined && { image_alt: input.imageAlt }),
+        ...(input.linkType !== undefined && { link_type: input.linkType }),
+        ...(input.linkTargetId !== undefined && { link_target_id: input.linkTargetId }),
+        ...(input.customUrl !== undefined && { custom_url: input.customUrl }),
+        ...(input.openNewTab !== undefined && { open_new_tab: input.openNewTab }),
+        ...(input.startAt !== undefined && { start_at: input.startAt }),
+        ...(input.endAt !== undefined && { end_at: input.endAt }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toBanner(row);
   }
 
@@ -82,13 +94,21 @@ export class KyselyBannerDao extends BaseDao implements BannerDao {
   }
 
   async publish(id: string): Promise<Banner> {
-    const row = await this.db.updateTable('banners').set({ status: 'published' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('banners')
+      .set({ status: 'published' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toBanner(row);
   }
   async unpublish(id: string): Promise<Banner> {
-    const row = await this.db.updateTable('banners').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('banners')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toBanner(row);
   }
 }

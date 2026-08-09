@@ -1,5 +1,6 @@
 import type { ContentBlock } from './blocks.js';
 import type { Locale } from './routes.js';
+import type { SeoDetailView } from './seo.view.js';
 
 /**
  * HINH DANG PHAN HOI cua noi dung CO BAN DICH — F3.
@@ -15,11 +16,6 @@ import type { Locale } from './routes.js';
  * ngay khi doc, thay vi hien noi dung sai ngon ngu ma khong ai biet tai sao.
  */
 
-export interface HreflangAlternateView {
-  readonly locale: Locale;
-  readonly slug: string;
-}
-
 /**
  * Phan chung cua moi phan hoi co ban dich.
  *
@@ -28,10 +24,9 @@ export interface HreflangAlternateView {
  * duoc; neu ban EN moi chi la ban nhap thi dia chi do tra 404, va Google khong
  * bao loi — no am tham ha do tin cay cua ca cum trang.
  */
-export interface TranslatedBase {
+export interface TranslatedBase extends SeoDetailView {
   readonly slug: string;
   readonly locale: Locale;
-  readonly hreflang_alternates: readonly HreflangAlternateView[];
 }
 
 // ─────────────────────────── the trong danh sach ───────────────────────────
@@ -169,7 +164,7 @@ export interface DocumentCardView {
   readonly is_public: boolean;
 }
 
-export interface DocumentDetailView extends DocumentCardView {
+export interface DocumentDetailView extends DocumentCardView, SeoDetailView {
   readonly description: string | null;
   readonly download_count: number;
 }

@@ -1,6 +1,11 @@
 import type { Page, Paged } from '../helpers.js';
 import type { TreeNode } from '../tree.dao.js';
-import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
+import type {
+  HreflangAlternate,
+  Locale,
+  TranslationStatus,
+  PublicTranslationRow,
+} from '../translation.support.js';
 import type {
   CreateServiceInput,
   Service,

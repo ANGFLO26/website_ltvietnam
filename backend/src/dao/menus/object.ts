@@ -12,8 +12,7 @@
  * toan khong ton tai.
  */
 export type MenuLocation =
-  | 'header' | 'mobile' | 'footer_company' | 'footer_products'
-  | 'footer_services' | 'footer_legal';
+  'header' | 'mobile' | 'footer_company' | 'footer_products' | 'footer_services' | 'footer_legal';
 
 export type MenuStatus = 'active' | 'hidden';
 
@@ -31,8 +30,15 @@ export interface Menu {
  * chu khong phat mot lien ket gay len menu.
  */
 export type MenuLinkType =
-  | 'page' | 'product_category' | 'brand' | 'service'
-  | 'post_category' | 'product' | 'post' | 'custom_url' | 'none';
+  | 'page'
+  | 'product_category'
+  | 'brand'
+  | 'service'
+  | 'post_category'
+  | 'product'
+  | 'post'
+  | 'custom_url'
+  | 'none';
 
 export interface MenuItem {
   readonly id: string;
@@ -71,6 +77,12 @@ export interface CreateMenuInput {
   readonly code: string;
   readonly name: string;
   readonly location: MenuLocation;
+}
+
+export interface UpdateMenuInput {
+  readonly name?: string;
+  readonly location?: MenuLocation;
+  readonly status?: MenuStatus;
 }
 
 export interface UpsertMenuItemInput {

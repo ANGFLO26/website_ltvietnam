@@ -310,7 +310,10 @@ describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
     for (const dir of tableDirs) {
       const daoSrc = stripComments(readFileSync(join(DAO_DIR, dir, 'dao.ts'), 'utf8'));
       const cls = /export class (\w+)/.exec(daoSrc)?.[1];
-      if (!cls) { missing.push(`dao/${dir}/dao.ts: khong tim thay export class`); continue; }
+      if (!cls) {
+        missing.push(`dao/${dir}/dao.ts: khong tim thay export class`);
+        continue;
+      }
       if (!new RegExp(`new\\s+${cls}\\s*\\(`).test(build)) missing.push(`${cls} (dao/${dir})`);
     }
     expect(missing, `Chua khoi tao trong buildDaos:\n${missing.join('\n')}`).toEqual([]);
@@ -319,8 +322,10 @@ describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
   it('AllDaos khai bao dung so luong bang — khong thua, khong thieu', () => {
     const allDaos = /export interface AllDaos \{[\s\S]*?\n}/.exec(managerCode)?.[0] ?? '';
     const props = [...allDaos.matchAll(/readonly (\w+):/g)].map((m) => m[1]!);
-    expect(props.length, `AllDaos co ${props.length} muc, co ${tableDirs.length} thu muc bang`)
-      .toBe(tableDirs.length);
+    expect(
+      props.length,
+      `AllDaos co ${props.length} muc, co ${tableDirs.length} thu muc bang`,
+    ).toBe(tableDirs.length);
   });
 });
 
@@ -343,8 +348,7 @@ describe('Luat 7 — moi thu muc bang phai duoc noi vao DaoManager', () => {
  */
 describe('Luat 9 — api/ khong duoc tiem DAO manager', () => {
   it('khong controller nao nhac toi DAO_MANAGER', () => {
-    const bad = FILES
-      .filter((f) => layerOf(f.path) === 'api')
+    const bad = FILES.filter((f) => layerOf(f.path) === 'api')
       .filter((f) => /\bDAO_MANAGER\b|\bDaoManager\b|\bDaoScope\b/.test(f.code))
       .map((f) => f.path);
     expect(
@@ -405,7 +409,8 @@ describe('Luat 8 — khong bang nao trong so do bi bo quen', () => {
 
     // Gop toan bo ma tang dao lai roi tim ten bang duoi dang chuoi.
     const daoCode = FILES.filter((f) => layerOf(f.path) === 'dao')
-      .map((f) => f.code).join('\n');
+      .map((f) => f.code)
+      .join('\n');
 
     const missing = tables.filter((t) => !new RegExp(`['"\`]${t}['"\`]`).test(daoCode));
     expect(
@@ -486,10 +491,9 @@ describe('Luat 10 — controller khong duoc tu boc vo phan hoi', () => {
     const bad = API_HANDLERS.filter((h) => !h.mienVo)
       .filter((h) => /\)\s*:\s*(?:Promise<\s*)?\{/.test(h.slice))
       .map((h) => `${h.file}: ${/\)\s*:\s*(?:Promise<\s*)?\{[^}]*\}/.exec(h.slice)?.[0] ?? ''}`);
-    expect(
-      bad,
-      `Kieu tra ve cua handler phai co ten (vd UserView):\n${bad.join('\n')}`,
-    ).toEqual([]);
+    expect(bad, `Kieu tra ve cua handler phai co ten (vd UserView):\n${bad.join('\n')}`).toEqual(
+      [],
+    );
   });
 
   it('10c — `@NoEnvelope()` chi duoc dung o danh sach trang', () => {
@@ -501,7 +505,7 @@ describe('Luat 10 — controller khong duoc tu boc vo phan hoi', () => {
      * Them mot duong vao danh sach nay la mot quyet dinh CO Y THUC — dung y
      * muon cua luat.
      */
-    const CHO_PHEP = new Set(['api/public/health.controller.ts']);
+    const CHO_PHEP = new Set(['api/public/health.controller.ts', 'api/public/seo.controller.ts']);
     const bad = FILES.filter((f) => /@NoEnvelope\s*\(/.test(f.code))
       .map((f) => f.path)
       .filter((p) => !CHO_PHEP.has(p) && !p.startsWith('shared/http/'));
@@ -605,10 +609,7 @@ describe('Luat 12 — chi mot file duoc tao ket noi pg', () => {
     const bad = REPO_FILES.filter((f) => f.path !== NGUON_POOL)
       .filter((f) => /new\s+(?:pg\.)?(?:Pool|Client)\s*\(/.test(f.code))
       .map((f) => f.path);
-    expect(
-      bad,
-      `Ket noi database chi duoc tao o ${NGUON_POOL}:\n${bad.join('\n')}`,
-    ).toEqual([]);
+    expect(bad, `Ket noi database chi duoc tao o ${NGUON_POOL}:\n${bad.join('\n')}`).toEqual([]);
   });
 });
 
@@ -690,7 +691,8 @@ describe('Luat 14 — `pg` chi duoc import nhu GIA TRI o nguon pool', () => {
  */
 describe('Luat 15 — moi goi import phai duoc khai bao la dependency', () => {
   /** Goi co san trong Node, khong can khai bao. */
-  const NOI_BO = /^(node:|assert|buffer|child_process|crypto|dns|events|fs|http|https|net|os|path|querystring|readline|stream|string_decoder|timers|tls|url|util|worker_threads|zlib)/;
+  const NOI_BO =
+    /^(node:|assert|buffer|child_process|crypto|dns|events|fs|http|https|net|os|path|querystring|readline|stream|string_decoder|timers|tls|url|util|worker_threads|zlib)/;
 
   const gocCua = (p: string): string | null => {
     const m = /^(backend|worker|frontend|packages\/[^/]+)\//.exec(p);
@@ -814,8 +816,7 @@ describe('Luat 16 — bang endpoint khop controller that', () => {
      * thay DUNG bang so do. Con so nay khong the dung khi mot file bi bo qua.
      */
     const soDecorator = FILES.filter((f) => layerOf(f.path) === 'api').reduce(
-      (n, f) =>
-        n + [...f.code.matchAll(/@(?:Get|Post|Patch|Delete|Put)\s*\(/g)].length,
+      (n, f) => n + [...f.code.matchAll(/@(?:Get|Post|Patch|Delete|Put)\s*\(/g)].length,
       0,
     );
     expect(soDecorator).toBeGreaterThan(20);
@@ -830,10 +831,7 @@ describe('Luat 16 — bang endpoint khop controller that', () => {
     const thieu = API_ENDPOINTS.filter((e) => e.status === 'done')
       .map(endpointKey)
       .filter((k) => !trongMaSet.has(k));
-    expect(
-      thieu,
-      `Bang noi "done" nhung khong co controller:\n${thieu.join('\n')}`,
-    ).toEqual([]);
+    expect(thieu, `Bang noi "done" nhung khong co controller:\n${thieu.join('\n')}`).toEqual([]);
   });
 
   it('16b — moi route trong ma deu co trong bang va dang `done`', () => {
@@ -844,6 +842,17 @@ describe('Luat 16 — bang endpoint khop controller that', () => {
       else if (e.status !== 'done') bad.push(`${r.key} — da co ma nhung bang van ghi 'todo'`);
     }
     expect(bad, `Bang endpoint va ma nguon lech nhau:\n${bad.join('\n')}`).toEqual([]);
+  });
+
+  it('endpoint outsideBasePath phai duoc main.ts loai khoi global prefix', () => {
+    const main = readFileSync(join(SRC, 'main.ts'), 'utf8');
+    const thieu = API_ENDPOINTS.filter((e) => e.status === 'done' && e.outsideBasePath)
+      .filter((e) => !main.includes(`'${e.path.slice(1)}'`))
+      .map(endpointKey);
+    expect(
+      thieu,
+      `Khai bao ngoai API_BASE_PATH nhung main.ts chua exclude:\n${thieu.join('\n')}`,
+    ).toEqual([]);
   });
 
   it('duong dan CU THE phai khai bao truoc duong dan CO THAM SO', () => {
@@ -932,10 +941,9 @@ describe('Luat 17 — @Param phai co pipe kiem', () => {
         bad.push(`${f.path}: @Param(${trong})`);
       }
     }
-    expect(
-      bad,
-      `Tham so duong dan phai qua pipe kiem (vd SlugPipe):\n${bad.join('\n')}`,
-    ).toEqual([]);
+    expect(bad, `Tham so duong dan phai qua pipe kiem (vd SlugPipe):\n${bad.join('\n')}`).toEqual(
+      [],
+    );
   });
 
   it('co `@Param` de kiem — neu khong thi luat tren rong', () => {

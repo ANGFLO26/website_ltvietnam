@@ -24,9 +24,15 @@ const url = process.env.DATABASE_URL;
 const run = url ? describe : describe.skip;
 
 class HasherGia implements PasswordHasher {
-  async hash(plain: string): Promise<string> { return `bam:${plain}`; }
-  async verify(): Promise<boolean> { throw new Error('khong dung'); }
-  async burn(): Promise<void> { throw new Error('khong dung'); }
+  async hash(plain: string): Promise<string> {
+    return `bam:${plain}`;
+  }
+  async verify(): Promise<boolean> {
+    throw new Error('khong dung');
+  }
+  async burn(): Promise<void> {
+    throw new Error('khong dung');
+  }
 }
 
 run('UserService tren PostgreSQL that', () => {
@@ -93,7 +99,9 @@ run('UserService tren PostgreSQL that', () => {
      * bootstrap — cung lo hong leo thang dac quyen, chi qua mot cua khac.
      */
     const u = await daos.users.insert({
-      name: 'Se bi xoa', email: `${tag}-xoa@vd.local`, passwordHash: 'bam:x',
+      name: 'Se bi xoa',
+      email: `${tag}-xoa@vd.local`,
+      passwordHash: 'bam:x',
     });
     const truoc = await daos.users.countAll();
     await pool.query(`UPDATE ltv.users SET deleted_at = now() WHERE id = $1`, [u.id]);
@@ -132,7 +140,11 @@ run('UserService tren PostgreSQL that', () => {
       expect(await daos.users.countActiveAdmins()).toBe(0);
       expect(await daos.users.countAll()).toBe(1);
       try {
-        await svc.bootstrapFirstAdmin({ name: 'Ke tan cong', email: `${tag}-ke@evil.test`, password: MK });
+        await svc.bootstrapFirstAdmin({
+          name: 'Ke tan cong',
+          email: `${tag}-ke@evil.test`,
+          password: MK,
+        });
       } catch (err) {
         return err as DomainError;
       }
@@ -150,7 +162,11 @@ run('UserService tren PostgreSQL that', () => {
         [`${tag}-del@vd.local`],
       );
       try {
-        await svc.bootstrapFirstAdmin({ name: 'Ke tan cong', email: `${tag}-ke2@evil.test`, password: MK });
+        await svc.bootstrapFirstAdmin({
+          name: 'Ke tan cong',
+          email: `${tag}-ke2@evil.test`,
+          password: MK,
+        });
       } catch (err) {
         return err as DomainError;
       }
@@ -163,10 +179,14 @@ run('UserService tren PostgreSQL that', () => {
   it('setStatus: khong vo hieu hoa duoc quan tri hoat dong cuoi cung', async () => {
     const e = await voiBangRong(async () => {
       const a = await daos.users.insert({
-        name: 'Duy nhat', email: `${tag}-solo@vd.local`, passwordHash: 'bam:x',
+        name: 'Duy nhat',
+        email: `${tag}-solo@vd.local`,
+        passwordHash: 'bam:x',
       });
       const b = await daos.users.insert({
-        name: 'Da khoa', email: `${tag}-off@vd.local`, passwordHash: 'bam:x',
+        name: 'Da khoa',
+        email: `${tag}-off@vd.local`,
+        passwordHash: 'bam:x',
       });
       await daos.users.setStatus(b.id, 'disabled');
       expect(await daos.users.countActiveAdmins()).toBe(1);

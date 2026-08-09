@@ -4,7 +4,8 @@
  * Hang mang cau truc cay: PAC -> HERZOG/ISL/ALCOR/ANTEK/AC (ADR-015).
  * `ancestorIds` va `depth` do `TreeDao` duy tri, DAO con khong tu tinh.
  */
-export type BrandType = 'manufacturer' | 'sub_brand' | 'global_partner' | 'service_partner' | 'supplier';
+export type BrandType =
+  'manufacturer' | 'sub_brand' | 'global_partner' | 'service_partner' | 'supplier';
 export type EntityStatus = 'draft' | 'published' | 'hidden' | 'archived';
 
 export interface Brand {

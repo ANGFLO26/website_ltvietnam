@@ -201,13 +201,55 @@ async function seedCay(
  * qua giong nhau: mot duong khong bao gio duoc thu.
  */
 const TIEU_CHUAN = [
-  { org: 'ASTM', code: 'D86', slug: 'astm-d86', name: 'Distillation of Petroleum Products', featured: true },
-  { org: 'ASTM', code: 'D5191', slug: 'astm-d5191', name: 'Vapor Pressure (Mini Method)', featured: false },
-  { org: 'ASTM', code: 'D93', slug: 'astm-d93', name: 'Flash Point by Pensky-Martens', featured: true },
-  { org: 'ASTM', code: 'D4052', slug: 'astm-d4052', name: 'Density by Digital Density Meter', featured: false },
-  { org: 'ISO', code: '3405', slug: 'iso-3405', name: 'Distillation Characteristics', featured: true },
-  { org: 'ISO', code: '2719', slug: 'iso-2719', name: 'Flash Point — Pensky-Martens', featured: false },
-  { org: 'IP', code: '123', slug: 'ip-123', name: 'Distillation of Petroleum Products', featured: false },
+  {
+    org: 'ASTM',
+    code: 'D86',
+    slug: 'astm-d86',
+    name: 'Distillation of Petroleum Products',
+    featured: true,
+  },
+  {
+    org: 'ASTM',
+    code: 'D5191',
+    slug: 'astm-d5191',
+    name: 'Vapor Pressure (Mini Method)',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D93',
+    slug: 'astm-d93',
+    name: 'Flash Point by Pensky-Martens',
+    featured: true,
+  },
+  {
+    org: 'ASTM',
+    code: 'D4052',
+    slug: 'astm-d4052',
+    name: 'Density by Digital Density Meter',
+    featured: false,
+  },
+  {
+    org: 'ISO',
+    code: '3405',
+    slug: 'iso-3405',
+    name: 'Distillation Characteristics',
+    featured: true,
+  },
+  {
+    org: 'ISO',
+    code: '2719',
+    slug: 'iso-2719',
+    name: 'Flash Point — Pensky-Martens',
+    featured: false,
+  },
+  {
+    org: 'IP',
+    code: '123',
+    slug: 'ip-123',
+    name: 'Distillation of Petroleum Products',
+    featured: false,
+  },
 ] as const;
 
 async function seedTieuChuan(daos: DaoManager): Promise<Map<string, string>> {
@@ -306,46 +348,132 @@ interface SanPhamDemo {
  *   - san pham khong co tieu chuan nao -> kiem bo loc khong lam mat hang
  */
 const SAN_PHAM: readonly SanPhamDemo[] = [
-  { slug: 'optidist-automatic-distillation-analyzer', name: 'OptiDist', model: 'OptiDist',
-    brand: 'pac', categories: ['atmospheric-distillation', 'distillation'],
-    standards: ['astm-d86', 'iso-3405', 'ip-123'], applications: ['gasoline', 'diesel'],
-    industries: ['oil-and-gas', 'petrochemical'], featured: true },
-  { slug: 'optipmd-vacuum-distillation-analyzer', name: 'OptiPMD', model: 'OptiPMD',
-    brand: 'pac', categories: ['vacuum-distillation'], standards: ['astm-d5191'],
-    applications: ['crude-oil-assay'], industries: ['oil-and-gas'] },
-  { slug: 'herzog-hda-627-distillation-analyzer', name: 'HDA 627', model: 'HDA 627',
-    brand: 'herzog', categories: ['atmospheric-distillation'],
-    standards: ['astm-d86', 'iso-3405'], applications: ['diesel', 'jet-fuel'],
-    industries: ['oil-and-gas'], featured: true },
-  { slug: 'herzog-hfp-386-flash-point-tester', name: 'HFP 386', model: 'HFP 386',
-    brand: 'herzog', categories: ['closed-cup', 'flash-point'],
-    standards: ['astm-d93', 'iso-2719'], applications: ['diesel', 'lubricant-analysis'],
-    industries: ['oil-and-gas', 'quality-control-lab'], featured: true },
-  { slug: 'isl-fp-93-5g2-flash-point-tester', name: 'FP 93 5G2', model: 'FP 93 5G2',
-    brand: 'isl', categories: ['closed-cup'], standards: ['astm-d93'],
-    applications: ['diesel'], industries: ['quality-control-lab'] },
-  { slug: 'isl-oc-open-cup-flash-point-tester', name: 'OC Series', model: 'OC',
-    brand: 'isl', categories: ['open-cup'], standards: ['astm-d93'],
-    applications: ['lubricant-analysis'], industries: ['quality-control-lab'] },
-  { slug: 'anton-paar-dma-4500-m-density-meter', name: 'DMA 4500 M', model: 'DMA 4500 M',
-    brand: 'anton-paar', categories: ['density-meters'], standards: ['astm-d4052'],
-    applications: ['fuel-analysis'], industries: ['petrochemical', 'research-and-education'],
-    featured: true },
-  { slug: 'anton-paar-svm-3001-viscometer', name: 'SVM 3001', model: 'SVM 3001',
-    brand: 'anton-paar', categories: ['viscometers'], standards: [],
-    applications: ['lubricant-analysis'], industries: ['petrochemical'] },
-  { slug: 'pac-mini-vap-vpsh-vapor-pressure-analyzer', name: 'MINIVAP VPSH', model: 'MINIVAP VPSH',
-    brand: 'pac', categories: ['vapor-pressure'], standards: ['astm-d5191'],
-    applications: ['gasoline'], industries: ['oil-and-gas'], featured: true },
-  { slug: 'pac-alcor-jftot-thermal-stability', name: 'Alcor JFTOT', model: 'JFTOT 230 Mark IV',
-    brand: 'pac', categories: ['petroleum-testing'], standards: [],
-    applications: ['jet-fuel'], industries: ['oil-and-gas'] },
-  { slug: 'herzog-sample-preparation-unit', name: 'HSP Unit', model: 'HSP 100',
-    brand: 'herzog', categories: ['sample-preparation'], standards: [],
-    applications: ['fuel-analysis'], industries: ['quality-control-lab'] },
-  { slug: 'isl-legacy-distillation-analyzer', name: 'AD 86 5G', model: 'AD 86 5G',
-    brand: 'isl', categories: ['atmospheric-distillation'], standards: ['astm-d86'],
-    applications: ['diesel'], industries: ['oil-and-gas'], discontinued: true },
+  {
+    slug: 'optidist-automatic-distillation-analyzer',
+    name: 'OptiDist',
+    model: 'OptiDist',
+    brand: 'pac',
+    categories: ['atmospheric-distillation', 'distillation'],
+    standards: ['astm-d86', 'iso-3405', 'ip-123'],
+    applications: ['gasoline', 'diesel'],
+    industries: ['oil-and-gas', 'petrochemical'],
+    featured: true,
+  },
+  {
+    slug: 'optipmd-vacuum-distillation-analyzer',
+    name: 'OptiPMD',
+    model: 'OptiPMD',
+    brand: 'pac',
+    categories: ['vacuum-distillation'],
+    standards: ['astm-d5191'],
+    applications: ['crude-oil-assay'],
+    industries: ['oil-and-gas'],
+  },
+  {
+    slug: 'herzog-hda-627-distillation-analyzer',
+    name: 'HDA 627',
+    model: 'HDA 627',
+    brand: 'herzog',
+    categories: ['atmospheric-distillation'],
+    standards: ['astm-d86', 'iso-3405'],
+    applications: ['diesel', 'jet-fuel'],
+    industries: ['oil-and-gas'],
+    featured: true,
+  },
+  {
+    slug: 'herzog-hfp-386-flash-point-tester',
+    name: 'HFP 386',
+    model: 'HFP 386',
+    brand: 'herzog',
+    categories: ['closed-cup', 'flash-point'],
+    standards: ['astm-d93', 'iso-2719'],
+    applications: ['diesel', 'lubricant-analysis'],
+    industries: ['oil-and-gas', 'quality-control-lab'],
+    featured: true,
+  },
+  {
+    slug: 'isl-fp-93-5g2-flash-point-tester',
+    name: 'FP 93 5G2',
+    model: 'FP 93 5G2',
+    brand: 'isl',
+    categories: ['closed-cup'],
+    standards: ['astm-d93'],
+    applications: ['diesel'],
+    industries: ['quality-control-lab'],
+  },
+  {
+    slug: 'isl-oc-open-cup-flash-point-tester',
+    name: 'OC Series',
+    model: 'OC',
+    brand: 'isl',
+    categories: ['open-cup'],
+    standards: ['astm-d93'],
+    applications: ['lubricant-analysis'],
+    industries: ['quality-control-lab'],
+  },
+  {
+    slug: 'anton-paar-dma-4500-m-density-meter',
+    name: 'DMA 4500 M',
+    model: 'DMA 4500 M',
+    brand: 'anton-paar',
+    categories: ['density-meters'],
+    standards: ['astm-d4052'],
+    applications: ['fuel-analysis'],
+    industries: ['petrochemical', 'research-and-education'],
+    featured: true,
+  },
+  {
+    slug: 'anton-paar-svm-3001-viscometer',
+    name: 'SVM 3001',
+    model: 'SVM 3001',
+    brand: 'anton-paar',
+    categories: ['viscometers'],
+    standards: [],
+    applications: ['lubricant-analysis'],
+    industries: ['petrochemical'],
+  },
+  {
+    slug: 'pac-mini-vap-vpsh-vapor-pressure-analyzer',
+    name: 'MINIVAP VPSH',
+    model: 'MINIVAP VPSH',
+    brand: 'pac',
+    categories: ['vapor-pressure'],
+    standards: ['astm-d5191'],
+    applications: ['gasoline'],
+    industries: ['oil-and-gas'],
+    featured: true,
+  },
+  {
+    slug: 'pac-alcor-jftot-thermal-stability',
+    name: 'Alcor JFTOT',
+    model: 'JFTOT 230 Mark IV',
+    brand: 'pac',
+    categories: ['petroleum-testing'],
+    standards: [],
+    applications: ['jet-fuel'],
+    industries: ['oil-and-gas'],
+  },
+  {
+    slug: 'herzog-sample-preparation-unit',
+    name: 'HSP Unit',
+    model: 'HSP 100',
+    brand: 'herzog',
+    categories: ['sample-preparation'],
+    standards: [],
+    applications: ['fuel-analysis'],
+    industries: ['quality-control-lab'],
+  },
+  {
+    slug: 'isl-legacy-distillation-analyzer',
+    name: 'AD 86 5G',
+    model: 'AD 86 5G',
+    brand: 'isl',
+    categories: ['atmospheric-distillation'],
+    standards: ['astm-d86'],
+    applications: ['diesel'],
+    industries: ['oil-and-gas'],
+    discontinued: true,
+  },
 ];
 
 async function seedSanPham(
@@ -469,7 +597,10 @@ async function seedSanPham(
  *   mot bai co CA HAI locale    ->  hreflang co hai muc
  */
 const DICH_VU: readonly {
-  slug: string; name: string; type: string; children?: readonly { slug: string; name: string }[];
+  slug: string;
+  name: string;
+  type: string;
+  children?: readonly { slug: string; name: string }[];
 }[] = [
   {
     slug: 'installation-commissioning',
@@ -491,7 +622,10 @@ async function seedDichVu(
   const ra = new Map<string, string>();
 
   const themMot = async (
-    slug: string, name: string, type: string | null, parentId: string | null,
+    slug: string,
+    name: string,
+    type: string | null,
+    parentId: string | null,
   ): Promise<string> => {
     /**
      * Tim theo (locale, slug) cua BAN DICH — khong theo bang cha.
@@ -508,7 +642,10 @@ async function seedDichVu(
       ...(parentId !== null ? { parentId } : {}),
       ...(type !== null ? { serviceType: type } : {}),
     });
-    for (const [locale, ten] of [['en', name], ['vi', name]] as const) {
+    for (const [locale, ten] of [
+      ['en', name],
+      ['vi', name],
+    ] as const) {
       await daos.services.upsertTranslation(sv.id, {
         locale,
         name: ten,
@@ -542,10 +679,22 @@ async function seedDichVu(
 }
 
 const DU_AN = [
-  { slug: 'refinery-lab-upgrade', title: 'Refinery Laboratory Upgrade', type: 'installation',
-    location: 'Dung Quat', country: 'VN', hienTen: true },
-  { slug: 'qc-lab-commissioning', title: 'QC Lab Commissioning', type: 'commissioning',
-    location: 'Hai Phong', country: 'VN', hienTen: false },
+  {
+    slug: 'refinery-lab-upgrade',
+    title: 'Refinery Laboratory Upgrade',
+    type: 'installation',
+    location: 'Dung Quat',
+    country: 'VN',
+    hienTen: true,
+  },
+  {
+    slug: 'qc-lab-commissioning',
+    title: 'QC Lab Commissioning',
+    type: 'commissioning',
+    location: 'Hai Phong',
+    country: 'VN',
+    hienTen: false,
+  },
 ] as const;
 
 async function seedDuAn(daos: DaoManager): Promise<number> {
@@ -601,14 +750,38 @@ const DANH_MUC_TIN = [
  * bo het dieu kien trang thai van cho ra dung ket qua do.
  */
 const BAI_VIET = [
-  { slug: 'new-optidist-launch', title: 'New OptiDist Launch', dm: 'news',
-    chaPub: true, dichPub: true, haiNgu: true },
-  { slug: 'astm-d86-explained', title: 'ASTM D86 Explained', dm: 'technical-articles',
-    chaPub: true, dichPub: true, haiNgu: false },
-  { slug: 'draft-translation-only', title: 'Draft Translation Only', dm: 'news',
-    chaPub: true, dichPub: false, haiNgu: false },
-  { slug: 'draft-parent-only', title: 'Draft Parent Only', dm: 'news',
-    chaPub: false, dichPub: true, haiNgu: false },
+  {
+    slug: 'new-optidist-launch',
+    title: 'New OptiDist Launch',
+    dm: 'news',
+    chaPub: true,
+    dichPub: true,
+    haiNgu: true,
+  },
+  {
+    slug: 'astm-d86-explained',
+    title: 'ASTM D86 Explained',
+    dm: 'technical-articles',
+    chaPub: true,
+    dichPub: true,
+    haiNgu: false,
+  },
+  {
+    slug: 'draft-translation-only',
+    title: 'Draft Translation Only',
+    dm: 'news',
+    chaPub: true,
+    dichPub: false,
+    haiNgu: false,
+  },
+  {
+    slug: 'draft-parent-only',
+    title: 'Draft Parent Only',
+    dm: 'news',
+    chaPub: false,
+    dichPub: true,
+    haiNgu: false,
+  },
 ] as const;
 
 async function seedTin(daos: DaoManager): Promise<void> {
@@ -744,7 +917,6 @@ async function seedTrang(daos: DaoManager): Promise<void> {
   }
   log(`  trang tinh      ${n}`);
 }
-
 
 // ══════════════════════════════════════════════════════════════
 //  F4 — KHUNG SITE: anh, banner, khach hang, van phong, menu

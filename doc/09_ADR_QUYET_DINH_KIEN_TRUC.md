@@ -231,7 +231,8 @@ Form → Validate → CAPTCHA + Rate limit
      → Worker nền gửi email → Retry khi thất bại
 ```
 3. Thêm hai bảng: `inquiries`, `inquiry_outbox`.
-4. **Không xây giao diện quản lý Inquiry trong Admin MVP.** Hai bảng chỉ để: không mất yêu cầu, retry email, idempotency, chuẩn bị mở rộng.
+4. Admin MVP chỉ có danh sách/chi tiết đọc và nút `handled`; **không xây CRM**,
+   không có sửa nội dung lead hay pipeline bán hàng.
 
 ## `inquiries` — trường tối thiểu
 ```text
@@ -243,7 +244,7 @@ created_at, expires_at (nullable, retention)
 
 ## `inquiry_outbox` — trường tối thiểu (cập nhật v1.2)
 ```text
-id, inquiry_id, channel, recipient, status, attempts,
+id, inquiry_id (nullable), notification_type, payload, channel, recipient, status, attempts,
 last_attempt_at, next_attempt_at, locked_at, locked_by,
 last_error, created_at, updated_at, sent_at
 ```
@@ -266,7 +267,9 @@ failed       (hết số lần thử)
 ## Concurrency & idempotency (mới v1.2)
 
 ### Chống hai worker gửi trùng
-- `UNIQUE(inquiry_id, channel, recipient)` — không tạo hai job trùng cho cùng inquiry (vẫn cho nhiều channel/recipient tương lai).
+- `UNIQUE(inquiry_id, channel, recipient)` — không tạo hai job trùng cho cùng inquiry
+  (vẫn cho nhiều channel/recipient tương lai). `notification_type=password_reset` dùng
+  `inquiry_id=NULL`, nên mỗi lần yêu cầu reset là một job riêng.
 - Worker lấy job **atomic** trong transaction:
 ```sql
 SELECT ... FROM ltv.inquiry_outbox
@@ -287,7 +290,8 @@ LIMIT :batch_size;
 `FOR UPDATE SKIP LOCKED` chỉ **ngăn hai worker đồng thời xử lý cùng một job**, KHÔNG bảo đảm tuyệt đối không gửi trùng. Tình huống vẫn xảy ra: SMTP đã nhận email → worker chết trước khi ghi `status=sent` → reaper đưa job về `pending` → worker khác gửi lại.
 - **Outbox có semantics `at-least-once` delivery**, KHÔNG phải `exactly-once`. Hệ thống không thể bảo đảm exactly-once trong tình huống SMTP đã nhận nhưng DB chưa kịp ghi `sent`.
 - **Message-ID ổn định** giảm tác động của retry trùng: sinh **xác định** từ `outbox.id`, ví dụ `<inquiry-outbox-{outbox.id}@ltvietnam.com.vn>`. Retry cùng một outbox record dùng **cùng** Message-ID (không sinh mới mỗi lần). Nếu SMTP/provider hỗ trợ idempotency key, dùng `outbox.id`. Structured log chứa `outbox_id` + `message_id`; không đưa PII vào Message-ID. Email template có thể chứa mã yêu cầu nội bộ để nhân viên nhận biết bản gửi trùng.
-- **Không đổi schema** (Message-ID xác định từ `outbox.id`).
+- **Không cần thêm cột Message-ID** (giá trị xác định từ `outbox.id`). Migration `036`
+  chỉ mở rộng cùng outbox cho email reset mật khẩu bằng `notification_type` + `payload`.
 > Không dùng câu "outbox bảo đảm không bao giờ gửi trùng".
 
 ### last_error không chứa PII/secret

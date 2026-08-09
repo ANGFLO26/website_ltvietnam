@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# LUU TRU BANG CHUNG P0: script nay gan cung duong dan cua sandbox cu, khong dung cho local dev.
 # CHI DUNG TRONG HOP CAT — khong phai mot phan cua he thong.
 #
 # Moi lan goi bash trong hop cat la mot tien trinh rieng, va PostgreSQL khoi dong
@@ -6,7 +7,7 @@
 # dong lai database trong CUNG mot lan goi.
 #
 # Cach dung:
-#   source scripts/sandbox-pg.sh   # dat PATH, PGURI, va bao dam server dang chay
+#   source implementation/evidence/p0-sandbox/sandbox-pg.sh
 set -u
 
 export PATH="/sessions/serene-bold-lovelace/.local/bin:$PATH"

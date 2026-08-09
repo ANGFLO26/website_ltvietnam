@@ -24,12 +24,24 @@ import type { KyselyExecutor } from './connection.js';
  * Viet lai muoi hai lan la muoi hai co hoi sai.
  */
 export type SluggedTableName =
-  | 'brands' | 'product_categories' | 'standards' | 'applications' | 'industries'
-  | 'products' | 'documents' | 'post_categories'
-  | 'page_translations' | 'service_translations' | 'project_translations' | 'post_translations';
+  | 'brands'
+  | 'product_categories'
+  | 'standards'
+  | 'applications'
+  | 'industries'
+  | 'products'
+  | 'documents'
+  | 'post_categories'
+  | 'page_translations'
+  | 'service_translations'
+  | 'project_translations'
+  | 'post_translations';
 
 export class SlugTakenError extends Error {
-  constructor(readonly slug: string, readonly reason: 'in_use' | 'was_published') {
+  constructor(
+    readonly slug: string,
+    readonly reason: 'in_use' | 'was_published',
+  ) {
     super(
       reason === 'in_use'
         ? `Slug dang duoc dung: ${slug}`
@@ -54,9 +66,7 @@ export class SlugSupport {
    * khong giai phong namespace.
    */
   async isSlugAvailable(slug: string, locale?: string, exceptId?: string): Promise<boolean> {
-    const localeCond = this.slugScopedByLocale && locale
-      ? sql` AND locale = ${locale}`
-      : sql``;
+    const localeCond = this.slugScopedByLocale && locale ? sql` AND locale = ${locale}` : sql``;
     const exceptCond = exceptId ? sql` AND id <> ${exceptId}` : sql``;
     const r = await sql<{ n: string }>`
       SELECT count(*) AS n FROM ${sql.table(this.table)}

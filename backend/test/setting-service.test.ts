@@ -39,8 +39,13 @@ class SettingDaoGia implements SettingDao {
       i >= 0
         ? { ...this.rows[i]!, value: input.value }
         : {
-            id: `s${this.rows.length + 1}`, group: input.group, key: input.key,
-            value: input.value, valueType: 'string', isPublic: false, isEncrypted: false,
+            id: `s${this.rows.length + 1}`,
+            group: input.group,
+            key: input.key,
+            value: input.value,
+            valueType: 'string',
+            isPublic: false,
+            isEncrypted: false,
           };
     if (i >= 0) this.rows[i] = day;
     else this.rows.push(day);
@@ -49,8 +54,12 @@ class SettingDaoGia implements SettingDao {
 
   seed(s: Partial<Setting> & { group: string; key: string }): Setting {
     const day: Setting = {
-      id: `s${this.rows.length + 1}`, value: null, valueType: 'string' as SettingValueType,
-      isPublic: false, isEncrypted: false, ...s,
+      id: `s${this.rows.length + 1}`,
+      value: null,
+      valueType: 'string' as SettingValueType,
+      isPublic: false,
+      isEncrypted: false,
+      ...s,
     };
     this.rows.push(day);
     return day;
@@ -116,7 +125,13 @@ describe('che secret', () => {
      * `UPDATE` sua tay la du de pha. DAO gia o day dung dung trang thai "khong
      * nen ton tai" do, va service phai van che.
      */
-    dao.seed({ group: 'email', key: 'smtp_password', value: 'bi-mat', isPublic: true, isEncrypted: true });
+    dao.seed({
+      group: 'email',
+      key: 'smtp_password',
+      value: 'bi-mat',
+      isPublic: true,
+      isEncrypted: true,
+    });
     expect((await svc.listPublic())[0]!.value).toBe(MASKED_VALUE);
   });
 

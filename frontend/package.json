@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit --incremental false",
     "dev": "next dev -p ${WEB_PORT:-3000}",
     "start": "next start -p ${WEB_PORT:-3000}"
   },

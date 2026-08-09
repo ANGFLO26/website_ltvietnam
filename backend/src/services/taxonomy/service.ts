@@ -8,17 +8,21 @@ import type { Standard } from '../../dao/standards/object.js';
 import type { ProductCard } from '../../dao/products/object.js';
 import type {
   ApplicationCardView,
+  ApplicationDetailView,
   ApplicationTreeView,
   BrandCardView,
   BrandDetailView,
   IndustryCardView,
+  IndustryDetailView,
   ProductCardView,
   ProductCategoryCardView,
+  ProductCategoryDetailView,
   ProductCategoryTreeView,
   StandardCardView,
   StandardDetailView,
 } from '@ltv/contracts';
 import type { PageArg, PagedResult, TaxonomyService } from './interface.js';
+import { detailSeo, hasEditorialBlocks, hasEditorialText } from '../seo/metadata.js';
 
 export type TaxonomyDaos = DaoScope<
   'brands' | 'productCategories' | 'standards' | 'applications' | 'industries' | 'products'
@@ -143,6 +147,7 @@ export class TaxonomyServiceImpl implements TaxonomyService {
   constructor(
     private readonly daos: TaxonomyDaos,
     private readonly chunk: number = TRAN_TRANG,
+    private readonly siteUrl: string = 'http://localhost:3000',
   ) {}
 
   /**
@@ -235,6 +240,7 @@ export class TaxonomyServiceImpl implements TaxonomyService {
 
     return {
       ...brandCard(b),
+      ...detailSeo(this.siteUrl, `/brands/${b.slug}`),
       short_description: b.shortDescription,
       website_url: b.websiteUrl,
       cover_image_id: b.coverImageId,
@@ -286,9 +292,21 @@ export class TaxonomyServiceImpl implements TaxonomyService {
     return dungCay(rows, categoryCard) as readonly ProductCategoryTreeView[];
   }
 
-  async findProductCategory(slug: string): Promise<ProductCategoryCardView | null> {
+  async findProductCategory(slug: string): Promise<ProductCategoryDetailView | null> {
     const c = await this.daos.productCategories.findBySlug(slug);
-    return c && c.status === 'published' ? categoryCard(c) : null;
+    if (!c || c.status !== 'published') return null;
+    const coNoiDung = hasEditorialBlocks(c.description);
+    return {
+      ...categoryCard(c),
+      ...detailSeo(
+        this.siteUrl,
+        coNoiDung ? `/products/category/${c.slug}` : '/products/all',
+        coNoiDung ? 'index,follow' : 'noindex,follow',
+      ),
+      description: c.description,
+      seo_title: c.seoTitle,
+      seo_description: c.seoDescription,
+    };
   }
 
   // ══════════════════════ standards ══════════════════════
@@ -323,7 +341,18 @@ export class TaxonomyServiceImpl implements TaxonomyService {
   async findStandard(slug: string): Promise<StandardDetailView | null> {
     const s = await this.daos.standards.findBySlug(slug);
     if (!s || s.status !== 'published') return null;
-    return { ...standardCard(s), description: s.description };
+    const coNoiDung = hasEditorialText(s.description);
+    return {
+      ...standardCard(s),
+      ...detailSeo(
+        this.siteUrl,
+        coNoiDung ? `/products/standard/${s.slug}` : '/products/all',
+        coNoiDung ? 'index,follow' : 'noindex,follow',
+      ),
+      description: s.description,
+      seo_title: s.seoTitle,
+      seo_description: s.seoDescription,
+    };
   }
 
   // ══════════════════════ applications ══════════════════════
@@ -360,9 +389,21 @@ export class TaxonomyServiceImpl implements TaxonomyService {
     return dungCay(rows, applicationCard) as readonly ApplicationTreeView[];
   }
 
-  async findApplication(slug: string): Promise<ApplicationCardView | null> {
+  async findApplication(slug: string): Promise<ApplicationDetailView | null> {
     const a = await this.daos.applications.findBySlug(slug);
-    return a && a.status === 'published' ? applicationCard(a) : null;
+    if (!a || a.status !== 'published') return null;
+    const coNoiDung = hasEditorialBlocks(a.description);
+    return {
+      ...applicationCard(a),
+      ...detailSeo(
+        this.siteUrl,
+        coNoiDung ? `/products/application/${a.slug}` : '/products/all',
+        coNoiDung ? 'index,follow' : 'noindex,follow',
+      ),
+      description: a.description,
+      seo_title: a.seoTitle,
+      seo_description: a.seoDescription,
+    };
   }
 
   // ══════════════════════ industries ══════════════════════
@@ -383,9 +424,16 @@ export class TaxonomyServiceImpl implements TaxonomyService {
     };
   }
 
-  async findIndustry(slug: string): Promise<IndustryCardView | null> {
+  async findIndustry(slug: string): Promise<IndustryDetailView | null> {
     const i = await this.daos.industries.findBySlug(slug);
-    return i && i.status === 'published' ? industryCard(i) : null;
+    if (!i || i.status !== 'published') return null;
+    return {
+      ...industryCard(i),
+      ...detailSeo(this.siteUrl, '/products/all', 'noindex,follow'),
+      description: i.description,
+      seo_title: i.seoTitle,
+      seo_description: i.seoDescription,
+    };
   }
 
   // ══════════════════════ san pham theo nhanh ══════════════════════

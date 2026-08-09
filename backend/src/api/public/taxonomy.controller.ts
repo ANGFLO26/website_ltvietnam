@@ -2,11 +2,14 @@ import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
 import { z } from 'zod';
 import type {
   ApplicationCardView,
+  ApplicationDetailView,
   ApplicationTreeView,
   BrandCardView,
   BrandDetailView,
   IndustryCardView,
+  IndustryDetailView,
   ProductCategoryCardView,
+  ProductCategoryDetailView,
   ProductCategoryTreeView,
 } from '@ltv/contracts';
 import { DomainError, NotFoundError } from '../../shared/errors.js';
@@ -91,7 +94,7 @@ export class TaxonomyController {
   }
 
   @Get('product-categories/:slug')
-  async category(@Param('slug', SlugPipe) slug: string): Promise<ProductCategoryCardView> {
+  async category(@Param('slug', SlugPipe) slug: string): Promise<ProductCategoryDetailView> {
     const r = await this.tx.findProductCategory(slug);
     if (!r) throw khongThay('PRODUCT_CATEGORY', slug);
     return r;
@@ -141,7 +144,7 @@ export class TaxonomyController {
   }
 
   @Get('applications/:slug')
-  async application(@Param('slug', SlugPipe) slug: string): Promise<ApplicationCardView> {
+  async application(@Param('slug', SlugPipe) slug: string): Promise<ApplicationDetailView> {
     const r = await this.tx.findApplication(slug);
     if (!r) throw khongThay('APPLICATION', slug);
     return r;
@@ -160,7 +163,7 @@ export class TaxonomyController {
   }
 
   @Get('industries/:slug')
-  async industry(@Param('slug', SlugPipe) slug: string): Promise<IndustryCardView> {
+  async industry(@Param('slug', SlugPipe) slug: string): Promise<IndustryDetailView> {
     const r = await this.tx.findIndustry(slug);
     if (!r) throw khongThay('INDUSTRY', slug);
     return r;
@@ -270,9 +273,14 @@ function doc<S extends z.ZodTypeAny>(
 ): z.infer<S> & { page?: number | undefined; pageSize?: number | undefined } {
   const r = schema.safeParse(q);
   if (!r.success) {
-    throw new DomainError('VALIDATION_FAILED', 'Tham so truy van khong hop le', 'VALIDATION_FAILED', {
-      fields: r.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
-    });
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Tham so truy van khong hop le',
+      'VALIDATION_FAILED',
+      {
+        fields: r.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
+      },
+    );
   }
   const d = r.data as z.infer<S> & { page?: number; page_size?: number };
   return { ...d, pageSize: d.page_size };

@@ -1,8 +1,4 @@
-import type {
-  ProductCardView,
-  ProductDetailView,
-  ProductLandingView,
-} from '@ltv/contracts';
+import type { ProductCardView, ProductDetailView, ProductLandingView } from '@ltv/contracts';
 import type { PageArg, PagedResult } from '../taxonomy/interface.js';
 
 export const PRODUCT_QUERY_SERVICE = Symbol('PRODUCT_QUERY_SERVICE');

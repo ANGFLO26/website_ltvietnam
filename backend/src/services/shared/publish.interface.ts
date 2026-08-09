@@ -10,8 +10,13 @@ export const PUBLISH_SERVICE = Symbol('PUBLISH_SERVICE');
  * bien tap. Bat soan thao "xuat ban" tung tieu chuan la viec vo ich.
  */
 export type PublishableEntity =
-  | 'product' | 'brand' | 'document'          // mot ngon ngu
-  | 'service' | 'project' | 'post' | 'page';  // co ban dich
+  | 'product'
+  | 'brand'
+  | 'document' // mot ngon ngu
+  | 'service'
+  | 'project'
+  | 'post'
+  | 'page'; // co ban dich
 
 /**
  * Mot dieu kien chua dat.
@@ -25,8 +30,7 @@ export interface PublishBlocker {
 }
 
 export type PublishCheck =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly blockers: readonly PublishBlocker[] };
+  { readonly ok: true } | { readonly ok: false; readonly blockers: readonly PublishBlocker[] };
 
 export interface PublishTarget {
   readonly entity: PublishableEntity;

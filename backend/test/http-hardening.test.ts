@@ -2,11 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HttpException, HttpStatus, type ArgumentsHost } from '@nestjs/common';
 import { AppExceptionFilter } from '../src/shared/http/exception.filter.js';
 import { createSecurityHeaders } from '../src/shared/http/security.middleware.js';
-import {
-  ConflictError,
-  DependencyUnavailableError,
-  NotFoundError,
-} from '../src/shared/errors.js';
+import { ConflictError, DependencyUnavailableError, NotFoundError } from '../src/shared/errors.js';
 import type { AppConfig } from '@ltv/config';
 
 /**
@@ -26,9 +22,17 @@ interface ResGia {
 function moiTruongGia(path = '/api/v1/x', requestId = 'rid-1') {
   const res: ResGia = { statusCode: null, body: null, headers: {} };
   const doiTuong = {
-    status(n: number) { res.statusCode = n; return doiTuong; },
-    json(b: unknown) { res.body = b; return doiTuong; },
-    setHeader(k: string, v: string) { res.headers[k] = v; },
+    status(n: number) {
+      res.statusCode = n;
+      return doiTuong;
+    },
+    json(b: unknown) {
+      res.body = b;
+      return doiTuong;
+    },
+    setHeader(k: string, v: string) {
+      res.headers[k] = v;
+    },
   };
   const host = {
     switchToHttp: () => ({
@@ -63,15 +67,17 @@ describe('loi PHU THUOC -> 503, khong phai 500', () => {
 
   it('PostgreSQL class 08 (loi ket noi) -> 503', () => {
     for (const ma of ['08006', '08003', '08P01']) {
-      expect(bat(Object.assign(new Error('x'), { code: ma })).statusCode)
-        .toBe(HttpStatus.SERVICE_UNAVAILABLE);
+      expect(bat(Object.assign(new Error('x'), { code: ma })).statusCode).toBe(
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
   });
 
   it('may chu dang tat / qua tai ket noi -> 503', () => {
     for (const ma of ['57P01', '57P03', '53300']) {
-      expect(bat(Object.assign(new Error('x'), { code: ma })).statusCode)
-        .toBe(HttpStatus.SERVICE_UNAVAILABLE);
+      expect(bat(Object.assign(new Error('x'), { code: ma })).statusCode).toBe(
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
   });
 
@@ -86,7 +92,9 @@ describe('loi PHU THUOC -> 503, khong phai 500', () => {
   });
 
   it('KHONG lo chi tiet noi bo trong than 503', () => {
-    const r = bat(Object.assign(new Error('connect ECONNREFUSED 10.0.0.5:5432'), { code: 'ECONNREFUSED' }));
+    const r = bat(
+      Object.assign(new Error('connect ECONNREFUSED 10.0.0.5:5432'), { code: 'ECONNREFUSED' }),
+    );
     const s = JSON.stringify(r.body);
     expect(s).not.toContain('10.0.0.5');
     expect(s).not.toContain('ECONNREFUSED');
@@ -185,21 +193,27 @@ describe('anh xa loi domain khong bi anh huong', () => {
   it('vo LOI luon co bon truong, ke ca khi khong co request id', () => {
     const { res, host } = moiTruongGia('/x', '');
     new AppExceptionFilter().catch(new Error('x'), host);
-    expect(Object.keys((res.body as { error: object }).error).sort())
-      .toEqual(['code', 'details', 'message', 'request_id']);
+    expect(Object.keys((res.body as { error: object }).error).sort()).toEqual([
+      'code',
+      'details',
+      'message',
+      'request_id',
+    ]);
   });
 });
 
 describe('security header', () => {
   const chay = (cfg: Partial<AppConfig>): Record<string, string> => {
     const headers: Record<string, string> = {};
-    const res = { setHeader: (k: string, v: string) => { headers[k] = v; } };
+    const res = {
+      setHeader: (k: string, v: string) => {
+        headers[k] = v;
+      },
+    };
     let daGoiNext = false;
-    createSecurityHeaders(cfg as AppConfig)(
-      {} as never,
-      res as never,
-      () => { daGoiNext = true; },
-    );
+    createSecurityHeaders(cfg as AppConfig)({} as never, res as never, () => {
+      daGoiNext = true;
+    });
     expect(daGoiNext, 'middleware PHAI goi next() — neu khong thi moi yeu cau treo').toBe(true);
     return headers;
   };
@@ -223,8 +237,9 @@ describe('security header', () => {
   });
 
   it('HSTS BAT khi cau hinh tuong minh', () => {
-    expect(chay({ HSTS_MAX_AGE_SECONDS: 31_536_000 })['Strict-Transport-Security'])
-      .toBe('max-age=31536000; includeSubDomains');
+    expect(chay({ HSTS_MAX_AGE_SECONDS: 31_536_000 })['Strict-Transport-Security']).toBe(
+      'max-age=31536000; includeSubDomains',
+    );
   });
 
   it('KHONG dat CSP — day la quyet dinh, khong phai bo sot', () => {

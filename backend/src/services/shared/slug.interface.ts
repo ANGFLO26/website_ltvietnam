@@ -9,9 +9,18 @@ export const SLUG_SERVICE = Symbol('SLUG_SERVICE');
  * `slug.service.test.ts` giu cho hai ben khong lech nhau.
  */
 export type SluggedEntity =
-  | 'product' | 'brand' | 'product_category' | 'standard' | 'application'
-  | 'industry' | 'document' | 'post_category'
-  | 'page' | 'post' | 'service' | 'project';
+  | 'product'
+  | 'brand'
+  | 'product_category'
+  | 'standard'
+  | 'application'
+  | 'industry'
+  | 'document'
+  | 'post_category'
+  | 'page'
+  | 'post'
+  | 'service'
+  | 'project';
 
 /**
  * Ket qua kiem slug — KHONG phai boolean.
@@ -43,11 +52,7 @@ export type SlugRejectReason =
   | 'invalid_format';
 
 export type SlugRejectCode =
-  | 'SLUG_IN_USE'
-  | 'SLUG_SOFT_DELETED'
-  | 'SLUG_IN_REDIRECTS'
-  | 'SLUG_RESERVED'
-  | 'SLUG_INVALID';
+  'SLUG_IN_USE' | 'SLUG_SOFT_DELETED' | 'SLUG_IN_REDIRECTS' | 'SLUG_RESERVED' | 'SLUG_INVALID';
 
 export interface SlugCheckInput {
   readonly entity: SluggedEntity;
@@ -74,6 +79,9 @@ export interface RenameInput extends SlugCheckInput {
 export interface SlugService {
   /** Duong dan cong khai day du cua mot slug — day la don vi duoc kiem. */
   publicPath(entity: SluggedEntity, slug: string, locale?: Locale): string;
+
+  /** True when a published entity currently owns this complete public path. */
+  isLivePath(path: string): Promise<boolean>;
 
   /**
    * Kiem BA NGUON theo duong dan day du (ADR-002 muc 8).

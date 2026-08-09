@@ -293,7 +293,7 @@ PATCH /admin/inquiries/:id/handled
 
 ### Tự kiểm
 
-- hai yêu cầu cùng `Idempotency-Key` → **một** bản ghi, cả hai nhận 201
+- hai yêu cầu cùng `Idempotency-Key` → **một** bản ghi, cả hai nhận 202
 - gửi SMTP **ngoài** transaction (D6/FV-08); commit outbox trước khi gọi
 - worker: hai tiến trình cùng chạy không lấy trùng job (đã kiểm ở DAO, giờ kiểm
   ở worker thật)

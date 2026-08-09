@@ -401,6 +401,9 @@ COMMIT;
 ```
 **Reaper (stale-lock):** `status='processing' AND locked_at < NOW()-processing_timeout` → `pending` (clear lock, structured log). `processing_timeout` đủ dài để hạn chế cướp job của worker còn sống.
 `last_error` **không** chứa PII/secret. `UNIQUE(inquiry_id, channel, recipient)` chặn tạo job trùng.
+Migration `036` dùng cùng hàng đợi cho `password_reset`: job loại này có
+`inquiry_id=NULL`, token chỉ nằm trong `payload` (không vào log) và payload được xóa khi
+job kết thúc. CHECK constraint buộc đúng hình dạng cho từng `notification_type`.
 
 **Bảo đảm gửi = at-least-once (v1.2.1):** `SKIP LOCKED` chỉ ngăn hai worker **đồng thời** xử lý cùng một job; **KHÔNG** bảo đảm exactly-once (SMTP đã nhận nhưng worker chết trước khi ghi `sent` → reaper có thể để gửi lại). Không dùng câu "không bao giờ gửi trùng".
 - **Message-ID ổn định**, sinh **xác định** từ `outbox.id`: `<inquiry-outbox-{outbox.id}@ltvietnam.com.vn>`. **Retry cùng outbox record dùng cùng Message-ID** (không sinh mới). Nếu SMTP/provider hỗ trợ idempotency key → dùng `outbox.id`.

@@ -3,15 +3,32 @@ import { BaseDao } from '../base.dao.js';
 import type { KyselyExecutor } from '../connection.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
 import type { MediaDao } from './dao.interface.js';
-import type { CreateMediaInput, Media, MediaFilter, UpdateMediaInput } from './object.js';
+import type {
+  CreateMediaInput,
+  Media,
+  MediaFilter,
+  MediaReferencePlace,
+  UpdateMediaInput,
+} from './object.js';
 import { toMedia } from './mapper.js';
 
 export class KyselyMediaDao extends BaseDao implements MediaDao {
   // ── doc ────────────────────────────────────────────────────────
   async findById(id: string): Promise<Media | null> {
     const row = await this.db
-      .selectFrom('media').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null)
+      .selectFrom('media')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
+    return row ? toMedia(row) : null;
+  }
+
+  async findStoredById(id: string): Promise<Media | null> {
+    const row = await this.db
+      .selectFrom('media')
+      .selectAll()
+      .where('id', '=', id)
       .executeTakeFirst();
     return row ? toMedia(row) : null;
   }
@@ -19,23 +36,48 @@ export class KyselyMediaDao extends BaseDao implements MediaDao {
   async findManyByIds(ids: readonly string[]): Promise<Media[]> {
     if (ids.length === 0) return [];
     const rows = await this.db
-      .selectFrom('media').selectAll()
-      .where('id', 'in', [...ids]).where('deleted_at', 'is', null)
+      .selectFrom('media')
+      .selectAll()
+      .where('id', 'in', [...ids])
+      .where('deleted_at', 'is', null)
       .execute();
     return rows.map(toMedia);
   }
 
   async findByStoragePath(path: string): Promise<Media | null> {
     const row = await this.db
-      .selectFrom('media').selectAll().where('storage_path', '=', path)
+      .selectFrom('media')
+      .selectAll()
+      .where('storage_path', '=', path)
+      .executeTakeFirst();
+    return row ? toMedia(row) : null;
+  }
+
+  async findActiveByPublicAssetPath(path: string): Promise<Media | null> {
+    const row = await this.db
+      .selectFrom('media')
+      .selectAll()
+      .where('storage_class', '=', 'public')
+      .where('deleted_at', 'is', null)
+      .where((eb) =>
+        eb.or([
+          eb('storage_path', '=', path),
+          sql<boolean>`EXISTS (
+          SELECT 1 FROM jsonb_each_text(variants) AS variant
+          WHERE variant.value = ${path}
+        )`,
+        ]),
+      )
       .executeTakeFirst();
     return row ? toMedia(row) : null;
   }
 
   async findByChecksum(checksum: string): Promise<Media | null> {
     const row = await this.db
-      .selectFrom('media').selectAll()
-      .where('checksum', '=', checksum).where('deleted_at', 'is', null)
+      .selectFrom('media')
+      .selectAll()
+      .where('checksum', '=', checksum)
+      .where('deleted_at', 'is', null)
       .orderBy('created_at')
       .executeTakeFirst();
     return row ? toMedia(row) : null;
@@ -69,6 +111,10 @@ export class KyselyMediaDao extends BaseDao implements MediaDao {
       q = q.where('mime_type', 'like', prefix);
       cq = cq.where('mime_type', 'like', prefix);
     }
+    if (filter.mimeType) {
+      q = q.where('mime_type', '=', filter.mimeType);
+      cq = cq.where('mime_type', '=', filter.mimeType);
+    }
     if (filter.search) {
       const needle = `%${escapeLike(filter.search)}%`;
       q = q.where((eb) =>
@@ -87,7 +133,11 @@ export class KyselyMediaDao extends BaseDao implements MediaDao {
       );
     }
 
-    const rows = await q.orderBy('created_at', 'desc').limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('created_at', 'desc')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toMedia), total, p);
   }
@@ -159,7 +209,8 @@ export class KyselyMediaDao extends BaseDao implements MediaDao {
 
   async findPurgeCandidates(before: Date, limit: number): Promise<Media[]> {
     const rows = await this.db
-      .selectFrom('media').selectAll()
+      .selectFrom('media')
+      .selectAll()
       .where('deleted_at', 'is not', null)
       .where('deleted_at', '<', before)
       .where('purged_at', 'is', null)
@@ -189,12 +240,37 @@ export class KyselyMediaDao extends BaseDao implements MediaDao {
 
     // UNION ALL cac lan dem roi cong lai — mot vong toi may chu, khong phai 23.
     const parts = cols.map(
-      (c) => sql`SELECT COUNT(*) AS n FROM ${sql.table(c.table)} WHERE ${sql.ref(c.column)} = ${id}`,
+      (c) =>
+        sql`SELECT COUNT(*) AS n FROM ${sql.table(c.table)} WHERE ${sql.ref(c.column)} = ${id}`,
     );
     const r = await sql<{ total: string }>`
       SELECT COALESCE(SUM(n), 0) AS total FROM (${sql.join(parts, sql` UNION ALL `)}) s
     `.execute(this.db);
     return Number(r.rows[0]?.total ?? 0);
+  }
+
+  async findReferencePlaces(id: string): Promise<readonly MediaReferencePlace[]> {
+    const cols = (await loadMediaFkColumns(this.db)).filter(
+      (c) => c.table !== 'content_media_refs',
+    );
+    const places: MediaReferencePlace[] = [];
+
+    // Chi chay khi admin mo chi tiet/xoa. So bang nho va truy van deu danh vao
+    // cot FK co index (migration 032), nen uu tien toa do chinh xac de UI chi
+    // dung cho can sua thay vi tra mot con so mo ho.
+    for (const c of cols) {
+      const result = await sql<{ row: Record<string, unknown> }>`
+        SELECT to_jsonb(t) AS row
+        FROM ${sql.table(c.table)} AS t
+        WHERE ${sql.ref(`t.${c.column}`)} = ${id}
+      `.execute(this.db);
+      for (let i = 0; i < result.rows.length; i++) {
+        const row = result.rows[i]!.row;
+        const entityId = referenceEntityId(row, c.column, i);
+        places.push({ entityType: c.table, entityId, fieldName: c.column });
+      }
+    }
+    return places;
   }
 }
 
@@ -236,4 +312,16 @@ export function resetMediaFkCache(): void {
 /** `%` va `_` trong chuoi nguoi dung tim la ky tu THUONG, khong phai dai dien. */
 function escapeLike(s: string): string {
   return s.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+function referenceEntityId(
+  row: Record<string, unknown>,
+  mediaColumn: string,
+  index: number,
+): string {
+  if (typeof row.id === 'string') return row.id;
+  const relationId = Object.entries(row).find(
+    ([key, value]) => key.endsWith('_id') && key !== mediaColumn && typeof value === 'string',
+  )?.[1];
+  return typeof relationId === 'string' ? relationId : `row-${index + 1}`;
 }

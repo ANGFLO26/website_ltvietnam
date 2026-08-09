@@ -1,10 +1,6 @@
 import { ConflictError, DomainError, UnauthorizedError } from '../../shared/errors.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
-import type {
-  PasswordHasher,
-  ResetTokenSigner,
-  TokenSigner,
-} from './crypto.port.js';
+import type { PasswordHasher, ResetTokenSigner, TokenSigner } from './crypto.port.js';
 import type {
   AuthService,
   ChangePasswordInput,
@@ -227,7 +223,7 @@ export class AuthServiceImpl implements AuthService {
 
   async requestPasswordReset(
     email: string,
-  ): Promise<{ token: string; userId: string } | null> {
+  ): Promise<{ token: string; userId: string; email: string } | null> {
     const user = await this.daos.users.findByEmail(email.trim().toLowerCase());
     // `null` khong phai la loi — tang api van tra ve 200 nhu binh thuong.
     if (!user || user.status === 'disabled') return null;
@@ -236,18 +232,24 @@ export class AuthServiceImpl implements AuthService {
       { sub: user.id, pwd: pwdStamp(user.passwordChangedAt, user.createdAt) },
       this.cfg.resetTtlSeconds,
     );
-    return { token, userId: user.id };
+    return { token, userId: user.id, email: user.email };
   }
 
   async resetPassword(input: ResetPasswordInput): Promise<void> {
     const claims = await this.resetTokens.verify(input.token);
     if (!claims) {
-      throw new UnauthorizedError('AUTH_RESET_TOKEN_INVALID', 'Lien ket khong hop le hoac da het han');
+      throw new UnauthorizedError(
+        'AUTH_RESET_TOKEN_INVALID',
+        'Lien ket khong hop le hoac da het han',
+      );
     }
 
     const user = await this.daos.users.findById(claims.sub);
     if (!user || user.status === 'disabled') {
-      throw new UnauthorizedError('AUTH_RESET_TOKEN_INVALID', 'Lien ket khong hop le hoac da het han');
+      throw new UnauthorizedError(
+        'AUTH_RESET_TOKEN_INVALID',
+        'Lien ket khong hop le hoac da het han',
+      );
     }
 
     /**

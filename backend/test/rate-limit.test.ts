@@ -58,7 +58,8 @@ describe('SlidingWindowLimiter — cua so truot', () => {
 
   it('reset xoa bo dem — day la thu lam han muc thanh "5 lan THAT BAI"', () => {
     const l = new SlidingWindowLimiter(2, 60_000);
-    l.check('k'); l.check('k');
+    l.check('k');
+    l.check('k');
     expect(l.check('k').allowed).toBe(false);
     l.reset('k');
     expect(l.check('k').allowed).toBe(true);
@@ -110,7 +111,11 @@ describe('HashGate — tran so lan bam cung luc', () => {
 
   it('loi tu ham duoc bao ve KHONG lam ket cong', async () => {
     const gate = new HashGate(1, 0);
-    await expect(gate.run(async () => { throw new Error('vo'); })).rejects.toThrow('vo');
+    await expect(
+      gate.run(async () => {
+        throw new Error('vo');
+      }),
+    ).rejects.toThrow('vo');
     // Neu `finally` khong giam bo dem thi loi goi sau se bi tu choi vinh vien
     await expect(gate.run(async () => 'con dung duoc')).resolves.toBe('con dung duoc');
   });

@@ -9,6 +9,10 @@ export type SettingDaos = DaoScope<'settings'>;
 export class SettingServiceImpl implements SettingService {
   constructor(private readonly daos: SettingDaos) {}
 
+  async listAll(): Promise<MaskedSetting[]> {
+    return (await this.daos.settings.listAll()).map(mask);
+  }
+
   async listGroup(group: string): Promise<MaskedSetting[]> {
     return (await this.daos.settings.findByGroup(group)).map(mask);
   }
@@ -61,5 +65,31 @@ export class SettingServiceImpl implements SettingService {
     }
 
     return mask(await this.daos.settings.upsert({ group, key, value }));
+  }
+
+  async updateGroup(
+    group: string,
+    values: Readonly<Record<string, string | null>>,
+  ): Promise<MaskedSetting[]> {
+    const existing = await this.daos.settings.findByGroup(group);
+    const byKey = new Map(existing.map((setting) => [setting.key, setting]));
+    for (const key of Object.keys(values)) {
+      if (!byKey.has(key)) {
+        throw new DomainError(
+          'SETTING_UNKNOWN_KEY',
+          `Khong co cau hinh ${group}.${key}`,
+          'NOT_FOUND',
+        );
+      }
+    }
+
+    await this.daos.transaction(async (tx) => {
+      for (const [key, value] of Object.entries(values)) {
+        const setting = byKey.get(key)!;
+        if (setting.isEncrypted && value === MASKED_VALUE) continue;
+        await tx.settings.upsert({ group, key, value });
+      }
+    });
+    return this.listGroup(group);
   }
 }

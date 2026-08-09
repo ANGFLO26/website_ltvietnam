@@ -12,7 +12,12 @@ import type { Request, Response } from 'express';
  *              trang khac. Day la lop chan CSRF thu nhat.
  *   Path       gioi han pham vi gui cookie.
  */
-export function setSessionCookie(res: Response, cfg: AppConfig, token: string, ttlSeconds: number): void {
+export function setSessionCookie(
+  res: Response,
+  cfg: AppConfig,
+  token: string,
+  ttlSeconds: number,
+): void {
   res.cookie(cfg.COOKIE_NAME, token, {
     httpOnly: true,
     secure: cfg.COOKIE_SECURE,
@@ -44,7 +49,12 @@ export function clearSessionCookie(res: Response, cfg: AppConfig): void {
  * Gia tri nay khong phai bi mat: no khong cap quyen gi ca. Bi mat la cookie
  * phien, va cookie do van `HttpOnly`.
  */
-export function setCsrfCookie(res: Response, cfg: AppConfig, value: string, ttlSeconds: number): void {
+export function setCsrfCookie(
+  res: Response,
+  cfg: AppConfig,
+  value: string,
+  ttlSeconds: number,
+): void {
   res.cookie(cfg.CSRF_COOKIE_NAME, value, {
     httpOnly: false,
     secure: cfg.COOKIE_SECURE,

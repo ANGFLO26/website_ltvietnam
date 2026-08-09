@@ -24,6 +24,7 @@ export interface CustomerDao {
   softDelete(id: string, at: Date): Promise<void>;
   restore(id: string): Promise<void>;
   publish(id: string, at: Date): Promise<Customer>;
+  unpublish(id: string): Promise<Customer>;
 
   /** So du an dang tro toi — de giao dien noi ly do khi khong xoa duoc. */
   countProjects(id: string): Promise<number>;

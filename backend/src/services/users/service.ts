@@ -13,6 +13,19 @@ export class UserServiceImpl implements UserService {
     private readonly minPasswordLength: number,
   ) {}
 
+  async list(
+    filter: { readonly status?: UserStatus; readonly search?: string },
+    page: { readonly page: number; readonly pageSize: number },
+  ) {
+    const result = await this.daos.users.list(filter, page);
+    return {
+      items: result.data,
+      page: result.meta.page,
+      pageSize: result.meta.pageSize,
+      totalItems: result.meta.totalItems,
+    };
+  }
+
   findById(id: string): Promise<User | null> {
     return this.daos.users.findById(id);
   }
@@ -33,46 +46,52 @@ export class UserServiceImpl implements UserService {
    * Hai lop bao ve, va ca hai deu can.
    */
   async setStatus(id: string, status: UserStatus, actingUserId: string): Promise<User> {
-    const user = await this.daos.users.findById(id);
-    if (!user) throw new NotFoundError('USER_NOT_FOUND', `Khong tim thay nguoi dung ${id}`);
-
-    if (status !== 'active') {
-      /**
-       * Lop 1 — khong tu khoa chinh minh.
-       *
-       * Rieng le thi lop nay khong du (hai quan tri co the khoa lan nhau),
-       * nhung no chan duoc tinh huong pho bien nhat: bam nham dong cua minh
-       * trong danh sach nguoi dung.
-       */
-      if (id === actingUserId) {
-        throw new ForbiddenError('USER_CANNOT_DISABLE_SELF', 'Khong the tu vo hieu hoa tai khoan cua minh');
+    return this.daos.transaction(async (tx) => {
+      if (status !== 'active') {
+        await tx.users.lockActiveAdmins();
       }
 
-      /**
-       * Lop 2 — khong khoa quan tri HOAT DONG CUOI CUNG.
-       *
-       * Day moi la lop that su chan duoc "khoa het ca doi ngu": dem so tai
-       * khoan `active` con lai. Neu chi con mot va do chinh la nguoi sap bi
-       * khoa, thi tu choi.
-       *
-       * Han che: dem roi ghi khong nam trong cung mot transaction, nen hai
-       * yeu cau dong thoi khoa hai quan tri cuoi cung VE LY THUYET co the
-       * lot ca hai. Tren mot he thong quan tri co vai nguoi va thao tac thu
-       * cong, xac suat do khong dang doi lay do phuc tap cua khoa hang. Ghi
-       * lai o day de nguoi doc sau biet day la lua chon, khong phai so sot.
-       */
-      if (user.status === 'active' && (await this.daos.users.countActiveAdmins()) <= 1) {
-        throw new ForbiddenError(
-          'USER_LAST_ADMIN',
-          'Khong the vo hieu hoa quan tri vien hoat dong cuoi cung',
-        );
-      }
-    }
+      const user = await tx.users.findById(id);
+      if (!user) throw new NotFoundError('USER_NOT_FOUND', `Khong tim thay nguoi dung ${id}`);
 
-    await this.daos.users.setStatus(id, status);
-    const after = await this.daos.users.findById(id);
-    if (!after) throw new NotFoundError('USER_NOT_FOUND', `Khong tim thay nguoi dung ${id}`);
-    return after;
+      if (status !== 'active') {
+        /**
+         * Lop 1 — khong tu khoa chinh minh.
+         *
+         * Rieng le thi lop nay khong du (hai quan tri co the khoa lan nhau),
+         * nhung no chan duoc tinh huong pho bien nhat: bam nham dong cua minh
+         * trong danh sach nguoi dung.
+         */
+        if (id === actingUserId) {
+          throw new ForbiddenError(
+            'USER_CANNOT_DISABLE_SELF',
+            'Khong the tu vo hieu hoa tai khoan cua minh',
+          );
+        }
+
+        /**
+         * Lop 2 — khong khoa quan tri HOAT DONG CUOI CUNG.
+         *
+         * Day moi la lop that su chan duoc "khoa het ca doi ngu": dem so tai
+         * khoan `active` con lai. Neu chi con mot va do chinh la nguoi sap bi
+         * khoa, thi tu choi.
+         *
+         * Khoa hang o dau transaction khien hai yeu cau dong thoi phai xep hang;
+         * yeu cau thu hai dem lai sau khi yeu cau thu nhat da commit.
+         */
+        if (user.status === 'active' && (await tx.users.countActiveAdmins()) <= 1) {
+          throw new ForbiddenError(
+            'USER_LAST_ADMIN',
+            'Khong the vo hieu hoa quan tri vien hoat dong cuoi cung',
+          );
+        }
+      }
+
+      await tx.users.setStatus(id, status);
+      const after = await tx.users.findById(id);
+      if (!after) throw new NotFoundError('USER_NOT_FOUND', `Khong tim thay nguoi dung ${id}`);
+      return after;
+    });
   }
 
   /**

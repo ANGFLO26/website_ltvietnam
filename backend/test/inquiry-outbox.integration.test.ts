@@ -33,6 +33,9 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     daos = createDaoManager(createKysely(pool));
   });
   afterAll(async () => {
+    await pool.query(`DELETE FROM ltv.inquiry_outbox WHERE recipient = $1`, [
+      `reset-${tag}@example.com`,
+    ]);
     await pool.query(`DELETE FROM ltv.inquiries WHERE idempotency_key LIKE $1`, [`${tag}-%`]);
     await pool.end();
   });
@@ -55,7 +58,9 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     // Khach bam lai sau khi sua o "message" — day KHONG phai mot ban sua,
     // ma la mot lan bam nut lap. Noi dung cu phai duoc giu.
     const second = await daos.inquiries.createIdempotent({
-      ...base(k), message: 'NOI DUNG KHAC HAN', fullName: 'Ten khac',
+      ...base(k),
+      message: 'NOI DUNG KHAC HAN',
+      fullName: 'Ten khac',
     });
     expect(second.inquiry.message).toBe(first.inquiry.message);
     expect(second.inquiry.fullName).toBe('Nguyen Van A');
@@ -80,7 +85,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     expect([a.replayed, b.replayed].sort()).toEqual([false, true]);
 
     const r = await pool.query(
-      `SELECT count(*) AS n FROM ltv.inquiries WHERE idempotency_key = $1`, [k],
+      `SELECT count(*) AS n FROM ltv.inquiries WHERE idempotency_key = $1`,
+      [k],
     );
     expect(Number(r.rows[0].n)).toBe(1);
   });
@@ -97,7 +103,10 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
 
   it('du lieu chong lam dung KHONG lot vao thuc the nghiep vu', async () => {
     const r = await daos.inquiries.createIdempotent({
-      ...base(key()), ipAddress: '203.0.113.9', userAgent: 'Mozilla/5.0', captchaScore: 0.9,
+      ...base(key()),
+      ipAddress: '203.0.113.9',
+      userAgent: 'Mozilla/5.0',
+      captchaScore: 0.9,
     });
     // Ba truong nay co trong bang nhung khong co trong `Inquiry` — de chung
     // khong the lot vao response API mot cach vo y.
@@ -143,10 +152,12 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
   it('job trung bi bo qua, khong nem loi (de replay goi lai duoc)', async () => {
     const r = await daos.inquiries.createIdempotent(base(key()));
     const first = await daos.inquiries.enqueueEmail({
-      inquiryId: r.inquiry.id, recipient: 'sales@ltv.vn',
+      inquiryId: r.inquiry.id,
+      recipient: 'sales@ltv.vn',
     });
     const again = await daos.inquiries.enqueueEmail({
-      inquiryId: r.inquiry.id, recipient: 'sales@ltv.vn',
+      inquiryId: r.inquiry.id,
+      recipient: 'sales@ltv.vn',
     });
     expect(first).not.toBeNull();
     expect(again).toBeNull();
@@ -157,6 +168,16 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     expect(await daos.inquiries.findJobsByInquiry(r.inquiry.id)).toHaveLength(2);
   });
 
+  it('reset mat khau dung chung outbox ma khong tao inquiry gia', async () => {
+    const job = await daos.inquiries.enqueuePasswordReset({
+      recipient: `reset-${tag}@example.com`,
+      token: 'signed-reset-token',
+    });
+    expect(job.inquiryId).toBeNull();
+    expect(job.notificationType).toBe('password_reset');
+    expect(job.payload).toEqual({ token: 'signed-reset-token' });
+  });
+
   // ══════════════════ FV-08 — lay job dong thoi ══════════════════
 
   const seedJobs = async (count: number, prefix: string) => {
@@ -164,7 +185,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     for (let i = 0; i < count; i++) {
       const r = await daos.inquiries.createIdempotent(base(key()));
       const job = await daos.inquiries.enqueueEmail({
-        inquiryId: r.inquiry.id, recipient: `${prefix}-${i}@ltv.vn`,
+        inquiryId: r.inquiry.id,
+        recipient: `${prefix}-${i}@ltv.vn`,
       });
       ids.push(job!.id);
     }
@@ -253,7 +275,10 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
       const mat = Date.now() - batDau;
 
       expect(mat, `cho ${mat}ms — worker dang bi chan`).toBeLessThan(1000);
-      expect(got.map((j) => j.id), 'job dang bi giu phai bi BO QUA').not.toContain(heldId);
+      expect(
+        got.map((j) => j.id),
+        'job dang bi giu phai bi BO QUA',
+      ).not.toContain(heldId);
     } finally {
       await holder.query('ROLLBACK').catch(() => undefined);
       await holder.end();
@@ -293,9 +318,10 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     await daos.inquiries.markJobFailed(id!, new Date(), 'SMTP 421 timeout', sau);
 
     const jobs = await daos.inquiries.findJobsByInquiry(
-      (await daos.inquiries.findById((await pool.query(
-        `SELECT inquiry_id FROM ltv.inquiry_outbox WHERE id = $1`, [id],
-      )).rows[0].inquiry_id))!.id,
+      (await daos.inquiries.findById(
+        (await pool.query(`SELECT inquiry_id FROM ltv.inquiry_outbox WHERE id = $1`, [id])).rows[0]
+          .inquiry_id,
+      ))!.id,
     );
     const j = jobs.find((x) => x.id === id)!;
     expect(j.status).toBe('pending');
@@ -309,15 +335,17 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     const k = key();
     const r = await daos.inquiries.createIdempotent(base(k));
     const job = await daos.inquiries.enqueueEmail({
-      inquiryId: r.inquiry.id, recipient: 'het-luot@ltv.vn',
+      inquiryId: r.inquiry.id,
+      recipient: 'het-luot@ltv.vn',
     });
     await daos.inquiries.claimJobs('w', 100, new Date());
     // `nextAttemptAt = null` = het luot
     await daos.inquiries.markJobFailed(job!.id, new Date(), 'SMTP 550', null);
     await daos.inquiries.setEmailStatus(r.inquiry.id, 'email_failed');
 
-    const after = (await daos.inquiries.findJobsByInquiry(r.inquiry.id))
-      .find((x) => x.id === job!.id)!;
+    const after = (await daos.inquiries.findJobsByInquiry(r.inquiry.id)).find(
+      (x) => x.id === job!.id,
+    )!;
     expect(after.status).toBe('failed');
 
     // Gui email that bai KHONG duoc lam mat lead — nhan vien van lien he tay duoc
@@ -331,7 +359,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     const k = key();
     const r = await daos.inquiries.createIdempotent(base(k));
     const job = await daos.inquiries.enqueueEmail({
-      inquiryId: r.inquiry.id, recipient: 'ok@ltv.vn',
+      inquiryId: r.inquiry.id,
+      recipient: 'ok@ltv.vn',
     });
     await daos.inquiries.claimJobs('w', 100, new Date());
     await daos.inquiries.markJobFailed(job!.id, new Date(), 'loi tam thoi', new Date());
@@ -355,7 +384,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
 
     // Chua qua han thi khong dung toi — worker co the con dang song
     const chuaQuaHan = await daos.inquiries.reapStaleJobs(
-      new Date(Date.now() - 3_600_000), new Date(),
+      new Date(Date.now() - 3_600_000),
+      new Date(),
     );
     void chuaQuaHan;
     let j = (await daos.inquiries.claimJobs('w2', 100, new Date())).find((x) => x.id === id);
@@ -374,7 +404,8 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     const k = key();
     const r = await daos.inquiries.createIdempotent(base(k));
     const job = await daos.inquiries.enqueueEmail({
-      inquiryId: r.inquiry.id, recipient: 'da-gui@ltv.vn',
+      inquiryId: r.inquiry.id,
+      recipient: 'da-gui@ltv.vn',
     });
     await daos.inquiries.claimJobs('w', 100, new Date());
     await daos.inquiries.markJobSent(job!.id, new Date());

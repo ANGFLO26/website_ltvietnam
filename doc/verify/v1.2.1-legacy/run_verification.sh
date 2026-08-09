@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =====================================================================
-# LT VIETNAM — SQL Execution Verification (v1.2.1) — bash/CI
+# LT VIETNAM — SQL Execution Verification (v1.2.1 legacy) — bash/CI
 # Chạy toàn bộ bài kiểm tra trên PostgreSQL 16 thật.
 #
 # Yêu cầu: có `psql` (client Postgres 16) trỏ tới một server Postgres 16.

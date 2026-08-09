@@ -13,6 +13,27 @@ const bool = z
 
 const int = z.coerce.number().int();
 
+/** Bien rong trong `.env` nghia la chua cau hinh, khong phai mot chuoi hop le. */
+const optionalText = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().min(1).optional(),
+);
+
+const siteOrigin = z
+  .string()
+  .url()
+  .refine((value) => {
+    const url = new URL(value);
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      url.username === '' &&
+      url.password === '' &&
+      url.pathname === '/' &&
+      url.search === '' &&
+      url.hash === ''
+    );
+  }, 'NEXT_PUBLIC_SITE_URL phai la HTTP(S) origin, khong co credentials/path/query/hash');
+
 export const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
@@ -24,6 +45,8 @@ export const configSchema = z.object({
 
   API_PORT: int.default(3001),
   API_BASE_PATH: z.string().default('/api/v1'),
+  /** Origin cong khai dung cho canonical, hreflang va sitemap (F6). */
+  NEXT_PUBLIC_SITE_URL: siteOrigin.default('http://localhost:3000'),
   CORS_ORIGINS: z
     .string()
     .default('')
@@ -108,18 +131,49 @@ export const configSchema = z.object({
   WORKER_HEARTBEAT_INTERVAL_MS: int.default(15_000),
   WORKER_MAX_ATTEMPTS: int.default(5),
 
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: int.optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASSWORD: z.string().optional(),
-  SMTP_FROM: z.string().optional(),
-  INQUIRY_RECIPIENT: z.string().optional(),
+  /** `file` giup local/dev quan sat email ma khong can SMTP. Production cam. */
+  EMAIL_TRANSPORT: z.enum(['file', 'smtp']).default('file'),
+  EMAIL_FILE_DIR: z.string().min(1).default('./.data/mail-outbox'),
+  SMTP_HOST: optionalText,
+  SMTP_PORT: int.default(587),
+  SMTP_USER: optionalText,
+  SMTP_PASSWORD: optionalText,
+  SMTP_FROM: z.string().email().default('no-reply@ltvietnam.com.vn'),
+  INQUIRY_RECIPIENT: z.string().email().default('inquiries@ltvietnam.com.vn'),
 
-  CAPTCHA_PROVIDER: z.string().optional(),
-  CAPTCHA_SECRET: z.string().optional(),
+  CAPTCHA_PROVIDER: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.enum(['turnstile', 'recaptcha']).optional(),
+  ),
+  CAPTCHA_SECRET: optionalText,
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
+
+/** Worker chi doc nhung bien no thuc su dung; khong doi JWT/reset secret. */
+export const workerConfigSchema = configSchema.pick({
+  NODE_ENV: true,
+  LOG_LEVEL: true,
+  DATABASE_URL: true,
+  DATABASE_SCHEMA: true,
+  DATABASE_POOL_MAX: true,
+  DATABASE_STATEMENT_TIMEOUT_MS: true,
+  NEXT_PUBLIC_SITE_URL: true,
+  WORKER_ID: true,
+  WORKER_BATCH_SIZE: true,
+  WORKER_POLL_INTERVAL_MS: true,
+  WORKER_PROCESSING_TIMEOUT_MS: true,
+  WORKER_HEARTBEAT_INTERVAL_MS: true,
+  WORKER_MAX_ATTEMPTS: true,
+  EMAIL_TRANSPORT: true,
+  EMAIL_FILE_DIR: true,
+  SMTP_HOST: true,
+  SMTP_PORT: true,
+  SMTP_USER: true,
+  SMTP_PASSWORD: true,
+  SMTP_FROM: true,
+});
+export type WorkerConfig = z.infer<typeof workerConfigSchema>;
 
 /**
  * Nhung cau hinh chay duoc tren may ca nhan nhung KHONG duoc phep len that.
@@ -145,6 +199,9 @@ export function assertProductionSafe(cfg: AppConfig): void {
   if (cfg.CORS_ORIGINS.some((o) => o.startsWith('http://'))) {
     loi.push('CORS_ORIGINS chua origin http:// — chi cho phep https tren production');
   }
+  if (!cfg.NEXT_PUBLIC_SITE_URL.startsWith('https://')) {
+    loi.push('NEXT_PUBLIC_SITE_URL phai dung https:// tren production');
+  }
   if (cfg.HASH_MAX_CONCURRENT > 16) {
     // Moi lan bam ton 19 MiB. 16 x 19 = 304 MiB da la nhieu cho mot may nho.
     loi.push(`HASH_MAX_CONCURRENT=${cfg.HASH_MAX_CONCURRENT} qua cao — moi lan bam ton 19 MiB`);
@@ -153,7 +210,23 @@ export function assertProductionSafe(cfg: AppConfig): void {
     // Dung chung bi mat thi mot the dat lai mat khau doi duoc thanh the phien.
     loi.push('JWT_SECRET va PASSWORD_RESET_SECRET phai KHAC nhau');
   }
-  for (const [ten, gt] of [['JWT_SECRET', cfg.JWT_SECRET], ['PASSWORD_RESET_SECRET', cfg.PASSWORD_RESET_SECRET]] as const) {
+  if (cfg.EMAIL_TRANSPORT !== 'smtp') {
+    loi.push('EMAIL_TRANSPORT phai la smtp tren production');
+  }
+  if (!cfg.SMTP_HOST) loi.push('SMTP_HOST bat buoc tren production');
+  if (!cfg.CAPTCHA_PROVIDER || !cfg.CAPTCHA_SECRET) {
+    loi.push('CAPTCHA_PROVIDER va CAPTCHA_SECRET bat buoc tren production');
+  }
+  if (!cfg.SMTP_FROM.toLowerCase().endsWith('@ltvietnam.com.vn')) {
+    loi.push('SMTP_FROM phai thuoc ten mien ltvietnam.com.vn');
+  }
+  if ((cfg.SMTP_USER === undefined) !== (cfg.SMTP_PASSWORD === undefined)) {
+    loi.push('SMTP_USER va SMTP_PASSWORD phai cung co hoac cung trong');
+  }
+  for (const [ten, gt] of [
+    ['JWT_SECRET', cfg.JWT_SECRET],
+    ['PASSWORD_RESET_SECRET', cfg.PASSWORD_RESET_SECRET],
+  ] as const) {
     if (gt.includes('thay-bang-gia-tri-that')) {
       loi.push(`${ten} van la gia tri mau trong .env.example`);
     }
@@ -174,7 +247,50 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     const lines = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`);
     throw new Error(`Cau hinh khong hop le:\n${lines.join('\n')}`);
   }
+  assertEmailCoherent(parsed.data);
+  if ((parsed.data.CAPTCHA_PROVIDER === undefined) !== (parsed.data.CAPTCHA_SECRET === undefined)) {
+    throw new Error(
+      'Cau hinh khong hop le:\n  - CAPTCHA_PROVIDER va CAPTCHA_SECRET phai cung co hoac cung trong',
+    );
+  }
   return parsed.data;
+}
+
+export function loadWorkerConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
+  const parsed = workerConfigSchema.safeParse(env);
+  if (!parsed.success) {
+    const lines = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`);
+    throw new Error(`Cau hinh worker khong hop le:\n${lines.join('\n')}`);
+  }
+  assertEmailCoherent(parsed.data);
+  return parsed.data;
+}
+
+function assertEmailCoherent(cfg: WorkerConfig): void {
+  const loi: string[] = [];
+  if (cfg.EMAIL_TRANSPORT === 'smtp' && !cfg.SMTP_HOST) {
+    loi.push('SMTP_HOST bat buoc khi EMAIL_TRANSPORT=smtp');
+  }
+  if ((cfg.SMTP_USER === undefined) !== (cfg.SMTP_PASSWORD === undefined)) {
+    loi.push('SMTP_USER va SMTP_PASSWORD phai cung co hoac cung trong');
+  }
+  if (loi.length > 0) throw new Error(`Cau hinh email khong hop le:\n  - ${loi.join('\n  - ')}`);
+}
+
+export function assertWorkerProductionSafe(cfg: WorkerConfig): void {
+  if (cfg.NODE_ENV !== 'production') return;
+  const loi: string[] = [];
+  if (cfg.EMAIL_TRANSPORT !== 'smtp') loi.push('EMAIL_TRANSPORT phai la smtp tren production');
+  if (!cfg.SMTP_HOST) loi.push('SMTP_HOST bat buoc tren production');
+  if (!cfg.SMTP_FROM.toLowerCase().endsWith('@ltvietnam.com.vn')) {
+    loi.push('SMTP_FROM phai thuoc ten mien ltvietnam.com.vn');
+  }
+  if ((cfg.SMTP_USER === undefined) !== (cfg.SMTP_PASSWORD === undefined)) {
+    loi.push('SMTP_USER va SMTP_PASSWORD phai cung co hoac cung trong');
+  }
+  if (loi.length > 0) {
+    throw new Error(`Cau hinh worker khong an toan cho production:\n  - ${loi.join('\n  - ')}`);
+  }
 }
 
 /** Duong dan tuyet doi cua bon lop luu tru media (D20). */

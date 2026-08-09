@@ -95,9 +95,18 @@ export interface UpdateMediaInput {
 export interface MediaFilter {
   /** Loc theo ho MIME: `image`, `application`, `video`. */
   readonly mimeGroup?: string;
+  /** MIME chinh xac, chi nhan gia tri da duoc tang API allowlist. */
+  readonly mimeType?: string;
   readonly storageClass?: StorageClass;
   readonly uploadedBy?: string;
   /** Tim theo ten tep goc / tieu de / alt. */
   readonly search?: string;
   readonly includeDeleted?: boolean;
+}
+
+/** Toa do mot khoa ngoai truc tiep dang tro toi media. */
+export interface MediaReferencePlace {
+  readonly entityType: string;
+  readonly entityId: string;
+  readonly fieldName: string;
 }

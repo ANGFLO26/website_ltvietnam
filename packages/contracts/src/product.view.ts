@@ -6,6 +6,7 @@ import type {
   ProductCategoryCardView,
   StandardCardView,
 } from './taxonomy.view.js';
+import type { SeoDetailView } from './seo.view.js';
 
 /**
  * HINH DANG PHAN HOI cua ba endpoint san pham (F2).
@@ -67,7 +68,7 @@ export interface ProductRelatedView {
  * GIU nguyen URL va VAN duoc index. Frontend dung co nay de hien mot dai bao va
  * goi y hang thay the tu `related`, chu khong de an trang.
  */
-export interface ProductDetailView {
+export interface ProductDetailView extends SeoDetailView {
   readonly slug: string;
   readonly name: string;
   readonly model: string | null;

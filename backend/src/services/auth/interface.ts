@@ -18,7 +18,12 @@ export interface LoginResult {
   readonly token: string;
   /** Giay — de tang api dat `Max-Age` cua cookie cho khop han the. */
   readonly ttlSeconds: number;
-  readonly user: { readonly id: string; readonly name: string; readonly email: string; readonly role: string };
+  readonly user: {
+    readonly id: string;
+    readonly name: string;
+    readonly email: string;
+    readonly role: string;
+  };
 }
 
 export interface ChangePasswordInput {
@@ -67,7 +72,11 @@ export interface AuthService {
    * mot phan hoi cho ca hai truong hop. Kieu tra ve `null` la de tang tren
    * biet co gui email hay khong, khong phai de bao cho khach.
    */
-  requestPasswordReset(email: string): Promise<{ readonly token: string; readonly userId: string } | null>;
+  requestPasswordReset(email: string): Promise<{
+    readonly token: string;
+    readonly userId: string;
+    readonly email: string;
+  } | null>;
 
   /** Dat lai mat khau bang the. The dung mot lan: dung sau khi mat khau doi. */
   resetPassword(input: ResetPasswordInput): Promise<void>;

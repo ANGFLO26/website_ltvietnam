@@ -51,7 +51,16 @@ async function bootstrap(): Promise<void> {
    */
 
   app.useGlobalFilters(new AppExceptionFilter());
-  app.setGlobalPrefix(cfg.API_BASE_PATH, { exclude: ['health/live', 'health/ready'] });
+  app.setGlobalPrefix(cfg.API_BASE_PATH, {
+    exclude: [
+      'health/live',
+      'health/ready',
+      'sitemap.xml',
+      'sitemap-:locale.xml',
+      'robots.txt',
+      'media/*',
+    ],
+  });
   app.enableCors({ origin: cfg.CORS_ORIGINS, credentials: true });
 
   /**

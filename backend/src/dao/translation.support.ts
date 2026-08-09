@@ -41,8 +41,7 @@ export const LOCALES: readonly Locale[] = ['vi', 'en'];
  */
 export type TranslatedParentTableName = 'services' | 'projects' | 'posts' | 'pages';
 export type TranslationTableName =
-  | 'service_translations' | 'project_translations'
-  | 'post_translations' | 'page_translations';
+  'service_translations' | 'project_translations' | 'post_translations' | 'page_translations';
 
 /** Trang thai cua mot ban dich — dung cho man hinh quan tri. */
 export interface TranslationStatus {
@@ -76,7 +75,10 @@ export interface HreflangAlternate {
 }
 
 export class TranslationMissingError extends Error {
-  constructor(readonly entityId: string, readonly locale: Locale) {
+  constructor(
+    readonly entityId: string,
+    readonly locale: Locale,
+  ) {
     super(`Khong co ban dich ${locale} cho ${entityId}`);
     this.name = 'TranslationMissingError';
   }
@@ -113,7 +115,10 @@ export class TranslationSupport<TCol extends string = never> {
   /** Slug cua nhom nay phan pham vi theo locale — `UNIQUE (locale, slug)`. */
   private readonly slugs: SlugSupport;
 
-  constructor(private readonly db: KyselyExecutor, cfg: TranslationConfig) {
+  constructor(
+    private readonly db: KyselyExecutor,
+    cfg: TranslationConfig,
+  ) {
     this.parentTable = cfg.parentTable;
     this.trTable = cfg.trTable;
     this.parentKey = cfg.parentKey;
@@ -141,9 +146,12 @@ export class TranslationSupport<TCol extends string = never> {
   /** Moi ban dich hien co cua mot thuc the — cho man hinh quan tri. */
   async listTranslations(entityId: string): Promise<TranslationStatus[]> {
     const r = await sql<{
-      locale: Locale; slug: string; title: string;
+      locale: Locale;
+      slug: string;
+      title: string;
       status: 'draft' | 'published' | 'hidden';
-      published_at: Date | null; first_published_at: Date | null;
+      published_at: Date | null;
+      first_published_at: Date | null;
     }>`
       SELECT locale, slug, ${sql.ref(this.titleColumn)} AS title,
              status, published_at, first_published_at
@@ -253,8 +261,9 @@ export class TranslationSupport<TCol extends string = never> {
      * Toi phat hien cho nay khi them bo loc `featured` cho F4 va dinh viet
      * `{ is_featured: filter?.featured }`.
      */
-    const dieuKien = (Object.entries(where ?? {}) as [string, string | boolean | null | undefined][])
-      .filter((e): e is [string, string | boolean | null] => e[1] !== undefined);
+    const dieuKien = (
+      Object.entries(where ?? {}) as [string, string | boolean | null | undefined][]
+    ).filter((e): e is [string, string | boolean | null] => e[1] !== undefined);
     /**
      * `sql.join([])` NEM LOI — nen phai kiem TRUOC khi goi, khong phai sau.
      *
@@ -276,21 +285,20 @@ export class TranslationSupport<TCol extends string = never> {
         ? sql``
         : sql.join(
             dieuKien.map(([k, v]) =>
-              v === null
-                ? sql`AND p.${sql.ref(k)} IS NULL`
-                : sql`AND p.${sql.ref(k)} = ${v}`,
+              v === null ? sql`AND p.${sql.ref(k)} IS NULL` : sql`AND p.${sql.ref(k)} = ${v}`,
             ),
             sql` `,
           );
 
     const gioiHan =
-      restrictToIds === undefined
-        ? sql``
-        : sql`AND p.id = ANY(${sql.val(restrictToIds)}::uuid[])`;
+      restrictToIds === undefined ? sql`` : sql`AND p.id = ANY(${sql.val(restrictToIds)}::uuid[])`;
 
     const r = await sql<{
-      id: string; slug: string; title: string;
-      published_at: Date | null; total: string;
+      id: string;
+      slug: string;
+      title: string;
+      published_at: Date | null;
+      total: string;
     }>`
       SELECT p.id, t.slug, ${sql.ref(`t.${this.titleColumn}`)} AS title,
              t.published_at,

@@ -61,6 +61,7 @@ class UserDaoGia implements UserDao {
     this.daGhi.push(`setStatus:${id}=${status}`);
     this.rows = this.rows.map((u) => (u.id === id ? { ...u, status } : u));
   }
+  async lockActiveAdmins(): Promise<void> {}
   async countActiveAdmins(): Promise<number> {
     return this.rows.filter((u) => u.status === 'active' && u.role === 'admin').length;
   }
@@ -71,8 +72,13 @@ class UserDaoGia implements UserDao {
   /** Dung san mot nguoi dung, khong di qua `insert` (de dat trang thai tuy y). */
   seed(u: Partial<User> & { id: string }): User {
     const day: User = {
-      name: 'Nguoi', email: `${u.id}@vd.local`, role: 'admin', status: 'active',
-      lastLoginAt: null, passwordChangedAt: null, createdAt: new Date('2026-01-01T00:00:00Z'),
+      name: 'Nguoi',
+      email: `${u.id}@vd.local`,
+      role: 'admin',
+      status: 'active',
+      lastLoginAt: null,
+      passwordChangedAt: null,
+      createdAt: new Date('2026-01-01T00:00:00Z'),
       ...u,
     };
     this.rows.push(day);
@@ -100,9 +106,11 @@ let svc: UserServiceImpl;
 
 beforeEach(() => {
   dao = new UserDaoGia();
-  // `as unknown as UserDaos`: DaoScope co ca `transaction`, ma UserService
-  // hien khong dung transaction nao. Them mot `transaction` gia se la ma chet.
-  svc = new UserServiceImpl({ users: dao } as unknown as UserDaos, new HasherGia(), MIN);
+  const scope = {
+    users: dao,
+    transaction: async <T>(fn: (tx: { users: UserDao }) => Promise<T>) => fn({ users: dao }),
+  };
+  svc = new UserServiceImpl(scope as UserDaos, new HasherGia(), MIN);
 });
 
 const bat = async (fn: () => Promise<unknown>): Promise<DomainError> => {
@@ -139,14 +147,17 @@ describe('create', () => {
   });
 
   it('mat khau ngan hon toi thieu -> VALIDATION_FAILED', async () => {
-    const e = await bat(() => svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(MIN - 1) }));
+    const e = await bat(() =>
+      svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(MIN - 1) }),
+    );
     expect(e.kind).toBe('VALIDATION_FAILED');
     expect(e.code).toBe('AUTH_PASSWORD_TOO_SHORT');
   });
 
   it('dai bang toi thieu thi ĐUOC — kiem dung bien, khong lech mot', async () => {
-    await expect(svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(MIN) }))
-      .resolves.toBeDefined();
+    await expect(
+      svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(MIN) }),
+    ).resolves.toBeDefined();
   });
 
   it('mat khau qua dai -> VALIDATION_FAILED', async () => {
@@ -154,7 +165,9 @@ describe('create', () => {
      * Tran tren khong phai de bat nguoi dung go ngan. Argon2 bam ca chuoi, nen
      * mot "mat khau" 1 MB la mot cach dot CPU ma khong can tai khoan nao.
      */
-    const e = await bat(() => svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(201) }));
+    const e = await bat(() =>
+      svc.create({ name: 'A', email: 'a@vd.local', password: 'x'.repeat(201) }),
+    );
     expect(e.code).toBe('AUTH_PASSWORD_TOO_LONG');
   });
 
@@ -268,7 +281,11 @@ describe('setStatus — hai lop bao ve', () => {
 
 describe('bootstrapFirstAdmin', () => {
   it('chi chay khi CHUA co quan tri hoat dong nao', async () => {
-    const u = await svc.bootstrapFirstAdmin({ name: 'Quan tri', email: 'qt@vd.local', password: MK });
+    const u = await svc.bootstrapFirstAdmin({
+      name: 'Quan tri',
+      email: 'qt@vd.local',
+      password: MK,
+    });
     expect(u.email).toBe('qt@vd.local');
   });
 
@@ -333,8 +350,14 @@ describe('bootstrap — cong khong duoc mo lai', () => {
      * thi ba bai kiem tren do — nhung bai nay noi ro TAI SAO.
      */
     const daGoi: string[] = [];
-    dao.countAll = async () => { daGoi.push('countAll'); return 0; };
-    dao.countActiveAdmins = async () => { daGoi.push('countActiveAdmins'); return 0; };
+    dao.countAll = async () => {
+      daGoi.push('countAll');
+      return 0;
+    };
+    dao.countActiveAdmins = async () => {
+      daGoi.push('countActiveAdmins');
+      return 0;
+    };
     await svc.bootstrapFirstAdmin({ name: 'A', email: 'a@vd.local', password: MK });
     expect(daGoi).toContain('countAll');
     expect(daGoi).not.toContain('countActiveAdmins');

@@ -167,9 +167,7 @@ run('RouteResolver tren PostgreSQL that', () => {
         if (e.level === 'query') dem += 1;
       },
     });
-    const rs2 = new RouteResolverImpl(
-      createDaoManager(db) as unknown as RedirectDaos,
-    );
+    const rs2 = new RouteResolverImpl(createDaoManager(db) as unknown as RedirectDaos);
     await rs2.resolve(p('/hoan-toan-khong-co'));
     expect(dem).toBe(1);
 

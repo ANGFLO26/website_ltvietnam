@@ -1,6 +1,5 @@
 import { Kysely, PostgresDialect } from 'kysely';
 import pg from 'pg';
-import type { AppConfig } from '@ltv/config';
 import type { Database } from './schema-types.js';
 
 /**
@@ -117,7 +116,12 @@ function thamSo(o: PoolOptions): string {
 }
 
 /** Pool cho tien trinh phuc vu yeu cau: backend va worker. */
-export function createAppPool(cfg: AppConfig): pg.Pool {
+export function createAppPool(cfg: {
+  readonly DATABASE_URL: string;
+  readonly DATABASE_SCHEMA: string;
+  readonly DATABASE_POOL_MAX: number;
+  readonly DATABASE_STATEMENT_TIMEOUT_MS: number;
+}): pg.Pool {
   return createPoolFrom({
     connectionString: cfg.DATABASE_URL,
     schema: cfg.DATABASE_SCHEMA,
@@ -144,7 +148,12 @@ export function createAppPool(cfg: AppConfig): pg.Pool {
  * `lock_timeout = 10s`: that bai NHANH khi khong lay duoc khoa, con viec thi
  * cho chay bao lau cung duoc. Do la hai loai kien nhan khac nhau.
  */
-export function createMigrationPool(cfg: AppConfig): pg.Pool {
+export function createMigrationPool(cfg: {
+  readonly DATABASE_URL: string;
+  readonly DATABASE_SCHEMA: string;
+  readonly DATABASE_POOL_MAX: number;
+  readonly DATABASE_STATEMENT_TIMEOUT_MS: number;
+}): pg.Pool {
   return createPoolFrom({
     connectionString: cfg.DATABASE_URL,
     schema: cfg.DATABASE_SCHEMA,

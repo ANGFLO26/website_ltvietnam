@@ -12,6 +12,7 @@ import { TaxonomyController } from './api/public/taxonomy.controller.js';
 import { ProductController } from './api/public/product.controller.js';
 import { ContentController } from './api/public/content.controller.js';
 import { SiteController } from './api/public/site.controller.js';
+import { SeoController } from './api/public/seo.controller.js';
 import { SITE_SERVICE } from './services/site/interface.js';
 import { SiteServiceImpl } from './services/site/service.js';
 import { TtlCache } from './shared/cache.js';
@@ -40,6 +41,46 @@ import { RATE_LIMIT_REGISTRY, RateLimitRegistry } from './api/admin/rate-limit.r
 import { HashGate } from './shared/crypto/hash-gate.js';
 import { EnvelopeInterceptor } from './shared/http/envelope.interceptor.js';
 import type { DaoManager } from './dao/dao-manager.js';
+import { SEO_SERVICE } from './services/seo/interface.js';
+import { SeoServiceImpl } from './services/seo/service.js';
+import { InquiryController } from './api/public/inquiry.controller.js';
+import { AdminInquiryController } from './api/admin/inquiry.controller.js';
+import { CAPTCHA_VERIFIER, HttpCaptchaVerifier } from './services/inquiries/captcha.js';
+import { INQUIRY_SERVICE } from './services/inquiries/interface.js';
+import { InquiryServiceImpl } from './services/inquiries/service.js';
+import { NOTIFICATION_SERVICE } from './services/notifications/interface.js';
+import { NotificationServiceImpl } from './services/notifications/service.js';
+import { AdminMediaController } from './api/admin/media.controller.js';
+import { MediaUploadInterceptor } from './api/admin/media-upload.interceptor.js';
+import { PublicMediaController } from './api/public/media.controller.js';
+import { DocumentDownloadController } from './api/public/document-download.controller.js';
+import {
+  MEDIA_USAGE_SERVICE,
+  type MediaUsageService,
+} from './services/shared/media-usage.interface.js';
+import { MediaUsageServiceImpl } from './services/shared/media-usage.service.js';
+import { MEDIA_SERVICE } from './services/media/interface.js';
+import { MediaServiceImpl } from './services/media/service.js';
+import { MediaPurgeScheduler } from './services/media/purge.scheduler.js';
+import { AdminTaxonomyController } from './api/admin/taxonomy.controller.js';
+import { ADMIN_TAXONOMY_SERVICE } from './services/admin-taxonomy/interface.js';
+import { AdminTaxonomyServiceImpl } from './services/admin-taxonomy/service.js';
+import { PUBLISH_SERVICE, type PublishService } from './services/shared/publish.interface.js';
+import { PublishServiceImpl } from './services/shared/publish.service.js';
+import { SLUG_SERVICE, type SlugService } from './services/shared/slug.interface.js';
+import { SlugServiceImpl } from './services/shared/slug.service.js';
+import { AdminProductController } from './api/admin/product.controller.js';
+import { ADMIN_PRODUCT_SERVICE } from './services/admin-products/interface.js';
+import { AdminProductServiceImpl } from './services/admin-products/service.js';
+import { AdminSystemController } from './api/admin/system.controller.js';
+import { ADMIN_REDIRECT_SERVICE } from './services/admin-redirects/interface.js';
+import { AdminRedirectServiceImpl } from './services/admin-redirects/service.js';
+import { AdminSiteController } from './api/admin/site.controller.js';
+import { ADMIN_SITE_SERVICE } from './services/admin-site/interface.js';
+import { AdminSiteServiceImpl } from './services/admin-site/service.js';
+import { AdminContentController } from './api/admin/content.controller.js';
+import { ADMIN_CONTENT_SERVICE } from './services/admin-content/interface.js';
+import { AdminContentServiceImpl } from './services/admin-content/service.js';
 
 const RESET_SIGNER = Symbol('RESET_SIGNER');
 
@@ -74,6 +115,17 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     ProductController,
     ContentController,
     SiteController,
+    SeoController,
+    PublicMediaController,
+    DocumentDownloadController,
+    InquiryController,
+    AdminInquiryController,
+    AdminMediaController,
+    AdminTaxonomyController,
+    AdminProductController,
+    AdminSystemController,
+    AdminSiteController,
+    AdminContentController,
     AuthController,
   ],
   providers: [
@@ -102,18 +154,21 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     { provide: HEALTH_SERVICE, useClass: HealthServiceImpl },
     {
       provide: TAXONOMY_SERVICE,
-      useFactory: (daos: DaoManager) => new TaxonomyServiceImpl(daos),
-      inject: [DAO_MANAGER],
+      useFactory: (daos: DaoManager, cfg: AppConfig) =>
+        new TaxonomyServiceImpl(daos, undefined, cfg.NEXT_PUBLIC_SITE_URL),
+      inject: [DAO_MANAGER, APP_CONFIG],
     },
     {
       provide: PRODUCT_QUERY_SERVICE,
-      useFactory: (daos: DaoManager, cache: TtlCache) => new ProductQueryServiceImpl(daos, cache),
-      inject: [DAO_MANAGER, SITE_CACHE],
+      useFactory: (daos: DaoManager, cache: TtlCache, cfg: AppConfig) =>
+        new ProductQueryServiceImpl(daos, cache, cfg.NEXT_PUBLIC_SITE_URL),
+      inject: [DAO_MANAGER, SITE_CACHE, APP_CONFIG],
     },
     {
       provide: CONTENT_SERVICE,
-      useFactory: (daos: DaoManager) => new ContentServiceImpl(daos),
-      inject: [DAO_MANAGER],
+      useFactory: (daos: DaoManager, cfg: AppConfig) =>
+        new ContentServiceImpl(daos, cfg.NEXT_PUBLIC_SITE_URL),
+      inject: [DAO_MANAGER, APP_CONFIG],
     },
     /**
      * MOT ban cache dung chung cho `/home`, `/navigation/*` va `/products/landing`.
@@ -131,8 +186,11 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     {
       provide: SITE_SERVICE,
       useFactory: (
-        daos: DaoManager, tx: TaxonomyService, ct: ContentService,
-        pr: ProductQueryService, cache: TtlCache,
+        daos: DaoManager,
+        tx: TaxonomyService,
+        ct: ContentService,
+        pr: ProductQueryService,
+        cache: TtlCache,
       ) => new SiteServiceImpl(daos, tx, ct, pr, cache),
       inject: [DAO_MANAGER, TAXONOMY_SERVICE, CONTENT_SERVICE, PRODUCT_QUERY_SERVICE, SITE_CACHE],
     },
@@ -143,6 +201,87 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
         // ON AO. `warn` de nguoi van hanh thay ma khong phai doi 500.
         new RouteResolverImpl(daos, (e, f) => log.warn(e, f)),
       inject: [DAO_MANAGER, LOGGER],
+    },
+    {
+      provide: SEO_SERVICE,
+      useFactory: (daos: DaoManager, cfg: AppConfig) =>
+        new SeoServiceImpl(daos, cfg.NEXT_PUBLIC_SITE_URL),
+      inject: [DAO_MANAGER, APP_CONFIG],
+    },
+    {
+      provide: CAPTCHA_VERIFIER,
+      useFactory: (cfg: AppConfig) => new HttpCaptchaVerifier(cfg),
+      inject: [APP_CONFIG],
+    },
+    {
+      provide: INQUIRY_SERVICE,
+      useFactory: (daos: DaoManager, captcha: HttpCaptchaVerifier, cfg: AppConfig) =>
+        new InquiryServiceImpl(daos, captcha, cfg.INQUIRY_RECIPIENT),
+      inject: [DAO_MANAGER, CAPTCHA_VERIFIER, APP_CONFIG],
+    },
+    {
+      provide: NOTIFICATION_SERVICE,
+      useFactory: (daos: DaoManager) => new NotificationServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: MEDIA_USAGE_SERVICE,
+      useFactory: (daos: DaoManager) => new MediaUsageServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: MEDIA_SERVICE,
+      useFactory: (daos: DaoManager, usage: MediaUsageService, cfg: AppConfig, log: Logger) =>
+        new MediaServiceImpl(daos, usage, cfg, {
+          onAudit: (event, fields) => log.warn(event, fields),
+        }),
+      inject: [DAO_MANAGER, MEDIA_USAGE_SERVICE, APP_CONFIG, LOGGER],
+    },
+    MediaUploadInterceptor,
+    MediaPurgeScheduler,
+    {
+      provide: PUBLISH_SERVICE,
+      useFactory: (daos: DaoManager) => new PublishServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: SLUG_SERVICE,
+      useFactory: (daos: DaoManager) => new SlugServiceImpl(daos),
+      inject: [DAO_MANAGER],
+    },
+    {
+      provide: ADMIN_TAXONOMY_SERVICE,
+      useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService, log: Logger) =>
+        new AdminTaxonomyServiceImpl(daos, slugs, publisher, (event, fields) =>
+          log.info(event, fields),
+        ),
+      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE, LOGGER],
+    },
+    {
+      provide: ADMIN_PRODUCT_SERVICE,
+      useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService, log: Logger) =>
+        new AdminProductServiceImpl(daos, slugs, publisher, (event, fields) =>
+          log.info(event, fields),
+        ),
+      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE, LOGGER],
+    },
+    {
+      provide: ADMIN_REDIRECT_SERVICE,
+      useFactory: (daos: DaoManager, slugs: SlugService) =>
+        new AdminRedirectServiceImpl(daos, slugs),
+      inject: [DAO_MANAGER, SLUG_SERVICE],
+    },
+    {
+      provide: ADMIN_SITE_SERVICE,
+      useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService) =>
+        new AdminSiteServiceImpl(daos, slugs, publisher),
+      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE],
+    },
+    {
+      provide: ADMIN_CONTENT_SERVICE,
+      useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService) =>
+        new AdminContentServiceImpl(daos, slugs, publisher),
+      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE],
     },
 
     // ── mat ma: cai dat nam o shared/crypto, service chi biet cong ──
@@ -159,15 +298,20 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     },
     {
       provide: RESET_SIGNER,
-      useFactory: (cfg: AppConfig): ResetTokenSigner => new JwtResetSigner(cfg.PASSWORD_RESET_SECRET),
+      useFactory: (cfg: AppConfig): ResetTokenSigner =>
+        new JwtResetSigner(cfg.PASSWORD_RESET_SECRET),
       inject: [APP_CONFIG],
     },
 
     {
       provide: AUTH_SERVICE,
       useFactory: (
-        daos: DaoManager, hasher: PasswordHasher,
-        tokens: TokenSigner, reset: ResetTokenSigner, cfg: AppConfig, log: Logger,
+        daos: DaoManager,
+        hasher: PasswordHasher,
+        tokens: TokenSigner,
+        reset: ResetTokenSigner,
+        cfg: AppConfig,
+        log: Logger,
       ) =>
         new AuthServiceImpl(daos, hasher, tokens, reset, {
           sessionTtlSeconds: cfg.JWT_TTL_HOURS * 3600,

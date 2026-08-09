@@ -45,6 +45,12 @@ export interface RedirectDao {
    */
   createCollapsingChain(input: CreateRedirectInput): Promise<Redirect>;
 
+  /** Retarget an existing row while preserving its id, hit counters and timestamps. */
+  retargetCollapsingChain(
+    id: string,
+    input: UpdateRedirectInput & { readonly targetPath: string },
+  ): Promise<Redirect>;
+
   /** Ghi de neu source da ton tai. Dung cho nhap hang loat tu website cu. */
   upsert(input: CreateRedirectInput): Promise<Redirect>;
 

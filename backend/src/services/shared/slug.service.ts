@@ -18,9 +18,18 @@ import type {
  */
 export type SlugDaos = DaoScope<
   | 'redirects'
-  | 'products' | 'brands' | 'productCategories' | 'standards' | 'applications'
-  | 'industries' | 'documents' | 'postCategories'
-  | 'pages' | 'posts' | 'services' | 'projects'
+  | 'products'
+  | 'brands'
+  | 'productCategories'
+  | 'standards'
+  | 'applications'
+  | 'industries'
+  | 'documents'
+  | 'postCategories'
+  | 'pages'
+  | 'posts'
+  | 'services'
+  | 'projects'
 >;
 
 /**
@@ -43,7 +52,7 @@ const PATH_PREFIX: Readonly<Record<SluggedEntity, string>> = {
   product_category: '/products/category',
   standard: '/products/standard',
   application: '/products/application',
-  industry: '/products/application',   // nganh dung chung khong gian voi ung dung
+  industry: '/products/application', // nganh dung chung khong gian voi ung dung
   document: '/resources',
   post_category: '/news/category',
   page: '/about',
@@ -79,6 +88,68 @@ export class SlugServiceImpl implements SlugService {
     return localizedPath(base, locale);
   }
 
+  async isLivePath(path: string): Promise<boolean> {
+    const normalized = path.replace(/\/+$/, '') || '/';
+    const localized = /^\/vi(?=\/)/.test(normalized);
+    const locale: Locale = localized ? 'vi' : 'en';
+    const localPath = localized ? normalized.slice(3) : normalized;
+    const slugOf = (prefix: string): string | null => {
+      if (!localPath.startsWith(`${prefix}/`)) return null;
+      const raw = localPath.slice(prefix.length + 1);
+      if (raw.includes('/')) return null;
+      try {
+        const slug = decodeURIComponent(raw);
+        return SLUG_PATTERN.test(slug) ? slug : null;
+      } catch {
+        return null;
+      }
+    };
+
+    let slug = slugOf('/products/category');
+    if (slug) return (await this.daos.productCategories.findBySlug(slug))?.status === 'published';
+    slug = slugOf('/products/standard');
+    if (slug) return (await this.daos.standards.findBySlug(slug))?.status === 'published';
+    slug = slugOf('/products/application');
+    if (slug) {
+      const [application, industry] = await Promise.all([
+        this.daos.applications.findBySlug(slug),
+        this.daos.industries.findBySlug(slug),
+      ]);
+      return application?.status === 'published' || industry?.status === 'published';
+    }
+    slug = slugOf('/news/category');
+    if (slug) return (await this.daos.postCategories.findBySlug(slug))?.status === 'published';
+
+    slug = slugOf('/products');
+    if (slug) return (await this.daos.products.findBySlug(slug))?.status === 'published';
+    slug = slugOf('/brands');
+    if (slug) return (await this.daos.brands.findBySlug(slug))?.status === 'published';
+    slug = slugOf('/resources');
+    if (slug) return (await this.daos.documents.findBySlug(slug))?.status === 'published';
+
+    slug = slugOf('/services');
+    if (slug) {
+      const row = await this.daos.services.findBySlug(locale, slug);
+      return row?.service.status === 'published' && row.translation.status === 'published';
+    }
+    slug = slugOf('/projects');
+    if (slug) {
+      const row = await this.daos.projects.findBySlug(locale, slug);
+      return row?.project.status === 'published' && row.translation.status === 'published';
+    }
+    slug = slugOf('/news');
+    if (slug) {
+      const row = await this.daos.posts.findBySlug(locale, slug);
+      return row?.post.status === 'published' && row.translation.status === 'published';
+    }
+    slug = slugOf('/about');
+    if (slug) {
+      const row = await this.daos.pages.findBySlug(locale, slug);
+      return row?.page.status === 'published' && row.translation.status === 'published';
+    }
+    return false;
+  }
+
   async check(input: SlugCheckInput): Promise<SlugCheckResult> {
     const path = this.publicPath(input.entity, input.slug, input.locale);
 
@@ -104,7 +175,12 @@ export class SlugServiceImpl implements SlugService {
     // ── (A) slug hien tai trong bang tuong ung ─────────────────────
     const taken = await this.isTaken(input);
     if (taken) {
-      return { ok: false, path, reason: taken, code: taken === 'soft_deleted' ? 'SLUG_SOFT_DELETED' : 'SLUG_IN_USE' };
+      return {
+        ok: false,
+        path,
+        reason: taken,
+        code: taken === 'soft_deleted' ? 'SLUG_SOFT_DELETED' : 'SLUG_IN_USE',
+      };
     }
 
     return { ok: true, path };
@@ -154,18 +230,29 @@ export class SlugServiceImpl implements SlugService {
 
   async canHardDelete(entity: SluggedEntity, id: string): Promise<boolean> {
     switch (entity) {
-      case 'product': return this.daos.products.canHardDelete(id);
-      case 'brand': return this.daos.brands.canHardDelete(id);
-      case 'product_category': return this.daos.productCategories.canHardDelete(id);
-      case 'standard': return this.daos.standards.canHardDelete(id);
-      case 'application': return this.daos.applications.canHardDelete(id);
-      case 'industry': return this.daos.industries.canHardDelete(id);
-      case 'document': return this.daos.documents.canHardDelete(id);
-      case 'post_category': return this.daos.postCategories.canHardDelete(id);
+      case 'product':
+        return this.daos.products.canHardDelete(id);
+      case 'brand':
+        return this.daos.brands.canHardDelete(id);
+      case 'product_category':
+        return this.daos.productCategories.canHardDelete(id);
+      case 'standard':
+        return this.daos.standards.canHardDelete(id);
+      case 'application':
+        return this.daos.applications.canHardDelete(id);
+      case 'industry':
+        return this.daos.industries.canHardDelete(id);
+      case 'document':
+        return this.daos.documents.canHardDelete(id);
+      case 'post_category':
+        return this.daos.postCategories.canHardDelete(id);
       // Bon nhom co ban dich: moc "da tung cong khai" nam tren TUNG BAN DICH,
       // nen "co xoa duoc ca thuc the khong" la cau hoi khac va thuoc
       // PublishService. O day tra ve `false` — phia an toan.
-      case 'page': case 'post': case 'service': case 'project':
+      case 'page':
+      case 'post':
+      case 'service':
+      case 'project':
         return false;
     }
   }
@@ -179,9 +266,7 @@ export class SlugServiceImpl implements SlugService {
    * ten nay" thi doi ten; "san pham cu da xoa nhung slug bi khoa vinh vien"
    * thi phai giai thich, khong thi nguoi soan thao se cu thu lai mai.
    */
-  private async isTaken(
-    input: SlugCheckInput,
-  ): Promise<'in_use' | 'soft_deleted' | null> {
+  private async isTaken(input: SlugCheckInput): Promise<'in_use' | 'soft_deleted' | null> {
     const { entity, slug, locale, exceptId } = input;
 
     // Bon nhom co ban dich: rang buoc la `UNIQUE (locale, slug)`.
@@ -201,44 +286,68 @@ export class SlugServiceImpl implements SlugService {
   }
 
   private translatedSlugFree(
-    entity: SluggedEntity, locale: Locale, slug: string, exceptId?: string,
+    entity: SluggedEntity,
+    locale: Locale,
+    slug: string,
+    exceptId?: string,
   ): Promise<boolean> {
     switch (entity) {
-      case 'page': return this.daos.pages.isLocaleSlugAvailable(locale, slug, exceptId);
-      case 'post': return this.daos.posts.isLocaleSlugAvailable(locale, slug, exceptId);
-      case 'service': return this.daos.services.isLocaleSlugAvailable(locale, slug, exceptId);
-      case 'project': return this.daos.projects.isLocaleSlugAvailable(locale, slug, exceptId);
-      default: throw new Error(`Khong phai nhom co ban dich: ${entity}`);
+      case 'page':
+        return this.daos.pages.isLocaleSlugAvailable(locale, slug, exceptId);
+      case 'post':
+        return this.daos.posts.isLocaleSlugAvailable(locale, slug, exceptId);
+      case 'service':
+        return this.daos.services.isLocaleSlugAvailable(locale, slug, exceptId);
+      case 'project':
+        return this.daos.projects.isLocaleSlugAvailable(locale, slug, exceptId);
+      default:
+        throw new Error(`Khong phai nhom co ban dich: ${entity}`);
     }
   }
 
-  private singleSlugFree(
-    entity: SluggedEntity, slug: string, exceptId?: string,
-  ): Promise<boolean> {
+  private singleSlugFree(entity: SluggedEntity, slug: string, exceptId?: string): Promise<boolean> {
     switch (entity) {
-      case 'product': return this.daos.products.isSlugAvailable(slug, exceptId);
-      case 'brand': return this.daos.brands.isSlugAvailable(slug, exceptId);
-      case 'product_category': return this.daos.productCategories.isSlugAvailable(slug, exceptId);
-      case 'standard': return this.daos.standards.isSlugAvailable(slug, exceptId);
-      case 'application': return this.daos.applications.isSlugAvailable(slug, exceptId);
-      case 'industry': return this.daos.industries.isSlugAvailable(slug, exceptId);
-      case 'document': return this.daos.documents.isSlugAvailable(slug, exceptId);
-      case 'post_category': return this.daos.postCategories.isSlugAvailable(slug, exceptId);
-      default: throw new Error(`Khong phai nhom mot ngon ngu: ${entity}`);
+      case 'product':
+        return this.daos.products.isSlugAvailable(slug, exceptId);
+      case 'brand':
+        return this.daos.brands.isSlugAvailable(slug, exceptId);
+      case 'product_category':
+        return this.daos.productCategories.isSlugAvailable(slug, exceptId);
+      case 'standard':
+        return this.daos.standards.isSlugAvailable(slug, exceptId);
+      case 'application':
+        return this.daos.applications.isSlugAvailable(slug, exceptId);
+      case 'industry':
+        return this.daos.industries.isSlugAvailable(slug, exceptId);
+      case 'document':
+        return this.daos.documents.isSlugAvailable(slug, exceptId);
+      case 'post_category':
+        return this.daos.postCategories.isSlugAvailable(slug, exceptId);
+      default:
+        throw new Error(`Khong phai nhom mot ngon ngu: ${entity}`);
     }
   }
 
   private async findVisibleBySlug(entity: SluggedEntity, slug: string): Promise<boolean> {
     switch (entity) {
-      case 'product': return (await this.daos.products.findBySlug(slug)) !== null;
-      case 'brand': return (await this.daos.brands.findBySlug(slug)) !== null;
-      case 'product_category': return (await this.daos.productCategories.findBySlug(slug)) !== null;
-      case 'standard': return (await this.daos.standards.findBySlug(slug)) !== null;
-      case 'application': return (await this.daos.applications.findBySlug(slug)) !== null;
-      case 'industry': return (await this.daos.industries.findBySlug(slug)) !== null;
-      case 'document': return (await this.daos.documents.findBySlug(slug)) !== null;
-      case 'post_category': return (await this.daos.postCategories.findBySlug(slug)) !== null;
-      default: return false;
+      case 'product':
+        return (await this.daos.products.findBySlug(slug)) !== null;
+      case 'brand':
+        return (await this.daos.brands.findBySlug(slug)) !== null;
+      case 'product_category':
+        return (await this.daos.productCategories.findBySlug(slug)) !== null;
+      case 'standard':
+        return (await this.daos.standards.findBySlug(slug)) !== null;
+      case 'application':
+        return (await this.daos.applications.findBySlug(slug)) !== null;
+      case 'industry':
+        return (await this.daos.industries.findBySlug(slug)) !== null;
+      case 'document':
+        return (await this.daos.documents.findBySlug(slug)) !== null;
+      case 'post_category':
+        return (await this.daos.postCategories.findBySlug(slug)) !== null;
+      default:
+        return false;
     }
   }
 
@@ -251,14 +360,30 @@ export class SlugServiceImpl implements SlugService {
      */
     const { entity, id, slug } = input;
     switch (entity) {
-      case 'product': await tx.products.update(id, { slug }); return;
-      case 'brand': await tx.brands.update(id, { slug }); return;
-      case 'product_category': await tx.productCategories.update(id, { slug }); return;
-      case 'standard': await tx.standards.update(id, { slug }); return;
-      case 'application': await tx.applications.update(id, { slug }); return;
-      case 'industry': await tx.industries.update(id, { slug }); return;
-      case 'document': await tx.documents.update(id, { slug }); return;
-      case 'post_category': await tx.postCategories.update(id, { slug }); return;
+      case 'product':
+        await tx.products.update(id, { slug });
+        return;
+      case 'brand':
+        await tx.brands.update(id, { slug });
+        return;
+      case 'product_category':
+        await tx.productCategories.update(id, { slug });
+        return;
+      case 'standard':
+        await tx.standards.update(id, { slug });
+        return;
+      case 'application':
+        await tx.applications.update(id, { slug });
+        return;
+      case 'industry':
+        await tx.industries.update(id, { slug });
+        return;
+      case 'document':
+        await tx.documents.update(id, { slug });
+        return;
+      case 'post_category':
+        await tx.postCategories.update(id, { slug });
+        return;
 
       /**
        * Bon nhom co ban dich KHONG doi slug qua day.
@@ -268,7 +393,10 @@ export class SlugServiceImpl implements SlugService {
        * slug o day se de lai ban dich thieu truong. Service cua tung nhom se
        * goi `SlugService.check` roi tu ghi.
        */
-      case 'page': case 'post': case 'service': case 'project':
+      case 'page':
+      case 'post':
+      case 'service':
+      case 'project':
         throw new Error(
           `Doi slug cua ${entity} phai di qua service cua chinh no (ghi ca ban dich)`,
         );

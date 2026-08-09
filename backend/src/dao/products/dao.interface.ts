@@ -60,7 +60,10 @@ export interface ProductDao extends ProductQuery {
   findById(id: string): Promise<Product | null>;
   findBySlug(slug: string): Promise<Product | null>;
   findByInternalCode(code: string): Promise<Product | null>;
-  list(filter: { status?: string; brandId?: string }, page?: Partial<Page>): Promise<Paged<Product>>;
+  list(
+    filter: { status?: string; brandId?: string; includeDeleted?: boolean; search?: string },
+    page?: Partial<Page>,
+  ): Promise<Paged<Product>>;
 
   insert(input: CreateProductInput): Promise<Product>;
   update(id: string, input: UpdateProductInput): Promise<Product>;

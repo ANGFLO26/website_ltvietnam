@@ -30,6 +30,7 @@ export interface Standard {
 }
 
 export interface CreateStandardInput {
+  readonly initialStatus?: EntityStatus;
   readonly organization: string;
   readonly code: string;
   readonly slug: string;

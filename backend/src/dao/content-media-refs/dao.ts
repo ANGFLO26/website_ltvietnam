@@ -21,15 +21,17 @@ export class KyselyContentMediaRefDao extends BaseDao implements ContentMediaRef
     const unique = [...new Set(mediaIds)];
     if (unique.length === 0) return;
 
-    await this.db.insertInto('content_media_refs').values(
-      unique.map((mediaId) => ({
-        media_id: mediaId,
-        entity_type: field.entityType,
-        entity_id: field.entityId,
-        field_name: field.fieldName,
-        locale,
-      })),
-    )
+    await this.db
+      .insertInto('content_media_refs')
+      .values(
+        unique.map((mediaId) => ({
+          media_id: mediaId,
+          entity_type: field.entityType,
+          entity_id: field.entityId,
+          field_name: field.fieldName,
+          locale,
+        })),
+      )
       // Chay lai cung mot noi dung khong duoc bao loi.
       .onConflict((oc) =>
         oc.columns(['media_id', 'entity_type', 'entity_id', 'field_name', 'locale']).doNothing(),
@@ -38,16 +40,21 @@ export class KyselyContentMediaRefDao extends BaseDao implements ContentMediaRef
   }
 
   async deleteForEntity(entityType: string, entityId: string): Promise<void> {
-    await this.db.deleteFrom('content_media_refs')
+    await this.db
+      .deleteFrom('content_media_refs')
       .where('entity_type', '=', entityType)
       .where('entity_id', '=', entityId)
       .execute();
   }
 
   async findByMedia(mediaId: string): Promise<ContentMediaRef[]> {
-    const rows = await this.db.selectFrom('content_media_refs').selectAll()
+    const rows = await this.db
+      .selectFrom('content_media_refs')
+      .selectAll()
       .where('media_id', '=', mediaId)
-      .orderBy('entity_type').orderBy('field_name').execute();
+      .orderBy('entity_type')
+      .orderBy('field_name')
+      .execute();
     return rows.map(toContentMediaRef);
   }
 
@@ -68,8 +75,12 @@ export class KyselyContentMediaRefDao extends BaseDao implements ContentMediaRef
    */
   async findOrphans(limit: number): Promise<ContentMediaRef[]> {
     const rows = await sql<{
-      id: string; media_id: string; entity_type: string;
-      entity_id: string; locale: string | null; field_name: string;
+      id: string;
+      media_id: string;
+      entity_type: string;
+      entity_id: string;
+      locale: string | null;
+      field_name: string;
     }>`
       SELECT r.* FROM ltv.content_media_refs r
       WHERE CASE r.entity_type

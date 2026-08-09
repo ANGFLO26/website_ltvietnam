@@ -63,7 +63,11 @@ run('ContentService tren PostgreSQL that', () => {
       const p = await daos.posts.insert({ categoryId: dm.id, postType: 'news' } as never);
       id[`post-${k}`] = p.id;
       await daos.posts.upsertTranslation(p.id, {
-        locale: 'vi', title: `Bai ${k}`, slug: s(`post-${k}`), excerpt: null, content: [],
+        locale: 'vi',
+        title: `Bai ${k}`,
+        slug: s(`post-${k}`),
+        excerpt: null,
+        content: [],
       } as never);
       if (dichPub) await daos.posts.publishTranslation(p.id, 'vi', new Date());
       if (chaPub) await daos.posts.publish(p.id, new Date());
@@ -72,9 +76,16 @@ run('ContentService tren PostgreSQL that', () => {
     // ── mot bai co CA HAI locale publish (de kiem hreflang) ──
     const hai = await daos.posts.insert({ categoryId: dm.id, postType: 'news' } as never);
     id['post-hai-ngu'] = hai.id;
-    for (const [locale, slug] of [['vi', s('hai-vi')], ['en', s('hai-en')]] as const) {
+    for (const [locale, slug] of [
+      ['vi', s('hai-vi')],
+      ['en', s('hai-en')],
+    ] as const) {
       await daos.posts.upsertTranslation(hai.id, {
-        locale, title: `Hai ngu ${locale}`, slug, excerpt: null, content: [],
+        locale,
+        title: `Hai ngu ${locale}`,
+        slug,
+        excerpt: null,
+        content: [],
       } as never);
       await daos.posts.publishTranslation(hai.id, locale, new Date());
     }
@@ -84,10 +95,21 @@ run('ContentService tren PostgreSQL that', () => {
     const sv0 = await daos.services.insert({ serviceType: 'maintenance' } as never);
     const sv1 = await daos.services.insert({ parentId: sv0.id } as never);
     Object.assign(id, { sv0: sv0.id, sv1: sv1.id });
-    for (const [sv, k] of [[sv0, 'sv-goc'], [sv1, 'sv-con']] as const) {
+    for (const [sv, k] of [
+      [sv0, 'sv-goc'],
+      [sv1, 'sv-con'],
+    ] as const) {
       await daos.services.upsertTranslation(sv.id, {
-        locale: 'vi', name: `Dich vu ${k}`, slug: s(k), shortDescription: null,
-        overview: [], customerProblems: [], scopeOfWork: [], process: [], benefits: [], faq: [],
+        locale: 'vi',
+        name: `Dich vu ${k}`,
+        slug: s(k),
+        shortDescription: null,
+        overview: [],
+        customerProblems: [],
+        scopeOfWork: [],
+        process: [],
+        benefits: [],
+        faq: [],
       } as never);
       await daos.services.publishTranslation(sv.id, 'vi', new Date());
       await daos.services.publish(sv.id, new Date());
@@ -98,8 +120,13 @@ run('ContentService tren PostgreSQL that', () => {
     const pr = await daos.projects.insert({ projectType: 'installation' } as never);
     id['pr'] = pr.id;
     await daos.projects.upsertTranslation(pr.id, {
-      locale: 'vi', title: 'Du an', slug: s('du-an'), shortDescription: null,
-      scopeOfWork: [], implementation: [], result: [],
+      locale: 'vi',
+      title: 'Du an',
+      slug: s('du-an'),
+      shortDescription: null,
+      scopeOfWork: [],
+      implementation: [],
+      result: [],
     } as never);
     await daos.projects.publishTranslation(pr.id, 'vi', new Date());
     await daos.projects.publish(pr.id, new Date());
@@ -115,20 +142,34 @@ run('ContentService tren PostgreSQL that', () => {
     const pg = await daos.pages.insert({ pageType: s('pt') } as never);
     id['pg'] = pg.id;
     await daos.pages.upsertTranslation(pg.id, {
-      locale: 'vi', title: 'Gioi thieu', slug: s('gioi-thieu'), summary: null, content: [],
+      locale: 'vi',
+      title: 'Gioi thieu',
+      slug: s('gioi-thieu'),
+      summary: null,
+      content: [],
     } as never);
     await daos.pages.publishTranslation(pg.id, 'vi', new Date());
     await daos.pages.publish(pg.id, new Date());
   });
 
   afterAll(async () => {
-    for (const t of ['post_translations', 'service_translations', 'project_translations', 'page_translations']) {
+    for (const t of [
+      'post_translations',
+      'service_translations',
+      'project_translations',
+      'page_translations',
+    ]) {
       await pool.query(`DELETE FROM ltv.${t} WHERE slug LIKE $1`, [`${tag}%`]);
     }
     await pool.query(`DELETE FROM ltv.service_industries WHERE service_id = ANY($1::uuid[])`, [
       [id['sv0'], id['sv1']].filter(Boolean),
     ]);
-    for (const [t, col] of [['posts', 'category_id'], ['services', 'id'], ['projects', 'id'], ['pages', 'id']] as const) {
+    for (const [t, col] of [
+      ['posts', 'category_id'],
+      ['services', 'id'],
+      ['projects', 'id'],
+      ['pages', 'id'],
+    ] as const) {
       void col;
       await pool.query(
         `DELETE FROM ltv.${t} WHERE id NOT IN (SELECT id FROM ltv.${t} WHERE false) AND id = ANY($1::uuid[])`,
@@ -186,7 +227,8 @@ run('ContentService tren PostgreSQL that', () => {
         ['services', id['sv0']!, () => cs.findService('vi', s('sv-goc'))],
         ['projects', id['pr']!, () => cs.findProject('vi', s('du-an'))],
       ] as const) {
-        const dao = ten === 'pages' ? daos.pages : ten === 'services' ? daos.services : daos.projects;
+        const dao =
+          ten === 'pages' ? daos.pages : ten === 'services' ? daos.services : daos.projects;
         await dao.unpublishTranslation(id2, 'vi');
         try {
           expect(await ktra(), `${ten}: rut BAN DICH -> phai null`).toBeNull();
@@ -243,7 +285,12 @@ run('ContentService tren PostgreSQL that', () => {
        * Mot nganh chua gan dich vu nao cho ra mang id rong. Bo qua bo loc khi
        * mang rong se tra ve MOI dich vu roi hien chung nhu thuoc nganh do.
        */
-      const r = await daos.services.listPublicByLocale('vi', { limit: 100, offset: 0 }, undefined, []);
+      const r = await daos.services.listPublicByLocale(
+        'vi',
+        { limit: 100, offset: 0 },
+        undefined,
+        [],
+      );
       expect(r.rows).toEqual([]);
       expect(r.total).toBe(0);
       // Doi chieu: khong truyen tham so thi PHAI co du lieu.

@@ -64,7 +64,7 @@ async function call(method, path, body, extraHeaders = {}) {
     const eq = pair.indexOf('=');
     const name = pair.slice(0, eq).trim();
     const value = pair.slice(eq + 1).trim();
-    if (value === '' ) jar.delete(name);
+    if (value === '') jar.delete(name);
     else jar.set(name, value);
   }
 
@@ -79,7 +79,11 @@ async function call(method, path, body, extraHeaders = {}) {
   const raw = await res.text();
   let json = null;
   if (raw !== '') {
-    try { json = JSON.parse(raw); } catch { /* than khong phai JSON */ }
+    try {
+      json = JSON.parse(raw);
+    } catch {
+      /* than khong phai JSON */
+    }
   }
   return { status: res.status, body: json, raw, setCookie: res.headers.getSetCookie?.() ?? [] };
 }
@@ -110,7 +114,9 @@ console.log(`\nKiem backend tai ${BASE}\n`);
 try {
   await fetch(BASE + '/health/live');
 } catch {
-  console.error(`Khong ket noi duoc toi ${BASE}.\nChay \`pnpm dev:backend\` o mot cua so khac roi thu lai.\n`);
+  console.error(
+    `Khong ket noi duoc toi ${BASE}.\nChay \`pnpm dev:backend\` o mot cua so khac roi thu lai.\n`,
+  );
   process.exit(1);
 }
 
@@ -132,7 +138,9 @@ check('GET /auth/me khi chua dang nhap', (await call('GET', '/api/v1/auth/me')).
 
 console.log('\n-- tai khoan quan tri dau tien --');
 const boot = await call('POST', '/api/v1/auth/bootstrap', {
-  name: 'Quan tri', email: EMAIL, password: PASSWORD,
+  name: 'Quan tri',
+  email: EMAIL,
+  password: PASSWORD,
 });
 if (boot.status === 409) {
   console.log(`  bo qua  da co tai khoan quan tri — dung ${EMAIL} da tao truoc do`);
@@ -149,23 +157,37 @@ if (boot.status === 409) {
 // Email phai HOP LE that: `x@y.z` bi tu choi o buoc kiem dinh dang (TLD mot
 // ky tu) va tra 422 truoc khi cham toi luat "da co quan tri" — bai kiem se
 // do vi ly do sai. Lan chay dau cua chinh kich ban nay dinh dung cho do.
-check('POST /auth/bootstrap lan hai bi tu choi',
-  (await call('POST', '/api/v1/auth/bootstrap',
-    { name: 'Nguoi thu hai', email: 'nguoi-hai@ltvietnam.local', password: PASSWORD })).status, 409);
+check(
+  'POST /auth/bootstrap lan hai bi tu choi',
+  (
+    await call('POST', '/api/v1/auth/bootstrap', {
+      name: 'Nguoi thu hai',
+      email: 'nguoi-hai@ltvietnam.local',
+      password: PASSWORD,
+    })
+  ).status,
+  409,
+);
 
 console.log('\n-- kiem dau vao --');
 const bad = await call('POST', '/api/v1/auth/login', { email: 'khong-phai-email', password: '' });
 check('email sai dinh dang -> 422', bad.status, 422);
 // Vo LOI la `{ error }`, khong phai `{ data }`. Hai vo khac nhau cho hai ket
 // qua khac nhau; tron chung lai thi frontend phai doan.
-check('than loi co `error`, KHONG co `data`',
-  'error' in (bad.body ?? {}) && !('data' in (bad.body ?? {})), true);
+check(
+  'than loi co `error`, KHONG co `data`',
+  'error' in (bad.body ?? {}) && !('data' in (bad.body ?? {})),
+  true,
+);
 const fields = (bad.body?.error?.details ?? bad.body?.details)?.fields ?? [];
 console.log(`        truong sai: ${fields.map((f) => f.field).join(', ') || '(khong co)'}`);
 
 console.log('\n-- dang nhap --');
-check('sai mat khau -> 401',
-  (await call('POST', '/api/v1/auth/login', { email: EMAIL, password: 'sai-mat-khau-roi' })).status, 401);
+check(
+  'sai mat khau -> 401',
+  (await call('POST', '/api/v1/auth/login', { email: EMAIL, password: 'sai-mat-khau-roi' })).status,
+  401,
+);
 
 const login = await call('POST', '/api/v1/auth/login', { email: EMAIL, password: PASSWORD });
 if (!check('dung mat khau -> 201', login.status, 201)) {
@@ -207,21 +229,46 @@ voChuan('me', me);
  */
 const meData = me.body?.data ?? {};
 check('me: doc dung cho — data.email khop', meData.email, EMAIL);
-for (const truong of ['passwordHash', 'password_hash', 'status', 'passwordChangedAt', 'password_changed_at']) {
+for (const truong of [
+  'passwordHash',
+  'password_hash',
+  'status',
+  'passwordChangedAt',
+  'password_changed_at',
+]) {
   check(`me: KHONG lo \`${truong}\``, truong in meData, false);
 }
 // snake_case mot chieu cho toan bo API (doc/06 dung `page_size`, `request_id`).
-check('me: chi dung snake_case', Object.keys(meData).some((k) => /[A-Z]/.test(k)), false);
+check(
+  'me: chi dung snake_case',
+  Object.keys(meData).some((k) => /[A-Z]/.test(k)),
+  false,
+);
 check('me: co last_login_at', 'last_login_at' in meData, true);
 
 console.log('\n-- CSRF --');
-check('POST thieu header CSRF -> 403',
-  (await call('POST', '/api/v1/auth/change-password',
-    { current_password: PASSWORD, new_password: 'khong-quan-trong-lam' })).status, 403);
-check('POST header CSRF sai -> 403',
-  (await call('POST', '/api/v1/auth/change-password',
-    { current_password: PASSWORD, new_password: 'khong-quan-trong-lam' },
-    { 'x-csrf-token': 'gia-mao-ma-nay' })).status, 403);
+check(
+  'POST thieu header CSRF -> 403',
+  (
+    await call('POST', '/api/v1/auth/change-password', {
+      current_password: PASSWORD,
+      new_password: 'khong-quan-trong-lam',
+    })
+  ).status,
+  403,
+);
+check(
+  'POST header CSRF sai -> 403',
+  (
+    await call(
+      'POST',
+      '/api/v1/auth/change-password',
+      { current_password: PASSWORD, new_password: 'khong-quan-trong-lam' },
+      { 'x-csrf-token': 'gia-mao-ma-nay' },
+    )
+  ).status,
+  403,
+);
 
 console.log('\n-- doi mat khau va thu hoi phien --');
 const MOI = PASSWORD === GOC ? KIA : GOC;
@@ -232,9 +279,12 @@ const MOI = PASSWORD === GOC ? KIA : GOC;
  * frontend chon giua `res.ok` va `body.data.ok` — hai nguon cho cung mot su
  * that, nen som muon co cho doc nguon sai.
  */
-const doi = await call('POST', '/api/v1/auth/change-password',
+const doi = await call(
+  'POST',
+  '/api/v1/auth/change-password',
   { current_password: PASSWORD, new_password: MOI },
-  { 'x-csrf-token': jar.get('ltv_csrf') ?? '' });
+  { 'x-csrf-token': jar.get('ltv_csrf') ?? '' },
+);
 check('doi mat khau voi CSRF dung -> 204', doi.status, 204);
 khongThan('doi mat khau', doi);
 
@@ -244,8 +294,11 @@ jar.set('ltv_session', sess.split(';')[0].split('=')[1]);
 check('phien CU bi thu hoi ngay', (await call('GET', '/api/v1/auth/me')).status, 401);
 jar.clear();
 
-check('mat khau CU khong dung nua',
-  (await call('POST', '/api/v1/auth/login', { email: EMAIL, password: PASSWORD })).status, 401);
+check(
+  'mat khau CU khong dung nua',
+  (await call('POST', '/api/v1/auth/login', { email: EMAIL, password: PASSWORD })).status,
+  401,
+);
 const lai = await call('POST', '/api/v1/auth/login', { email: EMAIL, password: MOI });
 check('mat khau MOI dung duoc', lai.status, 201);
 
@@ -256,7 +309,9 @@ khongThan('logout', out);
 
 console.log('\n-- quen mat khau khong lo email nao co that --');
 const a = await call('POST', '/api/v1/auth/forgot-password', { email: EMAIL });
-const b = await call('POST', '/api/v1/auth/forgot-password', { email: 'khong-he-co@ltvietnam.local' });
+const b = await call('POST', '/api/v1/auth/forgot-password', {
+  email: 'khong-he-co@ltvietnam.local',
+});
 /**
  * Hai muc nay tim ra mot loi that: han muc theo IP cua `forgot-password` la 3,
  * nen ba yeu cau tu MOT IP voi BA email khac nhau la het luot — nguoi thu tu
@@ -269,13 +324,19 @@ const b = await call('POST', '/api/v1/auth/forgot-password', { email: 'khong-he-
 if (a.status === 429 || b.status === 429) {
   console.log('        (429 — da chay kich ban nay >5 lan trong 15 phut, doi roi thu lai)');
 }
-check('email co that / khong co that cung ma HTTP', a.status === b.status && a.status === 204, true);
+check(
+  'email co that / khong co that cung ma HTTP',
+  a.status === b.status && a.status === 204,
+  true,
+);
 // Cung phai cung THAN: mot than khac nhau cung la mot kenh ro ri, du ma HTTP
 // giong nhau.
 check('va cung mot than', a.raw === b.raw && a.raw === '', true);
 
 // ──────────────────────────────────────────────────────────────
-console.log(`\n${fail === 0 ? 'TAT CA DEU DAT' : 'CO MUC KHONG DAT'} — ${pass} dat, ${fail} khong dat\n`);
+console.log(
+  `\n${fail === 0 ? 'TAT CA DEU DAT' : 'CO MUC KHONG DAT'} — ${pass} dat, ${fail} khong dat\n`,
+);
 
 if (fail === 0) {
   console.log(`Tai khoan quan tri: ${EMAIL}`);

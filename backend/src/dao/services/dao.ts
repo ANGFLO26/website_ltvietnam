@@ -1,6 +1,11 @@
 import { TreeDao, type TreeTableName } from '../tree.dao.js';
 import type { PublicTranslationRow } from '../translation.support.js';
-import { TranslationSupport, type HreflangAlternate, type Locale, type TranslationStatus } from '../translation.support.js';
+import {
+  TranslationSupport,
+  type HreflangAlternate,
+  type Locale,
+  type TranslationStatus,
+} from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
@@ -37,8 +42,12 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
 
   // ── thuc the ───────────────────────────────────────────────────
   async findById(id: string): Promise<Service | null> {
-    const row = await this.db.selectFrom('services').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('services')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toService(row) : null;
   }
 
@@ -47,44 +56,69 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
     let q = this.db.selectFrom('services').selectAll();
     let cq = this.db.selectFrom('services').select(({ fn }) => fn.countAll<string>().as('n'));
 
-    if (!filter.includeDeleted) { q = q.where('deleted_at', 'is', null); cq = cq.where('deleted_at', 'is', null); }
-    if (filter.status) { q = q.where('status', '=', filter.status); cq = cq.where('status', '=', filter.status); }
+    if (!filter.includeDeleted) {
+      q = q.where('deleted_at', 'is', null);
+      cq = cq.where('deleted_at', 'is', null);
+    }
+    if (filter.status) {
+      q = q.where('status', '=', filter.status);
+      cq = cq.where('status', '=', filter.status);
+    }
     if (filter.isFeatured !== undefined) {
       q = q.where('is_featured', '=', filter.isFeatured);
       cq = cq.where('is_featured', '=', filter.isFeatured);
     }
     if (filter.parentId !== undefined) {
-      q = filter.parentId === null ? q.where('parent_id', 'is', null) : q.where('parent_id', '=', filter.parentId);
-      cq = filter.parentId === null ? cq.where('parent_id', 'is', null) : cq.where('parent_id', '=', filter.parentId);
+      q =
+        filter.parentId === null
+          ? q.where('parent_id', 'is', null)
+          : q.where('parent_id', '=', filter.parentId);
+      cq =
+        filter.parentId === null
+          ? cq.where('parent_id', 'is', null)
+          : cq.where('parent_id', '=', filter.parentId);
     }
 
-    const rows = await q.orderBy('display_order').orderBy('id')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('display_order')
+      .orderBy('id')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toService), total, p);
   }
 
   async insert(input: CreateServiceInput): Promise<Service> {
     const placement = await this.computePlacement(input.parentId ?? null);
-    const row = await this.db.insertInto('services').values({
-      parent_id: input.parentId ?? null,
-      ancestor_ids: placement.ancestorIds,
-      depth: placement.depth,
-      service_type: input.serviceType ?? null,
-      featured_image_id: input.featuredImageId ?? null,
-      created_by: input.createdBy ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('services')
+      .values({
+        parent_id: input.parentId ?? null,
+        ancestor_ids: placement.ancestorIds,
+        depth: placement.depth,
+        service_type: input.serviceType ?? null,
+        featured_image_id: input.featuredImageId ?? null,
+        created_by: input.createdBy ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toService(row);
   }
 
   async update(id: string, input: UpdateServiceInput): Promise<Service> {
-    const row = await this.db.updateTable('services').set({
-      ...(input.serviceType !== undefined && { service_type: input.serviceType }),
-      ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
-      ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-      ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('services')
+      .set({
+        ...(input.serviceType !== undefined && { service_type: input.serviceType }),
+        ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
+        ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+        ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toService(row);
   }
 
@@ -106,15 +140,22 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
    * nam o bang dich. Moc "lan dau cong khai" vi vay cung phai nam o do.
    */
   async publish(id: string, at: Date): Promise<Service> {
-    const row = await this.db.updateTable('services')
+    const row = await this.db
+      .updateTable('services')
       .set({ status: 'published', published_at: at })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toService(row);
   }
 
   async unpublish(id: string): Promise<Service> {
-    const row = await this.db.updateTable('services').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('services')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toService(row);
   }
 
@@ -129,20 +170,30 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
    * viec cua tang tren.
    */
   async findBySlug(locale: Locale, slug: string): Promise<ServiceWithTranslation | null> {
-    const tr = await this.db.selectFrom('service_translations').selectAll()
-      .where('locale', '=', locale).where('slug', '=', slug)
+    const tr = await this.db
+      .selectFrom('service_translations')
+      .selectAll()
+      .where('locale', '=', locale)
+      .where('slug', '=', slug)
       .executeTakeFirst();
     if (!tr) return null;
-    const s = await this.db.selectFrom('services').selectAll()
-      .where('id', '=', tr.service_id).where('deleted_at', 'is', null)
+    const s = await this.db
+      .selectFrom('services')
+      .selectAll()
+      .where('id', '=', tr.service_id)
+      .where('deleted_at', 'is', null)
       .executeTakeFirst();
     if (!s) return null;
     return { service: toService(s), translation: toServiceTranslation(tr) };
   }
 
   async findTranslation(id: string, locale: Locale): Promise<ServiceTranslation | null> {
-    const row = await this.db.selectFrom('service_translations').selectAll()
-      .where('service_id', '=', id).where('locale', '=', locale).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('service_translations')
+      .selectAll()
+      .where('service_id', '=', id)
+      .where('locale', '=', locale)
+      .executeTakeFirst();
     return row ? toServiceTranslation(row) : null;
   }
 
@@ -173,7 +224,9 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
       seo_title: input.seoTitle ?? null,
       seo_description: input.seoDescription ?? null,
     };
-    const row = await this.db.insertInto('service_translations').values(values)
+    const row = await this.db
+      .insertInto('service_translations')
+      .values(values)
       .onConflict((oc) =>
         oc.columns(['service_id', 'locale']).doUpdateSet({
           name: values.name,
@@ -189,7 +242,8 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
           seo_description: values.seo_description,
         }),
       )
-      .returningAll().executeTakeFirstOrThrow();
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toServiceTranslation(row);
   }
 
@@ -223,34 +277,51 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
     if (links.productIds !== undefined) {
       await this.db.deleteFrom('service_products').where('service_id', '=', id).execute();
       if (links.productIds.length > 0) {
-        await this.db.insertInto('service_products')
-          .values(links.productIds.map((x, i) => ({ service_id: id, product_id: x, display_order: i })))
+        await this.db
+          .insertInto('service_products')
+          .values(
+            links.productIds.map((x, i) => ({ service_id: id, product_id: x, display_order: i })),
+          )
           .execute();
       }
     }
     if (links.brandIds !== undefined) {
       await this.db.deleteFrom('service_brands').where('service_id', '=', id).execute();
       if (links.brandIds.length > 0) {
-        await this.db.insertInto('service_brands')
-          .values(links.brandIds.map((x) => ({ service_id: id, brand_id: x }))).execute();
+        await this.db
+          .insertInto('service_brands')
+          .values(links.brandIds.map((x) => ({ service_id: id, brand_id: x })))
+          .execute();
       }
     }
     if (links.industryIds !== undefined) {
       await this.db.deleteFrom('service_industries').where('service_id', '=', id).execute();
       if (links.industryIds.length > 0) {
-        await this.db.insertInto('service_industries')
-          .values(links.industryIds.map((x) => ({ service_id: id, industry_id: x }))).execute();
+        await this.db
+          .insertInto('service_industries')
+          .values(links.industryIds.map((x) => ({ service_id: id, industry_id: x })))
+          .execute();
       }
     }
   }
 
   async findLinks(id: string): Promise<Required<ServiceLinks>> {
-    const pr = await this.db.selectFrom('service_products').select('product_id')
-      .where('service_id', '=', id).orderBy('display_order').execute();
-    const br = await this.db.selectFrom('service_brands').select('brand_id')
-      .where('service_id', '=', id).execute();
-    const ind = await this.db.selectFrom('service_industries').select('industry_id')
-      .where('service_id', '=', id).execute();
+    const pr = await this.db
+      .selectFrom('service_products')
+      .select('product_id')
+      .where('service_id', '=', id)
+      .orderBy('display_order')
+      .execute();
+    const br = await this.db
+      .selectFrom('service_brands')
+      .select('brand_id')
+      .where('service_id', '=', id)
+      .execute();
+    const ind = await this.db
+      .selectFrom('service_industries')
+      .select('industry_id')
+      .where('service_id', '=', id)
+      .execute();
     return {
       productIds: pr.map((x) => x.product_id),
       brandIds: br.map((x) => x.brand_id),

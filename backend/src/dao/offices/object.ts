@@ -1,7 +1,7 @@
 import type { EntityStatus } from '../brands/object.js';
 
 export type OfficeType =
-  | 'head_office' | 'branch' | 'representative_office' | 'service_center' | 'workshop';
+  'head_office' | 'branch' | 'representative_office' | 'service_center' | 'workshop';
 
 /**
  * VAN PHONG / CHI NHANH — trang lien he.
@@ -31,6 +31,7 @@ export interface Office {
 }
 
 export interface CreateOfficeInput {
+  readonly initialStatus?: EntityStatus;
   readonly officeType: OfficeType;
   readonly name: string;
   readonly address: string;

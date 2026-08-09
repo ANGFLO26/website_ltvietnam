@@ -22,37 +22,6 @@ const REPO = resolve(import.meta.dirname, '../..');
 /** Nhung khoa CHUA duoc dung, va ly do — moi dong la mot loi hua co dia chi. */
 const CHUA_DUNG: Record<string, string> = {
   // ── media: F7 ──
-  MEDIA_ROOT: 'F7 — luu tru media',
-  MEDIA_PUBLIC_DIR: 'F7',
-  MEDIA_PROTECTED_DIR: 'F7',
-  MEDIA_TEMP_DIR: 'F7',
-  MEDIA_QUARANTINE_DIR: 'F7',
-  MEDIA_MAX_UPLOAD_BYTES: 'F7 — tran upload, KHAC BODY_LIMIT_BYTES',
-  MEDIA_PURGE_DELAY_DAYS: 'F7 — don media mo coi',
-  MEDIA_PUBLIC_MAX_AGE_SECONDS: 'F7 — cache tep cong khai',
-
-  /**
-   * ── worker: F5 ──
-   *
-   * Ban dau toi liet ke ca nam khoa `WORKER_*` o day. Phep kiem chieu nguoc
-   * bat ngay: `WORKER_BATCH_SIZE`, `WORKER_POLL_INTERVAL_MS` va
-   * `WORKER_HEARTBEAT_INTERVAL_MS` DA duoc `worker/src/main.ts` doc tu truoc.
-   *
-   * Do dung la ly do phai co chieu nguoc: mot danh sach "chua dung" sai la mot
-   * ban do sai, va mot ban do sai te hon khong co ban do.
-   */
-  WORKER_PROCESSING_TIMEOUT_MS: 'F5 — reaper thu hoi job treo',
-  WORKER_MAX_ATTEMPTS: 'F5 — so lan thu lai truoc khi bo',
-  SMTP_HOST: 'F5',
-  SMTP_PORT: 'F5',
-  SMTP_USER: 'F5',
-  SMTP_PASSWORD: 'F5',
-  SMTP_FROM: 'F5',
-  INQUIRY_RECIPIENT: 'F5 — nguoi nhan thong bao bao gia',
-
-  // ── captcha: F5 ──
-  CAPTCHA_PROVIDER: 'F5 — chong spam form bao gia',
-  CAPTCHA_SECRET: 'F5',
 
   /**
    * HAI KHOA NAY LA MOT VET TICH, khong phai mot loi hua.
@@ -109,8 +78,9 @@ describe('doi chieu cau hinh voi cho dung', () => {
   });
 
   it('moi khoa hoac DUOC DUNG, hoac nam trong danh sach CHUA_DUNG co ly do', () => {
-    const mocoi = KHOA.filter((k) => !MA.includes(`cfg.${k}`) && !MA.includes(k))
-      .filter((k) => !(k in CHUA_DUNG));
+    const mocoi = KHOA.filter((k) => !MA.includes(`cfg.${k}`) && !MA.includes(k)).filter(
+      (k) => !(k in CHUA_DUNG),
+    );
     expect(
       mocoi,
       `Khoa khai bao ma khong noi nao doc. Cai dat no, hoac them vao CHUA_DUNG kem ly do:\n${mocoi.join('\n')}`,
@@ -163,9 +133,7 @@ describe('.env.example — moi bien phai co nguoi doc', () => {
   ].join('\n');
 
   /** Bien huong tuong lai — chua ai doc, va ly do. */
-  const CHUA_AI_DOC: Record<string, string> = {
-    NEXT_PUBLIC_SITE_URL: 'F6 — canonical, sitemap, Open Graph can URL tuyet doi',
-  };
+  const CHUA_AI_DOC: Record<string, string> = {};
 
   it('ton tai va co du bien de kiem', () => {
     expect(existsSync(p), 'khong thay .env.example').toBe(true);
@@ -183,10 +151,7 @@ describe('.env.example — moi bien phai co nguoi doc', () => {
     const mocoi = bien
       .filter((b) => !KHOA.includes(b) && !NGUOI_DOC.includes(b))
       .filter((b) => !(b in CHUA_AI_DOC));
-    expect(
-      mocoi,
-      `.env.example khai bao bien khong ai doc:\n${mocoi.join('\n')}`,
-    ).toEqual([]);
+    expect(mocoi, `.env.example khai bao bien khong ai doc:\n${mocoi.join('\n')}`).toEqual([]);
   });
 
   it('danh sach CHUA_AI_DOC khong con bien DA co nguoi doc', () => {
@@ -210,5 +175,26 @@ describe('.env.example — moi bien phai co nguoi doc', () => {
     expect(batBuoc.length).toBeGreaterThan(0);
     const thieu = batBuoc.filter((k) => !new RegExp(`^${k}=`, 'm').test(noiDung));
     expect(thieu, `Khoa bat buoc thieu trong .env.example:\n${thieu.join('\n')}`).toEqual([]);
+  });
+});
+
+describe('NEXT_PUBLIC_SITE_URL — origin cong khai cua F6', () => {
+  const field = configSchema.shape.NEXT_PUBLIC_SITE_URL;
+
+  it('chap nhan HTTP(S) origin, co hoac khong co slash cuoi', () => {
+    expect(field.safeParse('https://ltv.vn').success).toBe(true);
+    expect(field.safeParse('http://localhost:3000/').success).toBe(true);
+  });
+
+  it('tu choi protocol la, credentials, path, query va hash', () => {
+    for (const value of [
+      'ftp://ltv.vn',
+      'https://user:pass@ltv.vn',
+      'https://ltv.vn/vi',
+      'https://ltv.vn?x=1',
+      'https://ltv.vn#x',
+    ]) {
+      expect(field.safeParse(value).success, value).toBe(false);
+    }
   });
 });

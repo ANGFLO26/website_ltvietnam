@@ -1,3 +1,4 @@
+-- LUU TRU P0: static seed cu, da duoc thay the boi backend/scripts/seed-demo.ts.
 INSERT INTO ltv.users (id,name,email,password_hash) VALUES ('0a000000-0000-0000-0000-00000000000a','Admin','admin@ltvietnam.com.vn','x');
 INSERT INTO ltv.media (id,file_name,original_name,storage_path,storage_class,mime_type,file_extension,file_size,variants) VALUES
  ('e0000000-0000-0000-0000-000000000001','optidist.jpg','OptiDist.jpg','public-media/originals/optidist.jpg','public','image/jpeg','jpg',12345,'{"thumb":"public-media/variants/optidist-thumb.webp"}'),

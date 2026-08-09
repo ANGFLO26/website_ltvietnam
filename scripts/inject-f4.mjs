@@ -54,6 +54,99 @@ function testXanh(file, ten) {
 }
 
 /**
+ * Tim mot doan ma BAT KE cach xuong dong.
+ *
+ * Ra doi tu mot lan hong that. Dot don dep 2026-08-09 chay Prettier tren 146 tep,
+ * va formatter ngat lai dong o BA cho ma kich ban nay tro toi:
+ *
+ *     const r = await this.daos.products.list({ status: 'published' }, { page: 1, ... });
+ *     -> const r = await this.daos.products.list(
+ *          { status: 'published' },
+ *          { page: 1, ... },
+ *        );
+ *
+ * `src.includes(tim)` khong con khop, va ba phep tiem chuyen sang "BO QUA". Bao cao
+ * thi van chep con so cu (14/14) sang. Tuc la: cong cu dung de chung minh phep kiem
+ * khong rong DA TU HONG, va hong theo dung kieu no sinh ra de bat.
+ *
+ * Nen so khop bay gio bo qua KHOANG TRANG: moi cum khoang trang trong mau doi thanh
+ * `\s+`. Doi ten bien hay doi logic van lam no khong khop (dung — luc do phai xem
+ * lai phep tiem), nhung dinh dang lai thi khong.
+ */
+const DAU = /[(){}[\],;:=><+\-*/&|!?.]/;
+
+/**
+ * Gom khoang trang, GIU dau vet vi tri goc.
+ *
+ * Tra ve mang `{ c, i }`: `c` la ky tu sau khi gom, `i` la vi tri cua no trong
+ * chuoi goc. Nho `i` ma sau khi khop tren ban da gom, ta cat duoc dung doan
+ * NGUYEN VAN trong tep — khong phai ghi lai tep bang ban da gom (lam vay se pha
+ * dinh dang cua ca tep, va phep hoan tac bang bam se bao dong dung).
+ *
+ * Khoang trang canh mot DAU CAU bi bo han (`list( {` va `list({` la mot), con
+ * giua hai ky tu chu thi thu lai mot dau cach (`const r` khong duoc dinh thanh
+ * `constr` — de nhu vay se khop nham).
+ */
+function gom(s) {
+  const ra = [];
+  let cho = false;
+  for (let i = 0; i < s.length; i += 1) {
+    const c = s[i];
+    if (/\s/.test(c)) {
+      cho = true;
+      continue;
+    }
+    if (cho && ra.length > 0) {
+      const truoc = ra[ra.length - 1].c;
+      if (!DAU.test(truoc) && !DAU.test(c)) ra.push({ c: ' ', i });
+    }
+    cho = false;
+    ra.push({ c, i });
+  }
+  return ra;
+}
+
+/**
+ * Tim mot doan ma BAT KE dinh dang, tra ve doan NGUYEN VAN trong tep.
+ *
+ * Ra doi tu mot lan hong that. Dot don dep 2026-08-09 chay Prettier tren 146 tep,
+ * va formatter ngat lai dong + them dau phay cuoi o BA cho ma kich ban nay tro toi:
+ *
+ *     list({ status: 'published' }, { page: 1, pageSize: 100 });
+ *     -> list(
+ *          { status: 'published' },
+ *          { page: 1, pageSize: 100 },
+ *        );
+ *
+ * `src.includes(tim)` khong con khop, ba phep tiem chuyen sang "BO QUA", va bao cao
+ * van chep con so cu (14/14) sang. Tuc la: cong cu dung de chung minh phep kiem
+ * khong rong DA TU HONG — dung theo kieu no sinh ra de bat.
+ *
+ * Hai thu duoc bo qua, va chi hai thu do:
+ *   - CACH XUONG DONG va thut le
+ *   - DAU PHAY CUOI truoc mot dau dong `)` `}` `]`
+ *
+ * Doi ten bien hay doi logic van lam no khong khop — va do la dung: luc do phep
+ * tiem phai duoc doc lai, khong duoc lang le khop vao mot doan khac.
+ */
+function timDoan(src, mau) {
+  const g = gom(src);
+  const re = new RegExp(
+    gom(mau)
+      .map((x) => x.c)
+      .join('')
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\([)\]}])/g, ',?\\$1'),
+  );
+  const m = re.exec(g.map((x) => x.c).join(''));
+  if (m === null || m.index === undefined) return null;
+  const dau = g[m.index];
+  const cuoi = g[m.index + m[0].length - 1];
+  if (dau === undefined || cuoi === undefined) return null;
+  return src.slice(dau.i, cuoi.i + 1);
+}
+
+/**
  * MOT lan tiem: sua mot chuoi trong mot tep, doi bai kiem phai DO, roi hoan tac.
  *
  * Ba dieu kien deu phai dat, va thieu cai nao thi ket luan khac nhau:
@@ -77,12 +170,13 @@ function tiem({ ten, tep, tim, thay, test, phepKiem }) {
   copyFileSync(p, sao);
   try {
     const src = readFileSync(p, 'utf8');
-    if (!src.includes(tim)) {
+    const doan = timDoan(src, tim);
+    if (doan === null) {
       loi.push(`${ten}: khong tim thay doan can sua trong ${tep}`);
       process.stdout.write('   BO QUA (khong khop doan can sua)\n');
       return;
     }
-    writeFileSync(p, src.replace(tim, thay));
+    writeFileSync(p, src.replace(doan, thay));
 
     if (testXanh(test, phepKiem)) {
       loi.push(`${ten}: phep kiem VAN XANH sau khi pha ma — no khong do gi ca`);
@@ -96,7 +190,9 @@ function tiem({ ten, tep, tim, thay, test, phepKiem }) {
     unlinkSync(sao);
     const sau = bam(p);
     if (sau !== truoc) {
-      loi.push(`${ten}: HOAN TAC THAT BAI — ${tep} da doi (${truoc.slice(0, 12)} -> ${sau.slice(0, 12)})`);
+      loi.push(
+        `${ten}: HOAN TAC THAT BAI — ${tep} da doi (${truoc.slice(0, 12)} -> ${sau.slice(0, 12)})`,
+      );
       process.stdout.write('   CANH BAO: hoan tac that bai\n');
     }
   }
@@ -152,9 +248,9 @@ tiem({
   tep: SITE,
   tim: 'const banners: BannerView[] = banner.map((b, i) => ({',
   thay:
-    'const banners: BannerView[] = banner\n'
-    + '      .filter((b) => b.linkTargetId === null || daGiai.has(b.linkTargetId))\n'
-    + '      .map((b, i) => ({',
+    'const banners: BannerView[] = banner\n' +
+    '      .filter((b) => b.linkTargetId === null || daGiai.has(b.linkTargetId))\n' +
+    '      .map((b, i) => ({',
   test: T,
   phepKiem: 'banner co lien ket CHET van GIU ANH',
 });
@@ -165,9 +261,9 @@ tiem({
   tep: SITE,
   tim: 'const xs = await this.daos.customers.findPublicWithLogo(',
   thay:
-    "const xs = (await this.daos.customers.list({ status: 'published' }, { page: 1, pageSize: 100 }))\n"
-    + '      .data.filter((c) => c.logoId !== null) as never;\n'
-    + '    void (',
+    "const xs = (await this.daos.customers.list({ status: 'published' }, { page: 1, pageSize: 100 }))\n" +
+    '      .data.filter((c) => c.logoId !== null) as never;\n' +
+    '    void (',
   test: T,
   phepKiem: 'chi khach da publish VA duoc phep VA co logo',
 });
@@ -282,6 +378,8 @@ tiem({
  * gia tri vua tinh phai lay lai duoc) — chi la no khong duoc dem bang phep tiem.
  */
 
-console.log(`\n${loi.length === 0 ? 'TAT CA DEU DAT' : 'CO MUC KHONG DAT'} — ${pass} phep tiem dat, ${loi.length} van de\n`);
+console.log(
+  `\n${loi.length === 0 ? 'TAT CA DEU DAT' : 'CO MUC KHONG DAT'} — ${pass} phep tiem dat, ${loi.length} van de\n`,
+);
 for (const e of loi) console.error(`  - ${e}`);
 process.exit(loi.length === 0 ? 0 : 1);

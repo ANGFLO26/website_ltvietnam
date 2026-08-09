@@ -26,6 +26,7 @@ export interface Industry {
 }
 
 export interface CreateIndustryInput {
+  readonly initialStatus?: EntityStatus;
   readonly name: string;
   readonly slug: string;
   readonly description?: ContentBlock[];

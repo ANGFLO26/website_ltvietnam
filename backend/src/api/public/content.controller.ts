@@ -146,9 +146,7 @@ export class ContentController {
  * trang hien ra binh thuong va khong loi nao.
  */
 const loc = {
-  locale: z
-    .enum(LOCALES as unknown as [Locale, ...Locale[]])
-    .default(DEFAULT_LOCALE),
+  locale: z.enum(LOCALES as unknown as [Locale, ...Locale[]]).default(DEFAULT_LOCALE),
 };
 
 const phanTrang = {

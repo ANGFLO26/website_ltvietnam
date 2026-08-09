@@ -21,9 +21,15 @@ const run = url ? describe : describe.skip;
  */
 class FakeHasher implements PasswordHasher {
   burns = 0;
-  async hash(plain: string): Promise<string> { return `fake:${plain}`; }
-  async verify(h: string, plain: string): Promise<boolean> { return h === `fake:${plain}`; }
-  async burn(): Promise<void> { this.burns += 1; }
+  async hash(plain: string): Promise<string> {
+    return `fake:${plain}`;
+  }
+  async verify(h: string, plain: string): Promise<boolean> {
+    return h === `fake:${plain}`;
+  }
+  async burn(): Promise<void> {
+    this.burns += 1;
+  }
 }
 
 run('AuthService tren PostgreSQL that', () => {
@@ -39,7 +45,9 @@ run('AuthService tren PostgreSQL that', () => {
 
   const mkUser = async (k: string, password = 'mat-khau-du-dai-de-dung') => {
     const u = await daos.users.insert({
-      name: `Nguoi ${k}`, email: email(k), passwordHash: `fake:${password}`,
+      name: `Nguoi ${k}`,
+      email: email(k),
+      passwordHash: `fake:${password}`,
     });
     return u;
   };
@@ -49,9 +57,16 @@ run('AuthService tren PostgreSQL that', () => {
     daos = createDaoManager(createKysely(pool));
     hasher = new FakeHasher();
     auth = new AuthServiceImpl(
-      daos, hasher,
-      new JwtSessionSigner(SECRET), new JwtResetSigner(RESET_SECRET),
-      { sessionTtlSeconds: 8 * 3600, resetTtlSeconds: 1800, lockAfterAttempts: 3, minPasswordLength: 12 },
+      daos,
+      hasher,
+      new JwtSessionSigner(SECRET),
+      new JwtResetSigner(RESET_SECRET),
+      {
+        sessionTtlSeconds: 8 * 3600,
+        resetTtlSeconds: 1800,
+        lockAfterAttempts: 3,
+        minPasswordLength: 12,
+      },
     );
   });
   afterAll(async () => {
@@ -73,7 +88,8 @@ run('AuthService tren PostgreSQL that', () => {
   it('email khong phan biet hoa thuong va bo khoang trang', async () => {
     const u = await mkUser('hoa-thuong');
     const r = await auth.login({
-      email: `  ${u.email.toUpperCase()}  `, password: 'mat-khau-du-dai-de-dung',
+      email: `  ${u.email.toUpperCase()}  `,
+      password: 'mat-khau-du-dai-de-dung',
     });
     expect(r.user.id).toBe(u.id);
   });
@@ -92,13 +108,19 @@ run('AuthService tren PostgreSQL that', () => {
       { email: email('khong-ton-tai'), password: 'gi-cung-duoc-12' },
       { email: u.email, password: 'sai-mat-khau-roi' },
     ]) {
-      try { await auth.login(attempt); } catch (e) { messages.push((e as Error).message); }
+      try {
+        await auth.login(attempt);
+      } catch (e) {
+        messages.push((e as Error).message);
+      }
     }
 
     await daos.users.setStatus(u.id, 'locked');
     try {
       await auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' });
-    } catch (e) { messages.push((e as Error).message); }
+    } catch (e) {
+      messages.push((e as Error).message);
+    }
 
     expect(messages).toHaveLength(3);
     expect(new Set(messages).size, `ba nhanh phai cung mot thong bao: ${messages}`).toBe(1);
@@ -108,8 +130,9 @@ run('AuthService tren PostgreSQL that', () => {
     // Khong bam thi nhanh nay tra ve sau ~1ms con nhanh co that ton ~50ms,
     // va chenh lech do bien form dang nhap thanh cong cu liet ke email.
     const truoc = hasher.burns;
-    await expect(auth.login({ email: email('ma'), password: 'gi-cung-duoc-12' }))
-      .rejects.toThrow(UnauthorizedError);
+    await expect(auth.login({ email: email('ma'), password: 'gi-cung-duoc-12' })).rejects.toThrow(
+      UnauthorizedError,
+    );
     expect(hasher.burns).toBe(truoc + 1);
   });
 
@@ -117,8 +140,9 @@ run('AuthService tren PostgreSQL that', () => {
     const u = await mkUser('khoa-bam');
     await daos.users.setStatus(u.id, 'locked');
     const truoc = hasher.burns;
-    await expect(auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }))
-      .rejects.toThrow(UnauthorizedError);
+    await expect(
+      auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }),
+    ).rejects.toThrow(UnauthorizedError);
     expect(hasher.burns).toBe(truoc + 1);
   });
 
@@ -138,15 +162,17 @@ run('AuthService tren PostgreSQL that', () => {
     expect(await daos.users.countActiveAdmins()).toBeGreaterThan(1);
 
     for (let i = 0; i < 3; i++) {
-      await expect(auth.login({ email: u.email, password: 'sai-mat-khau-roi' }))
-        .rejects.toThrow(UnauthorizedError);
+      await expect(auth.login({ email: u.email, password: 'sai-mat-khau-roi' })).rejects.toThrow(
+        UnauthorizedError,
+      );
     }
     // Khoa nay ben vung qua khoi dong lai tien trinh — khac voi bo dem trong RAM
     expect((await daos.users.findById(u.id))!.status).toBe('locked');
 
     // Va mat khau DUNG cung khong vao duoc nua
-    await expect(auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }))
-      .rejects.toThrow(UnauthorizedError);
+    await expect(
+      auth.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }),
+    ).rejects.toThrow(UnauthorizedError);
   });
 
   it('KHONG khoa quan tri hoat dong CUOI CUNG — nua thu hai cua chuoi leo thang', async () => {
@@ -170,11 +196,15 @@ run('AuthService tren PostgreSQL that', () => {
      */
     const suKien: string[] = [];
     const authRieng = new AuthServiceImpl(
-      daos, hasher,
-      new JwtSessionSigner(SECRET), new JwtResetSigner(RESET_SECRET),
+      daos,
+      hasher,
+      new JwtSessionSigner(SECRET),
+      new JwtResetSigner(RESET_SECRET),
       {
-        sessionTtlSeconds: 3600, resetTtlSeconds: 1800,
-        lockAfterAttempts: 3, minPasswordLength: 12,
+        sessionTtlSeconds: 3600,
+        resetTtlSeconds: 1800,
+        lockAfterAttempts: 3,
+        minPasswordLength: 12,
         onEvent: (e) => suKien.push(e),
       },
     );
@@ -200,8 +230,9 @@ run('AuthService tren PostgreSQL that', () => {
       expect(await daos.users.countActiveAdmins()).toBe(1);
 
       for (let i = 0; i < 3; i++) {
-        await expect(authRieng.login({ email: u.email, password: 'sai-mat-khau-roi' }))
-          .rejects.toThrow(UnauthorizedError);
+        await expect(
+          authRieng.login({ email: u.email, password: 'sai-mat-khau-roi' }),
+        ).rejects.toThrow(UnauthorizedError);
       }
 
       expect((await daos.users.findById(u.id))!.status).toBe('active');
@@ -209,8 +240,9 @@ run('AuthService tren PostgreSQL that', () => {
       // mot ly do khac (vd nguong chua cham), va bai kiem se rong.
       expect(suKien).toContain('auth_lock_skipped_last_admin');
       // Va mat khau DUNG van vao duoc — do moi la dieu nguoi dung quan tam.
-      await expect(authRieng.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }))
-        .resolves.toBeDefined();
+      await expect(
+        authRieng.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' }),
+      ).resolves.toBeDefined();
     } finally {
       if (daTat.length > 0) {
         await pool.query(`UPDATE ltv.users SET status = 'active' WHERE id = ANY($1::uuid[])`, [
@@ -260,7 +292,10 @@ run('AuthService tren PostgreSQL that', () => {
   it('the het han tra ve null', async () => {
     const u = await mkUser('het-han');
     const ngan = new AuthServiceImpl(
-      daos, hasher, new JwtSessionSigner(SECRET), new JwtResetSigner(RESET_SECRET),
+      daos,
+      hasher,
+      new JwtSessionSigner(SECRET),
+      new JwtResetSigner(RESET_SECRET),
       { sessionTtlSeconds: -1, resetTtlSeconds: 1800, lockAfterAttempts: 3, minPasswordLength: 12 },
     );
     const { token } = await ngan.login({ email: u.email, password: 'mat-khau-du-dai-de-dung' });
@@ -299,47 +334,64 @@ run('AuthService tren PostgreSQL that', () => {
     expect(await auth.verifySession(b.token)).toBeNull();
 
     // Va mat khau moi dung duoc
-    await expect(auth.login({ email: u.email, password: 'mat-khau-hoan-toan-moi' }))
-      .resolves.toBeTruthy();
+    await expect(
+      auth.login({ email: u.email, password: 'mat-khau-hoan-toan-moi' }),
+    ).resolves.toBeTruthy();
   });
 
   it('doi mat khau PHAI biet mat khau cu', async () => {
     const u = await mkUser('mk-cu');
-    await expect(auth.changePassword({
-      userId: u.id, currentPassword: 'doan-mo-ho-day', newPassword: 'mat-khau-hoan-toan-moi',
-    })).rejects.toThrow(UnauthorizedError);
+    await expect(
+      auth.changePassword({
+        userId: u.id,
+        currentPassword: 'doan-mo-ho-day',
+        newPassword: 'mat-khau-hoan-toan-moi',
+      }),
+    ).rejects.toThrow(UnauthorizedError);
     // The phien bi danh cap van khong doi duoc mat khau
   });
 
   it('mat khau moi khong duoc trung mat khau cu', async () => {
     const u = await mkUser('trung-mk');
-    await expect(auth.changePassword({
-      userId: u.id,
-      currentPassword: 'mat-khau-du-dai-de-dung',
-      newPassword: 'mat-khau-du-dai-de-dung',
-    })).rejects.toThrow(ConflictError);
+    await expect(
+      auth.changePassword({
+        userId: u.id,
+        currentPassword: 'mat-khau-du-dai-de-dung',
+        newPassword: 'mat-khau-du-dai-de-dung',
+      }),
+    ).rejects.toThrow(ConflictError);
   });
 
   it('mat khau qua ngan bi tu choi, do dai la yeu cau duy nhat', async () => {
     const u = await mkUser('ngan');
-    await expect(auth.changePassword({
-      userId: u.id, currentPassword: 'mat-khau-du-dai-de-dung', newPassword: 'ngan',
-    })).rejects.toThrow(DomainError);
+    await expect(
+      auth.changePassword({
+        userId: u.id,
+        currentPassword: 'mat-khau-du-dai-de-dung',
+        newPassword: 'ngan',
+      }),
+    ).rejects.toThrow(DomainError);
 
     // Khong ep chu hoa/so/ky tu dac biet: mot cau dai de nho manh hon
     // `Matkhau@123` (NIST SP 800-63B)
-    await expect(auth.changePassword({
-      userId: u.id,
-      currentPassword: 'mat-khau-du-dai-de-dung',
-      newPassword: 'con meo ngoi tren mai nha',
-    })).resolves.toBeUndefined();
+    await expect(
+      auth.changePassword({
+        userId: u.id,
+        currentPassword: 'mat-khau-du-dai-de-dung',
+        newPassword: 'con meo ngoi tren mai nha',
+      }),
+    ).resolves.toBeUndefined();
   });
 
   it('mat khau qua dai bi tu choi — chan tu choi dich vu qua bam', async () => {
     const u = await mkUser('dai');
-    await expect(auth.changePassword({
-      userId: u.id, currentPassword: 'mat-khau-du-dai-de-dung', newPassword: 'a'.repeat(5000),
-    })).rejects.toThrow(/qua dai/);
+    await expect(
+      auth.changePassword({
+        userId: u.id,
+        currentPassword: 'mat-khau-du-dai-de-dung',
+        newPassword: 'a'.repeat(5000),
+      }),
+    ).rejects.toThrow(/qua dai/);
   });
 
   // ══════════════════ quen / dat lai mat khau ══════════════════
@@ -354,8 +406,9 @@ run('AuthService tren PostgreSQL that', () => {
     const r = await auth.requestPasswordReset(u.email);
     await auth.resetPassword({ token: r!.token, newPassword: 'mat-khau-sau-khi-dat-lai' });
 
-    await expect(auth.login({ email: u.email, password: 'mat-khau-sau-khi-dat-lai' }))
-      .resolves.toBeTruthy();
+    await expect(
+      auth.login({ email: u.email, password: 'mat-khau-sau-khi-dat-lai' }),
+    ).resolves.toBeTruthy();
   });
 
   it('the dat lai DUNG MOT LAN — khong can bang danh sach da dung', async () => {
@@ -365,8 +418,9 @@ run('AuthService tren PostgreSQL that', () => {
 
     // The mang theo `password_changed_at` luc phat. Sau lan dat lai dau tien,
     // moc do doi, nen chinh cai the vua dung tro thanh khong hop le.
-    await expect(auth.resetPassword({ token: r!.token, newPassword: 'mat-khau-lan-thu-hai' }))
-      .rejects.toThrow(/da duoc su dung/);
+    await expect(
+      auth.resetPassword({ token: r!.token, newPassword: 'mat-khau-lan-thu-hai' }),
+    ).rejects.toThrow(/da duoc su dung/);
   });
 
   it('the dat lai het hieu luc khi mat khau doi bang duong khac', async () => {
@@ -374,10 +428,13 @@ run('AuthService tren PostgreSQL that', () => {
     const r = await auth.requestPasswordReset(u.email);
     // Nguoi dung nho ra mat khau va tu doi truoc khi bam lien ket trong mail
     await auth.changePassword({
-      userId: u.id, currentPassword: 'mat-khau-du-dai-de-dung', newPassword: 'tu-doi-mat-khau-roi',
+      userId: u.id,
+      currentPassword: 'mat-khau-du-dai-de-dung',
+      newPassword: 'tu-doi-mat-khau-roi',
     });
-    await expect(auth.resetPassword({ token: r!.token, newPassword: 'mat-khau-tu-lien-ket' }))
-      .rejects.toThrow(/da duoc su dung/);
+    await expect(
+      auth.resetPassword({ token: r!.token, newPassword: 'mat-khau-tu-lien-ket' }),
+    ).rejects.toThrow(/da duoc su dung/);
   });
 
   it('DAT LAI MAT KHAU mo khoa tai khoan bi khoa', async () => {
@@ -390,8 +447,9 @@ run('AuthService tren PostgreSQL that', () => {
     // Khong mo khoa thi nguoi dung dat lai mat khau xong van khong vao duoc,
     // va khong hieu tai sao.
     expect((await daos.users.findById(u.id))!.status).toBe('active');
-    await expect(auth.login({ email: u.email, password: 'mat-khau-moi-sau-khoa' }))
-      .resolves.toBeTruthy();
+    await expect(
+      auth.login({ email: u.email, password: 'mat-khau-moi-sau-khoa' }),
+    ).resolves.toBeTruthy();
   });
 
   it('tai khoan vo hieu hoa KHONG dat lai duoc — khoa nay do quan tri dat', async () => {
@@ -401,8 +459,9 @@ run('AuthService tren PostgreSQL that', () => {
   });
 
   it('the dat lai rac bi tu choi', async () => {
-    await expect(auth.resetPassword({ token: 'rac', newPassword: 'mat-khau-du-dai-roi' }))
-      .rejects.toThrow(/khong hop le hoac da het han/);
+    await expect(
+      auth.resetPassword({ token: 'rac', newPassword: 'mat-khau-du-dai-roi' }),
+    ).rejects.toThrow(/khong hop le hoac da het han/);
   });
 });
 

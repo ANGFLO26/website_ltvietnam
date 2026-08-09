@@ -1,6 +1,6 @@
-# Trạng thái backend — cập nhật sau F4
+# Trạng thái backend — cập nhật sau rà soát F1–F8
 
-> Cập nhật: 2026-08-09 · nhánh `feat/p0-scaffold` · commit cuối `21fea7a`
+> Cập nhật: 2026-08-09 · nhánh `feat/p0-scaffold` · commit nền `e0a9be5`
 > File này trả lời hai câu: **đang ở đâu** và **làm gì tiếp**.
 > Mọi con số dưới đây là **đo được**, không phải tuyên bố — cách chạy lại ở mục 6.
 
@@ -8,8 +8,10 @@
 
 ## 1. Một dòng
 
-Backend đã xong **toàn bộ đường ĐỌC công khai**: 48/56 endpoint, 493 bài kiểm xanh.
-Còn lại là đường **GHI** (form báo giá, media, quản trị) và SEO.
+Backend đã xong **đường đọc công khai và toàn bộ API quản trị F8**: 198/198 endpoint.
+F8 cung cấp 136 endpoint cho taxonomy, sản phẩm, nội dung đa ngôn ngữ, site chrome,
+settings, redirects và users. Rà soát ngày 2026-08-09 đã sửa các lỗi chức năng tìm thấy
+và xác nhận lại trên PostgreSQL thật.
 
 **Frontend có thể dựng gần như toàn bộ website công khai ngay bây giờ** — trang chủ,
 catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đều đã có API thật.
@@ -27,20 +29,30 @@ catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đ�
 | **F1** | Taxonomy: brands, categories, standards, applications, industries | 17/17 | xong |
 | **F2** | Sản phẩm: lọc ADR-007, landing, chi tiết | 3/3 | xong |
 | **F3** | Nội dung có bản dịch: pages, services, projects, posts, documents | 13/13 | xong |
-| **F4** | Khung site: `/home`, `/navigation`, `/customers`, `/offices`, `/search` | 5/5 | **vừa xong** |
+| **F4** | Khung site: `/home`, `/navigation`, `/customers`, `/offices`, `/search` | 5/5 | xong |
+| **F5** | Inquiry idempotent, CAPTCHA/rate limit, admin đọc, email worker + reset password | 4/4 | **vừa xong** |
+| **F6** | Sitemap EN/VI, robots, canonical/robots/hreflang và ADR-011 §2b | 3/3 | xong |
+| **F7** | Media upload/variants, public delivery, protected document download, soft-delete/purge | 7/7 | **vừa xong** |
+| **F8** | Admin CRUD: F8a taxonomy · F8b products · F8c content · F8d site · F8e system | 136/136 | **vừa xong** |
 
 ### Số đo hiện tại
 
 ```
-493 bài kiểm (28 tệp)          xanh
-API                            48/56 endpoint
-smoke-api.mjs                  204/204 phép kiểm trên HTTP thật
-smoke-auth.mjs                 38/38
-inject-f4.mjs                  14/14 phép tiêm lỗi làm phép kiểm ĐỎ
-HTTP 5xx trong toàn bộ phép đo  0
-pnpm -r typecheck              sạch (7 gói)
+workspace test                 592/592 xanh
+backend test                   533/533 xanh; integration chạy trên PostgreSQL thật, không skip
+worker test                    5/5 xanh
+contracts test                 33/33 xanh
+config test                    8/8 xanh
+db migration-runner            13/13 xanh
+API                            198/198 endpoint (F8: 136/136)
+PostgreSQL migration           37/37 đã apply; manifest 37/37 hợp lệ
+smoke-api.mjs                  228/228 qua HTTP thật
+smoke-auth.mjs                 41/41
+inject-f4.mjs                  14/14 (đã sửa: trước đó 11/14 — xem mục 9)
+pnpm build                     đạt; Next.js cảnh báo chưa khai báo plugin ESLint frontend
+pnpm typecheck                 sạch (7 gói; tự build package dependency)
 pnpm lint                      0 lỗi
-seed demo chạy lại             0 mới, 68 đã có (idempotent)
+pnpm format:check              sạch
 ```
 
 ---
@@ -49,39 +61,33 @@ seed demo chạy lại             0 mới, 68 đã có (idempotent)
 
 | Phase | Nội dung | Endpoint | Ghi chú |
 |---|---|---|---|
-| **F5** | RFQ `POST /inquiries` + worker gửi email + 3 endpoint admin đọc | 0/4 | **cần bạn chốt mục 5.3** |
-| **F6** | `sitemap.xml`, `sitemap-:locale.xml`, `robots.txt` + canonical/hreflang | 0/3 | phụ thuộc F4 (đã xong) |
-| **F7** | Media: upload, magic bytes, biến thể ảnh, `/documents/:slug/download` | 0/1 | |
-| **F8** | Admin CRUD — 5 nhóm (F8a…F8e) | 0 dòng trong bảng | **phần dài nhất; cần bạn chốt mục 5.2** |
+| — | Không còn phase backend nào để trống trong kế hoạch F-1…F8 | — | DB thật và smoke HTTP đã xác nhận |
 
-Ngoài backend: **frontend gần như trống** (`layout.tsx`, `page.tsx`, `middleware.ts`),
-**worker chỉ có `main.ts`**.
+Ngoài backend: **frontend gần như trống** (`layout.tsx`, `page.tsx`, `middleware.ts`).
+Worker đã có claim/reaper/backoff và adapter file/SMTP.
+
+> **Rủi ro cao nhất hiện nay không phải là mã còn thiếu, mà là mã chưa được lưu.**
+> Toàn bộ F5–F8 đang nằm trong working tree **chưa commit**: 204 file thay đổi, trong
+> đó 57 file hoàn toàn mới (`git status --short`). Commit gần nhất là `e0a9be5`, tức
+> **F4**. Một lần `git checkout .`, `git clean -fd` hay một sự cố ổ đĩa sẽ xoá sạch
+> toàn bộ F5, F6, F7 và 136 endpoint F8.
+>
+> Việc cần làm trước mọi việc khác: `git add -A && git commit` rồi `git push`.
 
 ---
 
 ## 4. Việc tiếp theo — đề xuất của tôi
 
-### 4.1. Nếu mục tiêu là **đưa website lên sớm**: F6 trước F5
+### 4.1. Việc tiếp theo — frontend công khai và frontend quản trị
 
-Đây là đề xuất chính, và nó khác thứ tự trong `doc/12`.
+API F8 đã hoàn tất. Bước tiếp theo là nối giao diện công khai và giao diện quản trị vào
+các hợp đồng mới.
 
-`doc/12` xếp F5 (báo giá) trước F6 (SEO) vì F5 là "đường tiền". Nhưng có ba lý do
-để đổi:
+### 4.2. Xác nhận môi trường — đã xong
 
-1. **F6 không cần bạn chốt gì cả.** F5 bị kẹt ở câu hỏi SMTP (mục 5.3) — tôi có thể
-   làm adapter ghi tệp, nhưng nếu bạn đã có SMTP thì làm hai lần.
-2. **F6 khoá nốt giá trị của F1–F4.** Toàn bộ nội dung đã có API nhưng **chưa có
-   sitemap** — Google chưa có đường vào. Với một site B2B đang chuyển từ tên miền cũ,
-   sitemap + 301 (đã xong ở F0) là cặp quyết định việc **không mất thứ hạng**.
-3. **F6 nhỏ và tự chứa**: 3 endpoint, đọc từ những DAO đã có bài kiểm.
-
-Một chỗ trong F6 dễ làm sai và tôi sẽ đo riêng: **ADR-011 §2b** — trang landing phân
-loại có mô tả thì `index`, rỗng thì `noindex` + canonical về cha. Quy tắc có điều kiện,
-và sai thì Google âm thầm hạ độ tin cậy cả cụm trang.
-
-### 4.2. Nếu mục tiêu là **nhận được đơn hàng**: F5
-
-Thì tôi cần bạn trả lời mục 5.3 trước. Xem mục 5.
+Migration, toàn bộ integration test và smoke API đã chạy trên PostgreSQL thật. Trước khi
+triển khai, vẫn phải thay giá trị `INQUIRY_RECIPIENT` không hợp lệ trong `.env` cục bộ bằng
+địa chỉ email nhận inquiry thật.
 
 ### 4.3. Song song, không phụ thuộc tôi
 
@@ -93,10 +99,9 @@ liệu văn xuôi), và `API_ENDPOINTS` là bản kiểm kê **máy đọc đư�
 
 ---
 
-## 5. Ba thứ đang chờ bạn chốt
+## 5. Các quyết định sản phẩm/hạ tầng
 
-Chưa có câu trả lời thì tôi vẫn đi tiếp được (theo 4.1), nhưng ba câu này quyết định
-khối lượng:
+Hai câu đầu còn mở; câu SMTP đã được đóng bằng cấu hình theo môi trường:
 
 ### 5.1. Sản phẩm PAC vào catalogue hay trỏ ra `paclp.com`?
 
@@ -104,15 +109,14 @@ Treo từ đầu dự án. Hiện catalogue đang dùng **dữ liệu demo** (12
 mã tiêu chuẩn là thật, mọi đoạn mô tả là văn bản thay thế). Trước khi đưa lên thật thì
 cần câu trả lời này **và** nội dung thật từ bộ phận kỹ thuật.
 
-### 5.2. Có làm giao diện quản trị (F8) trong đợt này không?
+### 5.2. Có làm giao diện quản trị (F8) trong đợt này không? — **đã chốt làm**
 
-F8 là phần dài nhất. Nếu ban đầu bạn nhập nội dung bằng SQL hoặc công cụ tạm thì **hoãn
-F8** và website công khai lên sớm hơn nhiều.
+Backend F8 đã hoàn tất; phần còn lại của quyết định này là triển khai giao diện frontend quản trị.
 
-### 5.3. SMTP thật hay ghi ra tệp? — **câu này chặn F5**
+### 5.3. SMTP thật hay ghi ra tệp? — **đã xử lý**
 
-Chưa có SMTP thì tôi làm adapter ghi ra tệp để luồng chạy được và có bài kiểm; đổi sang
-SMTP thật sau là một dòng cấu hình.
+Local/dev mặc định `EMAIL_TRANSPORT=file`, ghi vào `./.data/mail-outbox`. Production bị
+từ chối khởi động nếu không chọn `smtp`, không có `SMTP_HOST`, hoặc thiếu CAPTCHA thật.
 
 ---
 
@@ -125,16 +129,18 @@ pnpm db:migrate
 pnpm db:seed          # bootstrap: menu, homepage_sections, 3 hãng
 pnpm db:seed:demo     # dữ liệu demo, idempotent
 
-pnpm -r typecheck
+pnpm typecheck
 pnpm lint
-pnpm --filter @ltv/backend test        # 493 bài kiểm
+pnpm --filter @ltv/backend test        # tổng 533; integration cần DATABASE_URL
+pnpm --filter @ltv/worker test         # 5 bài kiểm worker email
+pnpm --filter @ltv/db test             # 13 bài kiểm migration runner
 
 pnpm dev:backend                       # cửa sổ khác
-pnpm smoke:api                         # 204 phép kiểm
-pnpm smoke:auth                        # 38 phép kiểm
+pnpm smoke:api                         # 228 phép kiểm (gồm F5 + F6)
+pnpm smoke:auth                        # 41 phép kiểm
 ```
 
-Riêng phép tiêm lỗi (chứng minh bài kiểm không rỗng) cần `DATABASE_URL`:
+Integration PostgreSQL, smoke HTTP và phép tiêm lỗi cần `DATABASE_URL` cùng backend đang chạy:
 
 ```bash
 DATABASE_URL=... node scripts/inject-f4.mjs   # 14/14 phải ĐỎ đúng chỗ
@@ -142,26 +148,70 @@ DATABASE_URL=... node scripts/inject-f4.mjs   # 14/14 phải ĐỎ đúng chỗ
 
 ---
 
-## 7. Nợ kỹ thuật đã ghi nhưng CHƯA vá
+## 7. Nợ kỹ thuật
 
-Cả bốn đều đã ghi trong `doc/13`; để đây để không bị quên.
+### 7.1. Đã trả
 
-| | Vấn đề | Vá ở đâu |
+| | Nợ | Trả ở đâu |
 |---|---|---|
-| 1 | **Không có ràng buộc chặn hai `head_office` cùng published**, và `findHeadOffice()` trả về **bất kỳ** hàng nào trong số đó. Hàm này là nguồn `schema.org LocalBusiness` của toàn site. | cần một chỉ mục UNIQUE có điều kiện → một migration; làm cùng F6 (SEO) |
-| 2 | **Năm bảng mặc định `status='published'`** (`offices`, `standards`, `applications`, `industries`, `post_categories`). Màn hình quản trị của chúng sẽ tạo bản ghi **đã công khai ngay lúc bấm Lưu** — một văn phòng điền nửa xuất hiện trên trang liên hệ. | F8: hoặc form đầy đủ mới cho Lưu, hoặc `unpublish()` ngay sau `insert()` |
-| 3 | **Ba endpoint `/admin/settings` không có trong `API_ENDPOINTS`.** Luật 16 đối chiếu bảng với mã theo cả hai chiều, nhưng không phát hiện được dòng **chưa từng được thêm**. | F8: thêm dòng **trước** khi viết mã |
-| 4 | **Worker đòi `JWT_SECRET` và `PASSWORD_RESET_SECRET` mà nó không dùng.** | F5, khi worker có việc thật |
-| 5 | **Dòng log thẻ đặt lại mật khẩu** trong `auth.controller.ts` — nợ từ B2, phải nối vào hàng đợi email. | F5 |
-| 6 | `/products/landing` **lần cache lạnh vẫn chạy đủ 10 câu**, gồm 5 câu `COUNT(*)` bị bỏ. Cache 60s đã xử lý trạng thái nóng. | chỉ làm khi đo được là vấn đề (khi chạy nhiều bản sao) |
+| 1 | `head_office` published không duy nhất | migration `035` (F6) |
+| 2 | Worker đòi secret auth nó không dùng | F5 |
+| 3 | Reset token vào log | F5, nối vào hàng đợi email |
+| 4 | Năm bảng có DB default `published` | F8 truyền `initialStatus='draft'` cho đường tạo admin; seed cũ giữ nguyên hành vi |
+| 5 | Ba endpoint `/admin/settings` thiếu trong manifest | đã thêm, Luật 16 đối chiếu với controller thật |
+
+### 7.2. Còn nợ
+
+| | Vấn đề | Khi nào làm |
+|---|---|---|
+| 1 | `/products/landing` **lần cache lạnh vẫn chạy đủ 10 câu**, gồm 5 câu `COUNT(*)` bị bỏ. Cache 60s chỉ xử lý trạng thái nóng. | chỉ làm khi đo được là vấn đề (khi chạy nhiều bản sao) |
+| 2 | **Tiêm lỗi chỉ phủ F4.** `inject-f4.mjs` có 14 phép tiêm, tất cả cho F4. F5–F8 — gồm 136 endpoint admin, upload media và luồng email — có test hồi quy nhưng **chưa có phép tiêm nào chứng minh các test đó không rỗng.** Trong đó có bản sửa mức *Nghiêm trọng* (`hard=false` thành xóa cứng). | trước khi coi F8 là đã kiểm xong |
+| 3 | Chưa có smoke HTTP đăng nhập chạy qua 136 endpoint admin (đã ghi ở `doc/15` §6) | khi làm UI quản trị |
 
 ---
 
-## 8. Một việc bạn cần làm ngay
+## 8. Xác nhận môi trường đã hoàn tất
 
-**`git push`.** Hiện có **22 commit chưa đẩy** trên `feat/p0-scaffold`. Tôi không đẩy
-được từ hộp cát (không có credentials, và không có DNS tới `github.com`).
+PostgreSQL cục bộ đã chạy; migration `034`–`037` được áp dụng và tổng trạng thái là
+37/37. Toàn bộ 533 test backend (gồm integration DB) cùng 228 kiểm tra smoke HTTP đều xanh.
+Smoke hiện bao phủ API công khai F1–F6; F7 và F8 được bảo vệ bởi unit/integration test,
+kiểm tra kiến trúc và hợp đồng endpoint. Chưa có smoke HTTP đăng nhập riêng cho toàn bộ
+136 endpoint quản trị F8.
 
-```bash
-git push origin feat/p0-scaffold
-```
+Trong lần rà soát, `.env` cục bộ có `INQUIRY_RECIPIENT` không hợp lệ nên phép đo dùng biến
+môi trường chỉ tồn tại trong tiến trình. File `.env` không bị tự ý sửa; cần cấu hình lại trước
+khi chạy hoặc triển khai không có override.
+
+Build frontend đạt nhưng Next.js vẫn cảnh báo cấu hình ESLint gốc chưa khai báo plugin Next.
+`pnpm lint` hiện vẫn chạy sạch; nên thêm bộ luật `eslint-config-next` khi bắt đầu phát triển UI.
+
+Báo cáo chi tiết: [`doc/15_BAO_CAO_RA_SOAT_F1_F8.md`](15_BAO_CAO_RA_SOAT_F1_F8.md).
+
+---
+
+## 9. Đính chính sau khi kiểm chứng lại (2026-08-09)
+
+Toàn bộ số đo ở mục 2 đã được **chạy lại từ đầu** trên PostgreSQL thật (37 migration
+áp dụng từ cơ sở dữ liệu trống, seed bootstrap + demo, backend khởi động thật). Hai
+con số sai và một công cụ hỏng:
+
+| Chỗ | Báo cáo ghi | Đo được | Ghi chú |
+|---|---|---|---|
+| `smoke-auth.mjs` | 38/38 | **41/41** | số cũ có từ trước F5; F5 thêm 3 phép kiểm |
+| `inject-f4.mjs` | 14/14 | **11/14** (lúc đó) | 3 phép tiêm im lặng chuyển sang "BO QUA" |
+
+**`inject-f4.mjs` đã tự hỏng, và hỏng đúng theo kiểu nó sinh ra để bắt.** Đợt dọn dẹp
+chạy Prettier trên 146 file; formatter ngắt lại dòng và thêm dấu phẩy cuối ở ba chỗ mà
+kịch bản trỏ tới bằng chuỗi nguyên văn, nên `src.includes(...)` không còn khớp. Ba phép
+tiêm chuyển sang "BO QUA" — script vẫn **thoát 0**, và báo cáo chép con số cũ sang.
+
+Ba bảo đảm đó vẫn còn nguyên trong mã; chỉ *phép đo* mất. Nhưng đó chính là trạng thái
+nguy hiểm: nếu lần refactor sau làm mất bảo đảm thật thì không còn gì phát hiện.
+
+Đã sửa: `timDoan()` so khớp trên bản đã gom khoảng trắng và bỏ qua dấu phẩy cuối, rồi
+cắt đúng đoạn **nguyên văn** trong file để phép hoàn tác bằng băm vẫn đúng. Đổi tên
+biến hay đổi logic vẫn làm nó không khớp — và đó là cố ý. Sau khi sửa: **14/14**.
+
+Những con số còn lại **đúng nguyên văn**: 592 test workspace (533 backend / 35 file, 33
+contracts, 8 config, 13 db, 5 worker), 198/198 endpoint, 37 migration, smoke-api
+228/228, typecheck + lint + format:check + build đều sạch.

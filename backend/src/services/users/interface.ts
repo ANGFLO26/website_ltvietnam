@@ -9,6 +9,18 @@ export interface CreateUserRequest {
 }
 
 export interface UserService {
+  list(
+    filter: { readonly status?: UserStatus; readonly search?: string },
+    page: {
+      readonly page: number;
+      readonly pageSize: number;
+    },
+  ): Promise<{
+    readonly items: readonly User[];
+    readonly page: number;
+    readonly pageSize: number;
+    readonly totalItems: number;
+  }>;
   findById(id: string): Promise<User | null>;
   create(input: CreateUserRequest): Promise<User>;
 

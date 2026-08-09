@@ -1,4 +1,9 @@
-import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
+import type {
+  HreflangAlternate,
+  Locale,
+  TranslationStatus,
+  PublicTranslationRow,
+} from '../translation.support.js';
 import type {
   AppPage,
   CreatePageInput,
@@ -12,13 +17,15 @@ export interface PageDao {
   findById(id: string): Promise<AppPage | null>;
   /** Tra cuu theo khoa nghiep vu — cach ma nguon tro toi mot trang. */
   findByType(pageType: string): Promise<AppPage | null>;
-  listAll(): Promise<AppPage[]>;
+  listAll(includeDeleted?: boolean): Promise<AppPage[]>;
 
   insert(input: CreatePageInput): Promise<AppPage>;
   update(id: string, input: UpdatePageInput): Promise<AppPage>;
   publish(id: string, at: Date): Promise<AppPage>;
   unpublish(id: string): Promise<AppPage>;
   softDelete(id: string, at: Date): Promise<void>;
+  restore(id: string): Promise<void>;
+  hardDelete(id: string): Promise<void>;
 
   /**
    * Trang he thong co duoc xoa khong.

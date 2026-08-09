@@ -29,17 +29,19 @@ export class JwtSessionSigner implements TokenSigner {
 
   async sign(claims: SessionClaims, ttlSeconds: number): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
-    return new SignJWT({ role: claims.role, pwd: claims.pwd })
-      .setProtectedHeader({ alg: ALG })
-      .setSubject(claims.sub)
-      .setIssuer(ISSUER)
-      // `aud` phan biet the PHIEN voi the DAT LAI MAT KHAU. Hai loai the deu
-      // ky HS256, nen khong co `aud` thi mot the loai nay dung duoc cho loai
-      // kia neu ai do vo tinh cau hinh chung bi mat.
-      .setAudience('session')
-      .setIssuedAt(now)
-      .setExpirationTime(now + ttlSeconds)
-      .sign(this.key);
+    return (
+      new SignJWT({ role: claims.role, pwd: claims.pwd })
+        .setProtectedHeader({ alg: ALG })
+        .setSubject(claims.sub)
+        .setIssuer(ISSUER)
+        // `aud` phan biet the PHIEN voi the DAT LAI MAT KHAU. Hai loai the deu
+        // ky HS256, nen khong co `aud` thi mot the loai nay dung duoc cho loai
+        // kia neu ai do vo tinh cau hinh chung bi mat.
+        .setAudience('session')
+        .setIssuedAt(now)
+        .setExpirationTime(now + ttlSeconds)
+        .sign(this.key)
+    );
   }
 
   async verify(token: string): Promise<SessionClaims | null> {
@@ -47,7 +49,7 @@ export class JwtSessionSigner implements TokenSigner {
       const { payload } = await jwtVerify(token, this.key, {
         issuer: ISSUER,
         audience: 'session',
-        algorithms: [ALG],   // chan tan cong doi `alg` sang `none`
+        algorithms: [ALG], // chan tan cong doi `alg` sang `none`
       });
       return toSession(payload);
     } catch {

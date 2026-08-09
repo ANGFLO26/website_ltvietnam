@@ -5,8 +5,12 @@
  * Moi danh doi ben duoi deu nghieng theo huong do.
  */
 export type InquiryType =
-  | 'quotation' | 'product_consultation' | 'technical_support'
-  | 'maintenance_repair' | 'partnership' | 'general_contact';
+  | 'quotation'
+  | 'product_consultation'
+  | 'technical_support'
+  | 'maintenance_repair'
+  | 'partnership'
+  | 'general_contact';
 
 export type EmailStatus = 'email_pending' | 'email_sent' | 'email_failed';
 
@@ -99,10 +103,13 @@ export interface InquiryFilter {
  *      └── reaper dua ve khi khoa qua han
  */
 export type OutboxStatus = 'pending' | 'processing' | 'sent' | 'failed';
+export type NotificationType = 'inquiry_received' | 'password_reset';
 
 export interface OutboxJob {
   readonly id: string;
-  readonly inquiryId: string;
+  readonly inquiryId: string | null;
+  readonly notificationType: NotificationType;
+  readonly payload: Readonly<Record<string, unknown>>;
   readonly channel: string;
   readonly recipient: string;
   readonly status: OutboxStatus;
@@ -132,4 +139,9 @@ export interface CreateOutboxJobInput {
   readonly inquiryId: string;
   readonly recipient: string;
   readonly channel?: string;
+}
+
+export interface CreatePasswordResetJobInput {
+  readonly recipient: string;
+  readonly token: string;
 }

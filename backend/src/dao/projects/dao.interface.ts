@@ -1,5 +1,10 @@
 import type { Page, Paged } from '../helpers.js';
-import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
+import type {
+  HreflangAlternate,
+  Locale,
+  TranslationStatus,
+  PublicTranslationRow,
+} from '../translation.support.js';
 import type {
   CreateProjectInput,
   Project,
@@ -18,6 +23,8 @@ export interface ProjectDao {
   insert(input: CreateProjectInput): Promise<Project>;
   update(id: string, input: UpdateProjectInput): Promise<Project>;
   softDelete(id: string, at: Date): Promise<void>;
+  restore(id: string): Promise<void>;
+  hardDelete(id: string): Promise<void>;
   restore(id: string): Promise<void>;
   publish(id: string, at: Date): Promise<Project>;
   unpublish(id: string): Promise<Project>;
@@ -43,7 +50,10 @@ export interface ProjectDao {
   resolvePublicCustomerName(id: string, locale: Locale): Promise<string | null>;
 
   replaceLinks(id: string, links: ProjectLinks): Promise<void>;
-  replaceMedia(id: string, media: readonly { mediaId: string; caption?: string | null }[]): Promise<void>;
+  replaceMedia(
+    id: string,
+    media: readonly { mediaId: string; caption?: string | null }[],
+  ): Promise<void>;
   findLinks(id: string): Promise<Required<ProjectLinks>>;
   countMedia(id: string): Promise<number>;
 

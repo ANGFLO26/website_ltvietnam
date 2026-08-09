@@ -13,8 +13,12 @@ import { toCustomer } from './mapper.js';
 
 export class KyselyCustomerDao extends BaseDao implements CustomerDao {
   async findById(id: string): Promise<Customer | null> {
-    const row = await this.db.selectFrom('customers').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('customers')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toCustomer(row) : null;
   }
 
@@ -22,14 +26,33 @@ export class KyselyCustomerDao extends BaseDao implements CustomerDao {
     const p = normalizePage(page);
     let q = this.db.selectFrom('customers').selectAll();
     let cq = this.db.selectFrom('customers').select(({ fn }) => fn.countAll<string>().as('n'));
-    if (!filter.includeDeleted) { q = q.where('deleted_at', 'is', null); cq = cq.where('deleted_at', 'is', null); }
-    if (filter.status) { q = q.where('status', '=', filter.status); cq = cq.where('status', '=', filter.status); }
-    if (filter.isPublic !== undefined) { q = q.where('is_public', '=', filter.isPublic); cq = cq.where('is_public', '=', filter.isPublic); }
-    if (filter.isFeatured !== undefined) { q = q.where('is_featured', '=', filter.isFeatured); cq = cq.where('is_featured', '=', filter.isFeatured); }
-    if (filter.industryId) { q = q.where('industry_id', '=', filter.industryId); cq = cq.where('industry_id', '=', filter.industryId); }
+    if (!filter.includeDeleted) {
+      q = q.where('deleted_at', 'is', null);
+      cq = cq.where('deleted_at', 'is', null);
+    }
+    if (filter.status) {
+      q = q.where('status', '=', filter.status);
+      cq = cq.where('status', '=', filter.status);
+    }
+    if (filter.isPublic !== undefined) {
+      q = q.where('is_public', '=', filter.isPublic);
+      cq = cq.where('is_public', '=', filter.isPublic);
+    }
+    if (filter.isFeatured !== undefined) {
+      q = q.where('is_featured', '=', filter.isFeatured);
+      cq = cq.where('is_featured', '=', filter.isFeatured);
+    }
+    if (filter.industryId) {
+      q = q.where('industry_id', '=', filter.industryId);
+      cq = cq.where('industry_id', '=', filter.industryId);
+    }
 
-    const rows = await q.orderBy('display_order').orderBy('name')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('display_order')
+      .orderBy('name')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toCustomer), total, p);
   }
@@ -43,7 +66,8 @@ export class KyselyCustomerDao extends BaseDao implements CustomerDao {
       .where('customers.status', '=', 'published')
       .where('customers.is_public', '=', true)
       .where('media.deleted_at', 'is', null)
-      .orderBy('customers.display_order').orderBy('customers.name')
+      .orderBy('customers.display_order')
+      .orderBy('customers.name')
       .limit(Math.max(1, Math.trunc(limit)))
       .execute();
     // `innerJoin` tren `logo_id` da loai het hang khong co logo, nen
@@ -52,27 +76,36 @@ export class KyselyCustomerDao extends BaseDao implements CustomerDao {
   }
 
   async insert(input: CreateCustomerInput): Promise<Customer> {
-    const row = await this.db.insertInto('customers').values({
-      name: input.name,
-      short_description: input.shortDescription ?? null,
-      logo_id: input.logoId ?? null,
-      industry_id: input.industryId ?? null,
-      website_url: input.websiteUrl ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('customers')
+      .values({
+        name: input.name,
+        short_description: input.shortDescription ?? null,
+        logo_id: input.logoId ?? null,
+        industry_id: input.industryId ?? null,
+        website_url: input.websiteUrl ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toCustomer(row);
   }
 
   async update(id: string, input: UpdateCustomerInput): Promise<Customer> {
-    const row = await this.db.updateTable('customers').set({
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.shortDescription !== undefined && { short_description: input.shortDescription }),
-      ...(input.logoId !== undefined && { logo_id: input.logoId }),
-      ...(input.industryId !== undefined && { industry_id: input.industryId }),
-      ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
-      ...(input.isPublic !== undefined && { is_public: input.isPublic }),
-      ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('customers')
+      .set({
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.shortDescription !== undefined && { short_description: input.shortDescription }),
+        ...(input.logoId !== undefined && { logo_id: input.logoId }),
+        ...(input.industryId !== undefined && { industry_id: input.industryId }),
+        ...(input.websiteUrl !== undefined && { website_url: input.websiteUrl }),
+        ...(input.isPublic !== undefined && { is_public: input.isPublic }),
+        ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toCustomer(row);
   }
 
@@ -88,9 +121,23 @@ export class KyselyCustomerDao extends BaseDao implements CustomerDao {
    * `is_public` khong doi o day — no can mot hanh dong rieng, co y thuc.
    */
   async publish(id: string, at: Date): Promise<Customer> {
-    const row = await this.db.updateTable('customers')
+    const row = await this.db
+      .updateTable('customers')
       .set({ status: 'published', updated_at: at })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return toCustomer(row);
+  }
+
+  /** Hide editorial content without changing the independent logo-consent flag. */
+  async unpublish(id: string): Promise<Customer> {
+    const row = await this.db
+      .updateTable('customers')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toCustomer(row);
   }
 

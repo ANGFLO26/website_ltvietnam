@@ -1,5 +1,10 @@
 import type { Page, Paged } from '../helpers.js';
-import type { HreflangAlternate, Locale, TranslationStatus, PublicTranslationRow } from '../translation.support.js';
+import type {
+  HreflangAlternate,
+  Locale,
+  TranslationStatus,
+  PublicTranslationRow,
+} from '../translation.support.js';
 import type {
   CreatePostInput,
   Post,

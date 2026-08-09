@@ -12,8 +12,15 @@ import type { Locale } from '../translation.support.js';
 export type CalendarDate = string;
 
 export type ProjectType =
-  | 'installation' | 'commissioning' | 'handover' | 'training'
-  | 'maintenance' | 'repair' | 'fabrication' | 'case_study' | 'other';
+  | 'installation'
+  | 'commissioning'
+  | 'handover'
+  | 'training'
+  | 'maintenance'
+  | 'repair'
+  | 'fabrication'
+  | 'case_study'
+  | 'other';
 
 /**
  * MUC DO CONG KHAI CUA KHACH HANG — cot nguy hiem nhat trong nhom nay.

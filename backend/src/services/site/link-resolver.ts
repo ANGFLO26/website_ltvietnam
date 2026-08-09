@@ -8,9 +8,16 @@ import type { DaoScope } from '../../dao/dao-scope.js';
  * dung URL khong bi viet hai lan.
  */
 export type LinkType =
-  | 'page' | 'product_category' | 'brand' | 'service'
-  | 'post_category' | 'product' | 'post' | 'project'
-  | 'custom_url' | 'none';
+  | 'page'
+  | 'product_category'
+  | 'brand'
+  | 'service'
+  | 'post_category'
+  | 'product'
+  | 'post'
+  | 'project'
+  | 'custom_url'
+  | 'none';
 
 export interface LinkRef {
   readonly linkType: string;
@@ -19,8 +26,14 @@ export interface LinkRef {
 }
 
 export type LinkResolverDaos = DaoScope<
-  | 'pages' | 'productCategories' | 'brands' | 'services'
-  | 'postCategories' | 'products' | 'posts' | 'projects'
+  | 'pages'
+  | 'productCategories'
+  | 'brands'
+  | 'services'
+  | 'postCategories'
+  | 'products'
+  | 'posts'
+  | 'projects'
 >;
 
 /**
@@ -115,13 +128,17 @@ export class LinkResolver {
      */
     switch (loai) {
       case 'product': {
-        const r = await this.daos.products.list({ status: 'published' }, { page: 1, pageSize: 100 });
+        const r = await this.daos.products.list(
+          { status: 'published' },
+          { page: 1, pageSize: 100 },
+        );
         for (const x of r.data) them(x.id, `/products/${x.slug}`);
         return ra;
       }
       case 'product_category': {
         const r = await this.daos.productCategories.list(
-          { status: 'published' }, { page: 1, pageSize: 100 },
+          { status: 'published' },
+          { page: 1, pageSize: 100 },
         );
         for (const x of r.data) them(x.id, `/products/category/${x.slug}`);
         return ra;
@@ -133,7 +150,8 @@ export class LinkResolver {
       }
       case 'post_category': {
         const r = await this.daos.postCategories.list(
-          { status: 'published' }, { page: 1, pageSize: 100 },
+          { status: 'published' },
+          { page: 1, pageSize: 100 },
         );
         for (const x of r.data) them(x.id, `/news/category/${x.slug}`);
         return ra;

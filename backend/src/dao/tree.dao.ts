@@ -20,7 +20,10 @@ export interface TreeNode {
 }
 
 export class TreeCycleError extends Error {
-  constructor(readonly nodeId: string, readonly targetParentId: string) {
+  constructor(
+    readonly nodeId: string,
+    readonly targetParentId: string,
+  ) {
     super(`Khong the chuyen ${nodeId} vao duoi ${targetParentId}: se tao vong lap`);
     this.name = 'TreeCycleError';
   }
@@ -100,7 +103,9 @@ export abstract class TreeDao extends BaseDao {
    * Gan cha khi TAO nut moi. Tinh san `ancestor_ids` va `depth`.
    * Tra ve gia tri de DAO con dua thang vao lenh INSERT.
    */
-  async computePlacement(parentId: string | null): Promise<{ ancestorIds: string[]; depth: number }> {
+  async computePlacement(
+    parentId: string | null,
+  ): Promise<{ ancestorIds: string[]; depth: number }> {
     if (parentId === null) return { ancestorIds: [], depth: 0 };
     const parent = await this.findNode(parentId);
     if (!parent) throw new Error(`Khong tim thay nut cha: ${parentId}`);
@@ -127,7 +132,7 @@ export abstract class TreeDao extends BaseDao {
     }
 
     const placement = await this.computePlacement(newParentId);
-    const oldPrefixLen = node.ancestorIds.length + 1;   // to tien cu + chinh no
+    const oldPrefixLen = node.ancestorIds.length + 1; // to tien cu + chinh no
     const newPrefix = [...placement.ancestorIds, id];
 
     const newPrefixArr =
@@ -177,11 +182,7 @@ export abstract class TreeDao extends BaseDao {
 }
 
 export type TreeTableName =
-  | 'brands'
-  | 'product_categories'
-  | 'applications'
-  | 'services'
-  | 'post_categories';
+  'brands' | 'product_categories' | 'applications' | 'services' | 'post_categories';
 
 interface TreeRow {
   id: string;

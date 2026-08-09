@@ -166,11 +166,19 @@ run('SiteService tren PostgreSQL that', () => {
     await daos.banners.publish(b3.id);
     id['b3'] = b3.id;
 
-    const b4 = await daos.banners.insert({ imageId: anh.id, title: `B nhap ${tag}`, linkType: 'none' });
+    const b4 = await daos.banners.insert({
+      imageId: anh.id,
+      title: `B nhap ${tag}`,
+      linkType: 'none',
+    });
     id['b4'] = b4.id;
 
     // ── menu rieng cho bai kiem, o vi tri `header` ──
-    const menu = await daos.menus.insert({ code: s('menu'), name: 'Menu kiem', location: 'header' });
+    const menu = await daos.menus.insert({
+      code: s('menu'),
+      name: 'Menu kiem',
+      location: 'header',
+    });
     id['menu'] = menu.id;
     const chaChet = randomUUID();
     await daos.menus.replaceItems(menu.id, [
@@ -179,9 +187,26 @@ run('SiteService tren PostgreSQL that', () => {
       { label: 'Chua publish', linkType: 'product', linkTargetId: spNhap.id, displayOrder: 2 },
       { label: 'Tieu de', linkType: 'none', displayOrder: 3 },
       { label: 'Ngoai', linkType: 'custom_url', customUrl: 'https://example.com', displayOrder: 4 },
-      { label: 'Khong an toan', linkType: 'custom_url', customUrl: 'javascript:alert(1)', displayOrder: 5 },
-      { id: chaChet, label: 'Cha chet', linkType: 'product', linkTargetId: randomUUID(), displayOrder: 6 },
-      { parentId: chaChet, label: 'Con song', linkType: 'product', linkTargetId: sp.id, displayOrder: 0 },
+      {
+        label: 'Khong an toan',
+        linkType: 'custom_url',
+        customUrl: 'javascript:alert(1)',
+        displayOrder: 5,
+      },
+      {
+        id: chaChet,
+        label: 'Cha chet',
+        linkType: 'product',
+        linkTargetId: randomUUID(),
+        displayOrder: 6,
+      },
+      {
+        parentId: chaChet,
+        label: 'Con song',
+        linkType: 'product',
+        linkTargetId: sp.id,
+        displayOrder: 0,
+      },
     ]);
   });
 
@@ -331,9 +356,7 @@ run('SiteService tren PostgreSQL that', () => {
     it('banner song mang duong dan da giai', async () => {
       cache.clear();
       const h = await site.home('en');
-      expect(h.banners.find((x) => x.title === `B song ${tag}`)?.url).toBe(
-        `/products/${s('sp')}`,
-      );
+      expect(h.banners.find((x) => x.title === `B song ${tag}`)?.url).toBe(`/products/${s('sp')}`);
     });
 
     it('`locale` co trong than phan hoi', async () => {

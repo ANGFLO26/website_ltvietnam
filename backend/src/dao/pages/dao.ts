@@ -5,7 +5,8 @@ import {
   TranslationSupport,
   type HreflangAlternate,
   type Locale,
-  type TranslationStatus, } from '../translation.support.js';
+  type TranslationStatus,
+} from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import type { PageDao } from './dao.interface.js';
@@ -33,14 +34,22 @@ export class KyselyPageDao extends BaseDao implements PageDao {
   }
 
   async findById(id: string): Promise<AppPage | null> {
-    const row = await this.db.selectFrom('pages').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('pages')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toPage(row) : null;
   }
 
   async findByType(pageType: string): Promise<AppPage | null> {
-    const row = await this.db.selectFrom('pages').selectAll()
-      .where('page_type', '=', pageType).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('pages')
+      .selectAll()
+      .where('page_type', '=', pageType)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toPage(row) : null;
   }
 
@@ -49,20 +58,24 @@ export class KyselyPageDao extends BaseDao implements PageDao {
    * (moi `page_type` mot hang, va `page_type` la UNIQUE) — phan trang o day
    * chi lam man hinh quan tri kho dung hon ma khong duoc gi.
    */
-  async listAll(): Promise<AppPage[]> {
-    const rows = await this.db.selectFrom('pages').selectAll()
-      .where('deleted_at', 'is', null)
-      .orderBy('display_order').orderBy('page_type').execute();
+  async listAll(includeDeleted = false): Promise<AppPage[]> {
+    let query = this.db.selectFrom('pages').selectAll();
+    if (!includeDeleted) query = query.where('deleted_at', 'is', null);
+    const rows = await query.orderBy('display_order').orderBy('page_type').execute();
     return rows.map(toPage);
   }
 
   async insert(input: CreatePageInput): Promise<AppPage> {
-    const row = await this.db.insertInto('pages').values({
-      page_type: input.pageType,
-      featured_image_id: input.featuredImageId ?? null,
-      is_system_page: input.isSystemPage ?? false,
-      created_by: input.createdBy ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('pages')
+      .values({
+        page_type: input.pageType,
+        featured_image_id: input.featuredImageId ?? null,
+        is_system_page: input.isSystemPage ?? false,
+        created_by: input.createdBy ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toPage(row);
   }
 
@@ -74,24 +87,36 @@ export class KyselyPageDao extends BaseDao implements PageDao {
    * co the ha co mot trang chinh sach roi xoa no.
    */
   async update(id: string, input: UpdatePageInput): Promise<AppPage> {
-    const row = await this.db.updateTable('pages').set({
-      ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-      ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('pages')
+      .set({
+        ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+        ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toPage(row);
   }
 
   async publish(id: string, at: Date): Promise<AppPage> {
-    const row = await this.db.updateTable('pages')
+    const row = await this.db
+      .updateTable('pages')
       .set({ status: 'published', published_at: at })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toPage(row);
   }
 
   async unpublish(id: string): Promise<AppPage> {
-    const row = await this.db.updateTable('pages').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('pages')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toPage(row);
   }
 
@@ -99,9 +124,19 @@ export class KyselyPageDao extends BaseDao implements PageDao {
     await this.db.updateTable('pages').set({ deleted_at: at }).where('id', '=', id).execute();
   }
 
+  async restore(id: string): Promise<void> {
+    await this.db.updateTable('pages').set({ deleted_at: null }).where('id', '=', id).execute();
+  }
+  async hardDelete(id: string): Promise<void> {
+    await this.db.deleteFrom('pages').where('id', '=', id).execute();
+  }
+
   async canDelete(id: string): Promise<boolean> {
-    const row = await this.db.selectFrom('pages').select('is_system_page')
-      .where('id', '=', id).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('pages')
+      .select('is_system_page')
+      .where('id', '=', id)
+      .executeTakeFirst();
     return row ? !row.is_system_page : false;
   }
 
@@ -128,25 +163,34 @@ export class KyselyPageDao extends BaseDao implements PageDao {
   }
 
   async findBySlug(locale: Locale, slug: string): Promise<PageWithTranslation | null> {
-    const tr = await this.db.selectFrom('page_translations').selectAll()
-      .where('locale', '=', locale).where('slug', '=', slug).executeTakeFirst();
+    const tr = await this.db
+      .selectFrom('page_translations')
+      .selectAll()
+      .where('locale', '=', locale)
+      .where('slug', '=', slug)
+      .executeTakeFirst();
     if (!tr) return null;
-    const p = await this.db.selectFrom('pages').selectAll()
-      .where('id', '=', tr.page_id).where('deleted_at', 'is', null).executeTakeFirst();
+    const p = await this.db
+      .selectFrom('pages')
+      .selectAll()
+      .where('id', '=', tr.page_id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     if (!p) return null;
     return { page: toPage(p), translation: toPageTranslation(tr) };
   }
 
   async findTranslation(id: string, locale: Locale): Promise<PageTranslation | null> {
-    const row = await this.db.selectFrom('page_translations').selectAll()
-      .where('page_id', '=', id).where('locale', '=', locale).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('page_translations')
+      .selectAll()
+      .where('page_id', '=', id)
+      .where('locale', '=', locale)
+      .executeTakeFirst();
     return row ? toPageTranslation(row) : null;
   }
 
-  async upsertTranslation(
-    id: string,
-    input: UpsertPageTranslationInput,
-  ): Promise<PageTranslation> {
+  async upsertTranslation(id: string, input: UpsertPageTranslationInput): Promise<PageTranslation> {
     const values = {
       page_id: id,
       locale: input.locale,
@@ -157,7 +201,9 @@ export class KyselyPageDao extends BaseDao implements PageDao {
       seo_title: input.seoTitle ?? null,
       seo_description: input.seoDescription ?? null,
     };
-    const row = await this.db.insertInto('page_translations').values(values)
+    const row = await this.db
+      .insertInto('page_translations')
+      .values(values)
       .onConflict((oc) =>
         oc.columns(['page_id', 'locale']).doUpdateSet({
           title: values.title,
@@ -168,7 +214,8 @@ export class KyselyPageDao extends BaseDao implements PageDao {
           seo_description: values.seo_description,
         }),
       )
-      .returningAll().executeTakeFirstOrThrow();
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toPageTranslation(row);
   }
 

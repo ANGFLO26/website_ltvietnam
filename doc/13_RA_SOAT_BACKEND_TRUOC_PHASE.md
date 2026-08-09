@@ -1096,7 +1096,8 @@ seed demo chạy lại             0 mới, 68 đã có (idempotent)
   riêng** và **đối chiếu băm sau khi hoàn tác** (hai luật ra từ lần tôi tự làm hỏng
   phép đo ở F3). Nó cũng bắt được cả trường hợp bài kiểm **đỏ từ trước** — vì lúc đó
   phép tiêm không kết luận được gì.
-- `scripts/sandbox-pg.sh` — khởi động PostgreSQL trong hộp cát. Dùng `pg_isready` chứ
+- `implementation/evidence/p0-sandbox/sandbox-pg.sh` — bản lưu cách khởi động PostgreSQL
+  trong hộp cát. Dùng `pg_isready` chứ
   **không** dùng `[ -S socket ]`: tệp socket **vẫn còn** sau khi tiến trình chết, nên
   phép kiểm "có socket không" báo là đang chạy rồi mọi lệnh sau đó thất bại với
   "Connection refused". Tôi đã dính đúng cái bẫy đó.

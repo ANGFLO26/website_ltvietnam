@@ -4,10 +4,7 @@ import { Kysely, PostgresDialect } from 'kysely';
 import type { Database } from '@ltv/db';
 import { createTestPool } from '@ltv/testing';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
-import {
-  ProductQueryServiceImpl,
-  type ProductDaos,
-} from '../src/services/products/service.js';
+import { ProductQueryServiceImpl, type ProductDaos } from '../src/services/products/service.js';
 
 /**
  * BA ENDPOINT SAN PHAM — F2.
@@ -45,7 +42,9 @@ run('ProductQueryService tren PostgreSQL that', () => {
 
     for (const k of ['a', 'b', 'c'] as const) {
       const b = await daos.brands.insert({
-        brandType: 'manufacturer', name: `Hang ${k.toUpperCase()}`, slug: s(`hang-${k}`),
+        brandType: 'manufacturer',
+        name: `Hang ${k.toUpperCase()}`,
+        slug: s(`hang-${k}`),
       });
       id[`hang-${k}`] = b.id;
       await daos.brands.update(b.id, { isFeatured: k === 'a' });
@@ -53,8 +52,16 @@ run('ProductQueryService tren PostgreSQL that', () => {
     }
 
     const c0 = await daos.productCategories.insert({ name: 'C0', slug: s('cap-0') });
-    const c1 = await daos.productCategories.insert({ name: 'C1', slug: s('cap-1'), parentId: c0.id });
-    const c2 = await daos.productCategories.insert({ name: 'C2', slug: s('cap-2'), parentId: c1.id });
+    const c1 = await daos.productCategories.insert({
+      name: 'C1',
+      slug: s('cap-1'),
+      parentId: c0.id,
+    });
+    const c2 = await daos.productCategories.insert({
+      name: 'C2',
+      slug: s('cap-2'),
+      parentId: c1.id,
+    });
     Object.assign(id, { c0: c0.id, c1: c1.id, c2: c2.id });
     for (const c of [c0, c1, c2]) await daos.productCategories.publish(c.id, new Date());
     await daos.productCategories.update(c0.id, { isFeatured: true });
@@ -66,22 +73,37 @@ run('ProductQueryService tren PostgreSQL that', () => {
     for (const t of [tcX, tcY]) await daos.standards.publish(t.id, new Date());
     await daos.standards.update(tcX.id, { isFeatured: true });
 
+    const app = await daos.applications.insert({ name: 'Ung dung', slug: s('ung-dung') });
+    id['app'] = app.id;
+    await daos.applications.publish(app.id, new Date());
+    await daos.applications.update(app.id, { isFeatured: true });
+
     const them = async (
-      key: string, brand: string, cats: string[], stds: string[],
+      key: string,
+      brand: string,
+      cats: string[],
+      stds: string[],
       opt: { publish?: boolean; featured?: boolean; discontinue?: boolean } = {},
     ) => {
       const p = await daos.products.insert({
-        brandId: id[brand]!, name: `SP ${key}`, slug: s(key), model: `M-${key}`,
+        brandId: id[brand]!,
+        name: `SP ${key}`,
+        slug: s(key),
+        model: `M-${key}`,
         shortDescription: `mo ta ${key}`,
       });
       id[key] = p.id;
       if (cats.length) {
         await daos.products.replaceCategories(
-          p.id, cats.map((c, i) => ({ categoryId: id[c]!, isPrimary: i === 0 })),
+          p.id,
+          cats.map((c, i) => ({ categoryId: id[c]!, isPrimary: i === 0 })),
         );
       }
       if (stds.length) {
-        await daos.products.replaceStandards(p.id, stds.map((t) => ({ standardId: id[t]! })));
+        await daos.products.replaceStandards(
+          p.id,
+          stds.map((t) => ({ standardId: id[t]! })),
+        );
       }
       if (opt.featured) await daos.products.update(p.id, { isFeatured: true });
       if (opt.publish !== false) await daos.products.publish(p.id, new Date());
@@ -101,6 +123,7 @@ run('ProductQueryService tren PostgreSQL that', () => {
     await pool.query(`DELETE FROM ltv.products WHERE slug LIKE $1`, [`${tag}%`]);
     await pool.query(`DELETE FROM ltv.product_categories WHERE slug LIKE $1`, [`${tag}%`]);
     await pool.query(`DELETE FROM ltv.standards WHERE slug LIKE $1`, [`${tag}%`]);
+    await pool.query(`DELETE FROM ltv.applications WHERE slug LIKE $1`, [`${tag}%`]);
     await pool.query(`DELETE FROM ltv.brands WHERE slug LIKE $1`, [`${tag}%`]);
     await pool.end();
   });
@@ -112,7 +135,10 @@ run('ProductQueryService tren PostgreSQL that', () => {
   describe('ngu nghia bo loc (ADR-007)', () => {
     it('CUNG dimension = OR', async () => {
       expect(await slugs({ brandSlugs: [s('hang-a'), s('hang-b')] })).toEqual([
-        s('sp1'), s('sp2'), s('sp3'), s('sp6'),
+        s('sp1'),
+        s('sp2'),
+        s('sp3'),
+        s('sp6'),
       ]);
     });
 
@@ -128,9 +154,7 @@ run('ProductQueryService tren PostgreSQL that', () => {
     });
 
     it('mot dimension chi de KHONG loc dimension khac', async () => {
-      expect(await slugs({ standardSlugs: [s('tc-x')] })).toEqual([
-        s('sp1'), s('sp3'), s('sp4'),
-      ]);
+      expect(await slugs({ standardSlugs: [s('tc-x')] })).toEqual([s('sp1'), s('sp3'), s('sp4')]);
     });
 
     it('MO RONG NHANH CON: loc cap 0 ra ca san pham gan o cap 2 (ADR-015)', async () => {
@@ -252,17 +276,20 @@ run('ProductQueryService tren PostgreSQL that', () => {
        */
       const moc = (ngay: string) => new Date(`${ngay}T00:00:00Z`);
       await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
-        id['sp1'], moc('2026-01-01'),
+        id['sp1'],
+        moc('2026-01-01'),
       ]);
       await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
-        id['sp2'], moc('2026-06-01'),
+        id['sp2'],
+        moc('2026-06-01'),
       ]);
       await pool.query(`UPDATE ltv.products SET published_at = $2 WHERE id = $1`, [
-        id['sp3'], moc('2026-03-01'),
+        id['sp3'],
+        moc('2026-03-01'),
       ]);
-      const r = await ps.list(
-        { brandSlugs: [s('hang-a'), s('hang-b')] }, 'newest', { pageSize: 100 },
-      );
+      const r = await ps.list({ brandSlugs: [s('hang-a'), s('hang-b')] }, 'newest', {
+        pageSize: 100,
+      });
       const thuTu = r.items.map((p) => p.slug);
       // sp2 (thang 6) truoc sp3 (thang 3) truoc sp1 (thang 1)
       expect(thuTu.indexOf(s('sp2'))).toBeLessThan(thuTu.indexOf(s('sp3')));
@@ -331,17 +358,35 @@ run('ProductQueryService tren PostgreSQL that', () => {
       const l = await ps.landing();
       expect(l.featured_brands.map((b) => b.slug)).not.toContain(s('hang-b'));
 
-      expect(l.featured_brands.every((b) => b.is_featured), 'brands').toBe(true);
-      expect(l.featured_categories.every((c) => c.is_featured), 'categories').toBe(true);
-      expect(l.featured_applications.every((a) => a.is_featured), 'applications').toBe(true);
-      expect(l.featured_products.every((p) => p.is_featured), 'products').toBe(true);
+      expect(
+        l.featured_brands.every((b) => b.is_featured),
+        'brands',
+      ).toBe(true);
+      expect(
+        l.featured_categories.every((c) => c.is_featured),
+        'categories',
+      ).toBe(true);
+      expect(
+        l.featured_applications.every((a) => a.is_featured),
+        'applications',
+      ).toBe(true);
+      expect(
+        l.featured_products.every((p) => p.is_featured),
+        'products',
+      ).toBe(true);
 
       /**
        * `StandardCardView` KHONG co `is_featured` (mat bo loc khong can no), nen
        * phai doi chieu bang mot phan tu CHAC CHAN khong noi bat: `tc-y`.
        */
-      expect(l.featured_standards.map((x) => x.slug), 'standards').not.toContain(s('tc-y'));
-      expect(l.featured_standards.map((x) => x.slug), 'standards').toContain(s('tc-x'));
+      expect(
+        l.featured_standards.map((x) => x.slug),
+        'standards',
+      ).not.toContain(s('tc-y'));
+      expect(
+        l.featured_standards.map((x) => x.slug),
+        'standards',
+      ).toContain(s('tc-x'));
 
       // Va DUNG cho: moi nhom phai co it nhat mot phan tu, khong thi rong vo nghia.
       for (const [ten, arr] of Object.entries(l)) {

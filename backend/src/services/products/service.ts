@@ -2,17 +2,10 @@ import { chiCo } from '../../shared/omit-undefined.js';
 import type { TtlCache } from '../../shared/cache.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { ProductCard, ProductDetail } from '../../dao/products/object.js';
-import type {
-  ProductCardView,
-  ProductDetailView,
-  ProductLandingView,
-} from '@ltv/contracts';
+import type { ProductCardView, ProductDetailView, ProductLandingView } from '@ltv/contracts';
 import type { PageArg, PagedResult } from '../taxonomy/interface.js';
-import type {
-  ProductQueryService,
-  PublicProductFilter,
-  PublicProductSort,
-} from './interface.js';
+import type { ProductQueryService, PublicProductFilter, PublicProductSort } from './interface.js';
+import { detailSeo } from '../seo/metadata.js';
 
 export type ProductDaos = DaoScope<
   'products' | 'productCategories' | 'brands' | 'standards' | 'applications'
@@ -40,9 +33,10 @@ export const productCard = (p: ProductCard): ProductCardView => ({
   discontinued: p.discontinuedAt !== null,
 });
 
-function detailView(d: ProductDetail): ProductDetailView {
+function detailView(d: ProductDetail, siteUrl: string): ProductDetailView {
   const p = d.product;
   return {
+    ...detailSeo(siteUrl, `/products/${p.slug}`),
     slug: p.slug,
     name: p.name,
     model: p.model,
@@ -118,6 +112,7 @@ export class ProductQueryServiceImpl implements ProductQueryService {
   constructor(
     private readonly daos: ProductDaos,
     private readonly cache?: TtlCache,
+    private readonly siteUrl: string = 'http://localhost:3000',
   ) {}
 
   async list(
@@ -168,7 +163,7 @@ export class ProductQueryServiceImpl implements ProductQueryService {
      * nguyen URL va van duoc index. Chi `status` va `deleted_at` moi an trang.
      */
     if (d.product.status !== 'published') return null;
-    return detailView(d);
+    return detailView(d, this.siteUrl);
   }
 
   async landing(): Promise<ProductLandingView> {

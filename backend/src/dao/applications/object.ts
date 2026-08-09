@@ -29,6 +29,7 @@ export interface Application {
 }
 
 export interface CreateApplicationInput {
+  readonly initialStatus?: EntityStatus;
   readonly parentId?: string | null;
   readonly name: string;
   readonly slug: string;

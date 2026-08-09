@@ -40,29 +40,46 @@ run('TaxonomyService tren PostgreSQL that', () => {
 
     // ── hang: mot goc da publish, mot con da publish, mot BAN NHAP ──
     const goc = await daos.brands.insert({
-      brandType: 'manufacturer', name: 'Hang Goc', slug: s('hang-goc'), code: 'HG',
-      countryCode: 'DE', websiteUrl: 'https://vd.local',
+      brandType: 'manufacturer',
+      name: 'Hang Goc',
+      slug: s('hang-goc'),
+      code: 'HG',
+      countryCode: 'DE',
+      websiteUrl: 'https://vd.local',
     });
     id['goc'] = goc.id;
     await daos.brands.update(goc.id, { isFeatured: true });
     await daos.brands.publish(goc.id, new Date());
 
     const con = await daos.brands.insert({
-      brandType: 'sub_brand', name: 'Hang Con', slug: s('hang-con'), parentId: goc.id,
+      brandType: 'sub_brand',
+      name: 'Hang Con',
+      slug: s('hang-con'),
+      parentId: goc.id,
     });
     id['con'] = con.id;
     await daos.brands.publish(con.id, new Date());
 
     // KHONG publish — day la ban nhap.
     const nhap = await daos.brands.insert({
-      brandType: 'manufacturer', name: 'Hang Nhap', slug: s('hang-nhap'),
+      brandType: 'manufacturer',
+      name: 'Hang Nhap',
+      slug: s('hang-nhap'),
     });
     id['nhapBrand'] = nhap.id;
 
     // ── danh muc: ba cap, cap sau nhat la ban nhap ──
     const c0 = await daos.productCategories.insert({ name: 'Cap 0', slug: s('cap-0') });
-    const c1 = await daos.productCategories.insert({ name: 'Cap 1', slug: s('cap-1'), parentId: c0.id });
-    const c2 = await daos.productCategories.insert({ name: 'Cap 2', slug: s('cap-2'), parentId: c1.id });
+    const c1 = await daos.productCategories.insert({
+      name: 'Cap 1',
+      slug: s('cap-1'),
+      parentId: c0.id,
+    });
+    const c2 = await daos.productCategories.insert({
+      name: 'Cap 2',
+      slug: s('cap-2'),
+      parentId: c1.id,
+    });
     Object.assign(id, { c0: c0.id, c1: c1.id, c2: c2.id });
     for (const c of [c0, c1, c2]) await daos.productCategories.publish(c.id, new Date());
     const cNhap = await daos.productCategories.insert({ name: 'DM Nhap', slug: s('dm-nhap') });
@@ -70,7 +87,9 @@ run('TaxonomyService tren PostgreSQL that', () => {
 
     // ── tieu chuan ──
     const st = await daos.standards.insert({
-      organization: `ORG${tag.replace(/\D/g, '').slice(-6)}`, code: 'C-1', slug: s('tc-1'),
+      organization: `ORG${tag.replace(/\D/g, '').slice(-6)}`,
+      code: 'C-1',
+      slug: s('tc-1'),
       description: 'mo ta tieu chuan',
     });
     id['st'] = st.id;
@@ -83,7 +102,10 @@ run('TaxonomyService tren PostgreSQL that', () => {
 
     // ── san pham gan vao cap 2 (de kiem mo rong nhanh con) ──
     const sp = await daos.products.insert({
-      brandId: goc.id, name: 'May Demo', slug: s('may-demo'), model: 'M-1',
+      brandId: goc.id,
+      name: 'May Demo',
+      slug: s('may-demo'),
+      model: 'M-1',
     });
     id['sp'] = sp.id;
     await daos.products.replaceCategories(sp.id, [{ categoryId: c2.id, isPrimary: true }]);
@@ -231,10 +253,13 @@ run('TaxonomyService tren PostgreSQL that', () => {
        * le: nguoi dung bam vao va den mot trang cha khong ton tai.
        */
       const chaNhap = await daos.productCategories.insert({
-        name: 'Cha Nhap', slug: s('cha-nhap'),
+        name: 'Cha Nhap',
+        slug: s('cha-nhap'),
       });
       const conCuaNhap = await daos.productCategories.insert({
-        name: 'Con Cua Nhap', slug: s('con-cua-nhap'), parentId: chaNhap.id,
+        name: 'Con Cua Nhap',
+        slug: s('con-cua-nhap'),
+        parentId: chaNhap.id,
       });
       await daos.productCategories.publish(conCuaNhap.id, new Date());
       try {
@@ -318,7 +343,10 @@ run('TaxonomyService tren PostgreSQL that', () => {
       ] as const) {
         const r = await tx.productsOf(dim, slug, { pageSize: 100 });
         expect(r, `${dim} tra null`).not.toBeNull();
-        expect(r!.items.map((p) => p.slug), dim).toContain(s('may-demo'));
+        expect(
+          r!.items.map((p) => p.slug),
+          dim,
+        ).toContain(s('may-demo'));
       }
     });
 

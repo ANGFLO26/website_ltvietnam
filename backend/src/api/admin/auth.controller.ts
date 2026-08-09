@@ -25,6 +25,10 @@ import { Public, type AuthedRequest } from './auth.guard.js';
 import { RateLimit, type RateLimitedRequest } from './rate-limit.guard.js';
 import { RATE_LIMIT_REGISTRY, type RateLimitRegistry } from './rate-limit.registry.js';
 import {
+  NOTIFICATION_SERVICE,
+  type NotificationService,
+} from '../../services/notifications/interface.js';
+import {
   clearCsrfCookie,
   clearSessionCookie,
   setCsrfCookie,
@@ -48,6 +52,7 @@ export class AuthController {
     @Inject(APP_CONFIG) private readonly cfg: AppConfig,
     @Inject(LOGGER) private readonly log: Logger,
     @Inject(RATE_LIMIT_REGISTRY) private readonly rateLimits: RateLimitRegistry,
+    @Inject(NOTIFICATION_SERVICE) private readonly notifications: NotificationService,
   ) {}
 
   /**
@@ -82,8 +87,11 @@ export class AuthController {
    */
   @Public()
   @RateLimit({
-    limit: 30, windowMs: 15 * 60_000, byIp: true,
-    byBodyField: 'email', bodyFieldLimit: 5,
+    limit: 30,
+    windowMs: 15 * 60_000,
+    byIp: true,
+    byBodyField: 'email',
+    bodyFieldLimit: 5,
   })
   @Post('login')
   async login(
@@ -166,7 +174,8 @@ export class AuthController {
      * cuoc dua that, du hep. Tra 401 chu khong 500: phien khong con hop le nua,
      * va do la dieu nguoi goi can biet.
      */
-    if (!user) throw new DomainError('AUTH_SESSION_EXPIRED', 'Phien khong con hop le', 'UNAUTHORIZED');
+    if (!user)
+      throw new DomainError('AUTH_SESSION_EXPIRED', 'Phien khong con hop le', 'UNAUTHORIZED');
     return toUserView(user);
   }
 
@@ -226,8 +235,11 @@ export class AuthController {
    */
   @Public()
   @RateLimit({
-    limit: 10, windowMs: 15 * 60_000, byIp: true,
-    byBodyField: 'email', bodyFieldLimit: 3,
+    limit: 10,
+    windowMs: 15 * 60_000,
+    byIp: true,
+    byBodyField: 'email',
+    bodyFieldLimit: 3,
   })
   @Post('forgot-password')
   @HttpCode(204)
@@ -236,20 +248,14 @@ export class AuthController {
     const result = await this.authService.requestPasswordReset(dto.email);
 
     if (result) {
-      /**
-       * CHUA gui email — hang doi email la B7 (`inquiry_outbox` + worker).
-       *
-       * Tam thoi ghi vao log de con duong nay chay duoc tren may ca nhan.
-       * The dat lai co han 30 phut va ky bang bi mat rieng, nhung MOT THE
-       * NAM TRONG LOG VAN LA MOT THE. Truoc khi len that phai:
-       *   1. noi vao hang doi email, va
-       *   2. bo dong log nay.
-       * `assertProductionSafe` chua chan duoc dieu nay — no la viec cua B7.
-       */
-      this.log.warn('auth_reset_token_logged_dev_only', {
-        user_id: result.userId,
-        token: result.token,
-      });
+      // Job duoc commit truoc khi worker cham SMTP; token khong di qua log.
+      try {
+        await this.notifications.enqueuePasswordReset(result.email, result.token);
+      } catch {
+        // Van tra 204 de loi queue khong tro thanh cach liet ke email ton tai.
+        // Khong ghi email, token hay message goc cua loi vao log.
+        this.log.error('auth_reset_email_enqueue_failed', { user_id: result.userId });
+      }
     }
   }
 
@@ -279,7 +285,9 @@ export class AuthController {
   async bootstrap(@Body() body: unknown): Promise<UserView> {
     const dto = parse(bootstrapAdminSchema, body);
     const user = await this.userService.bootstrapFirstAdmin({
-      name: dto.name, email: dto.email, password: dto.password,
+      name: dto.name,
+      email: dto.email,
+      password: dto.password,
     });
     this.log.warn('auth_bootstrap_admin_created', { user_id: user.id, email: user.email });
     return toUserView(user);

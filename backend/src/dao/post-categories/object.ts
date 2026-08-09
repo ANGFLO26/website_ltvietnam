@@ -25,6 +25,7 @@ export interface PostCategory {
 }
 
 export interface CreatePostCategoryInput {
+  readonly initialStatus?: EntityStatus;
   readonly parentId?: string | null;
   readonly name: string;
   readonly slug: string;

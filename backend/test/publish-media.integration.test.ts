@@ -20,14 +20,23 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   const mkImage = async (k: string) =>
     daos.media.insert({
-      fileName: `${tag}-${k}.jpg`, originalName: `${tag} ${k}.jpg`,
-      storageClass: 'public', storagePath: `public-media/${tag}/${k}.jpg`,
-      mimeType: 'image/jpeg', fileExtension: 'jpg', fileSize: 100, altText: 'anh',
+      fileName: `${tag}-${k}.jpg`,
+      originalName: `${tag} ${k}.jpg`,
+      storageClass: 'public',
+      storagePath: `public-media/${tag}/${k}.jpg`,
+      mimeType: 'image/jpeg',
+      fileExtension: 'jpg',
+      fileSize: 100,
+      altText: 'anh',
     });
 
-  const para = (text: string) => [{
-    id: crypto.randomUUID(), type: 'paragraph' as const, spans: [{ text }],
-  }];
+  const para = (text: string) => [
+    {
+      id: crypto.randomUUID(),
+      type: 'paragraph' as const,
+      spans: [{ text }],
+    },
+  ];
 
   beforeAll(async () => {
     pool = createTestPool(url);
@@ -39,21 +48,33 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
     const cat = await daos.productCategories.insert({ name: 'DM', slug: `${tag}-dm` });
     id['cat'] = cat.id;
     const brand = await daos.brands.insert({
-      brandType: 'manufacturer', name: 'H', slug: `${tag}-h`,
-      shortDescription: 'mo ta hang', logoId: id['img'],
+      brandType: 'manufacturer',
+      name: 'H',
+      slug: `${tag}-h`,
+      shortDescription: 'mo ta hang',
+      logoId: id['img'],
     });
     id['brand'] = brand.id;
   });
 
   afterAll(async () => {
-    await pool.query(`DELETE FROM ltv.content_media_refs WHERE media_id IN
-      (SELECT id FROM ltv.media WHERE file_name LIKE $1)`, [`${tag}-%`]);
+    await pool.query(
+      `DELETE FROM ltv.content_media_refs WHERE media_id IN
+      (SELECT id FROM ltv.media WHERE file_name LIKE $1)`,
+      [`${tag}-%`],
+    );
     await pool.query(`DELETE FROM ltv.products WHERE slug LIKE $1`, [`${tag}-%`]);
     await pool.query(`DELETE FROM ltv.documents WHERE slug LIKE $1`, [`${tag}-%`]);
-    await pool.query(`DELETE FROM ltv.services WHERE id IN
-      (SELECT service_id FROM ltv.service_translations WHERE slug LIKE $1)`, [`${tag}-%`]);
-    await pool.query(`DELETE FROM ltv.projects WHERE id IN
-      (SELECT project_id FROM ltv.project_translations WHERE slug LIKE $1)`, [`${tag}-%`]);
+    await pool.query(
+      `DELETE FROM ltv.services WHERE id IN
+      (SELECT service_id FROM ltv.service_translations WHERE slug LIKE $1)`,
+      [`${tag}-%`],
+    );
+    await pool.query(
+      `DELETE FROM ltv.projects WHERE id IN
+      (SELECT project_id FROM ltv.project_translations WHERE slug LIKE $1)`,
+      [`${tag}-%`],
+    );
     await pool.query(`DELETE FROM ltv.brands WHERE slug LIKE $1`, [`${tag}-%`]);
     await pool.query(`DELETE FROM ltv.product_categories WHERE slug LIKE $1`, [`${tag}-%`]);
     await pool.query(`DELETE FROM ltv.media WHERE file_name LIKE $1`, [`${tag}-%`]);
@@ -64,7 +85,9 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   it('san pham thieu nhieu thu — liet ke TAT CA, khong dung o cai dau', async () => {
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP ${tag}`, slug: `${tag}-thieu`,
+      brandId: id['brand']!,
+      name: `SP ${tag}`,
+      slug: `${tag}-thieu`,
     });
     const r = await pub.check({ entity: 'product', id: p.id });
     expect(r.ok).toBe(false);
@@ -77,8 +100,11 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   it('du dieu kien thi xuat ban duoc', async () => {
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP du ${tag}`, slug: `${tag}-du`,
-      shortDescription: 'may chung cat tu dong', overview: para('Gioi thieu'),
+      brandId: id['brand']!,
+      name: `SP du ${tag}`,
+      slug: `${tag}-du`,
+      shortDescription: 'may chung cat tu dong',
+      overview: para('Gioi thieu'),
       featuredImageId: id['img'],
     });
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: true }]);
@@ -95,8 +121,12 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   it('publish KIEM LAI trong transaction, khong tin ket qua check() truoc do', async () => {
     const img = await mkImage('se-xoa');
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP dua ${tag}`, slug: `${tag}-dua`,
-      shortDescription: 'mo ta', overview: para('x'), featuredImageId: img.id,
+      brandId: id['brand']!,
+      name: `SP dua ${tag}`,
+      slug: `${tag}-dua`,
+      shortDescription: 'mo ta',
+      overview: para('x'),
+      featuredImageId: img.id,
     });
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: true }]);
 
@@ -114,8 +144,12 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
     const img = await mkImage('ma');
     await daos.media.softDelete(img.id, new Date());
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP ma ${tag}`, slug: `${tag}-ma`,
-      shortDescription: 'x', overview: para('y'), featuredImageId: img.id,
+      brandId: id['brand']!,
+      name: `SP ma ${tag}`,
+      slug: `${tag}-ma`,
+      shortDescription: 'x',
+      overview: para('y'),
+      featuredImageId: img.id,
     });
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: true }]);
 
@@ -126,8 +160,12 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   it('danh muc gan nhung KHONG phai chinh van bi chan (ADR-010)', async () => {
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP phu ${tag}`, slug: `${tag}-phu`,
-      shortDescription: 'x', overview: para('y'), featuredImageId: id['img'],
+      brandId: id['brand']!,
+      name: `SP phu ${tag}`,
+      slug: `${tag}-phu`,
+      shortDescription: 'x',
+      overview: para('y'),
+      featuredImageId: id['img'],
     });
     // Gan danh muc nhung khong danh dau chinh
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: false }]);
@@ -137,8 +175,11 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   it('khoi noi dung chi co DUONG KE NGANG cung la rong', async () => {
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP ke ${tag}`, slug: `${tag}-ke`,
-      shortDescription: 'x', featuredImageId: id['img'],
+      brandId: id['brand']!,
+      name: `SP ke ${tag}`,
+      slug: `${tag}-ke`,
+      shortDescription: 'x',
+      featuredImageId: id['img'],
       overview: [{ id: crypto.randomUUID(), type: 'divider' }],
     });
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: true }]);
@@ -149,8 +190,12 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
   it('mo ta chi co KHOANG TRANG cung la thieu', async () => {
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP trang ${tag}`, slug: `${tag}-trang`,
-      shortDescription: '   ', overview: para('x'), featuredImageId: id['img'],
+      brandId: id['brand']!,
+      name: `SP trang ${tag}`,
+      slug: `${tag}-trang`,
+      shortDescription: '   ',
+      overview: para('x'),
+      featuredImageId: id['img'],
     });
     await daos.products.replaceCategories(p.id, [{ categoryId: id['cat']!, isPrimary: true }]);
     const r = await pub.check({ entity: 'product', id: p.id });
@@ -163,16 +208,17 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
     const s = await daos.services.insert({ featuredImageId: id['img'] });
     id['sv'] = s.id;
     const r = await pub.check({ entity: 'service', id: s.id, locale: 'vi' });
-    expect(!r.ok && r.blockers).toEqual([
-      { field: 'translation', message: 'Chua co ban dich vi' },
-    ]);
+    expect(!r.ok && r.blockers).toEqual([{ field: 'translation', message: 'Chua co ban dich vi' }]);
   });
 
   it('xuat ban dich vu ghi CA bang cha LAN ban dich', async () => {
     const s = id['sv']!;
     await daos.services.upsertTranslation(s, {
-      locale: 'vi', name: 'Hieu chuan', slug: `${tag}-hieu-chuan`,
-      shortDescription: 'dich vu hieu chuan', scopeOfWork: para('Pham vi'),
+      locale: 'vi',
+      name: 'Hieu chuan',
+      slug: `${tag}-hieu-chuan`,
+      shortDescription: 'dich vu hieu chuan',
+      scopeOfWork: para('Pham vi'),
     });
     expect((await pub.check({ entity: 'service', id: s, locale: 'vi' })).ok).toBe(true);
 
@@ -184,8 +230,9 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   });
 
   it('xuat ban thieu locale bi tu choi', async () => {
-    await expect(pub.check({ entity: 'service', id: id['sv']! }))
-      .rejects.toThrow(/phai chi ro ngon ngu/);
+    await expect(pub.check({ entity: 'service', id: id['sv']! })).rejects.toThrow(
+      /phai chi ro ngon ngu/,
+    );
   });
 
   it('ha co BAN DICH khong ha co ca thuc the', async () => {
@@ -198,11 +245,16 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   it('du an `hide_name` chua dat ten hien thi bi CHAN o buoc publish', async () => {
     const img = await mkImage('du-an');
     const pj = await daos.projects.insert({
-      projectType: 'installation', customerVisibility: 'hide_name', featuredImageId: img.id,
+      projectType: 'installation',
+      customerVisibility: 'hide_name',
+      featuredImageId: img.id,
     });
     await daos.projects.upsertTranslation(pj.id, {
-      locale: 'vi', title: 'Du an X', slug: `${tag}-du-an`,
-      shortDescription: 'mo ta', scopeOfWork: para('Pham vi'),
+      locale: 'vi',
+      title: 'Du an X',
+      slug: `${tag}-du-an`,
+      shortDescription: 'mo ta',
+      scopeOfWork: para('Pham vi'),
       customerDisplayName: null,
     });
     await daos.projects.replaceMedia(pj.id, [{ mediaId: img.id }]);
@@ -213,8 +265,11 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
     expect(!r.ok && r.blockers.map((x) => x.field)).toEqual(['customer_display_name']);
 
     await daos.projects.upsertTranslation(pj.id, {
-      locale: 'vi', title: 'Du an X', slug: `${tag}-du-an`,
-      shortDescription: 'mo ta', scopeOfWork: para('Pham vi'),
+      locale: 'vi',
+      title: 'Du an X',
+      slug: `${tag}-du-an`,
+      shortDescription: 'mo ta',
+      scopeOfWork: para('Pham vi'),
       customerDisplayName: 'Mot nha may mien Trung',
     });
     expect((await pub.check({ entity: 'project', id: pj.id, locale: 'vi' })).ok).toBe(true);
@@ -223,8 +278,11 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   it('du an khong co anh nao bi chan', async () => {
     const pj = await daos.projects.insert({ projectType: 'training' });
     await daos.projects.upsertTranslation(pj.id, {
-      locale: 'vi', title: 'Dao tao', slug: `${tag}-dao-tao`,
-      shortDescription: 'mo ta', scopeOfWork: para('Pham vi'),
+      locale: 'vi',
+      title: 'Dao tao',
+      slug: `${tag}-dao-tao`,
+      shortDescription: 'mo ta',
+      scopeOfWork: para('Pham vi'),
     });
     const r = await pub.check({ entity: 'project', id: pj.id, locale: 'vi' });
     expect(!r.ok && r.blockers.map((x) => x.field)).toContain('media');
@@ -233,7 +291,10 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   it('tai lieu mat tep dinh kem thi khong xuat ban duoc', async () => {
     const f = await mkImage('tep');
     const d = await daos.documents.insert({
-      documentType: 'catalogue', fileId: f.id, title: 'Cat', slug: `${tag}-cat`,
+      documentType: 'catalogue',
+      fileId: f.id,
+      title: 'Cat',
+      slug: `${tag}-cat`,
     });
     expect((await pub.check({ entity: 'document', id: d.id })).ok).toBe(true);
 
@@ -251,7 +312,10 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
     // Nguon 1: khoa ngoai
     const p = await daos.products.insert({
-      brandId: id['brand']!, name: `SP fk ${tag}`, slug: `${tag}-fk`, featuredImageId: img.id,
+      brandId: id['brand']!,
+      name: `SP fk ${tag}`,
+      slug: `${tag}-fk`,
+      featuredImageId: img.id,
     });
     let u = await mu.usage(img.id);
     expect(u.foreignKeys).toBe(1);
@@ -259,7 +323,8 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
 
     // Nguon 2: khoi noi dung JSONB
     await daos.contentMediaRefs.replaceForField(
-      { entityType: 'product', entityId: p.id, fieldName: 'overview' }, [img.id],
+      { entityType: 'product', entityId: p.id, fieldName: 'overview' },
+      [img.id],
     );
     u = await mu.usage(img.id);
     expect(u.foreignKeys).toBe(1);
@@ -267,10 +332,22 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
     expect(u.total).toBe(2);
 
     // Chi tiet de giao dien to sang dung cho
-    expect(u.places).toHaveLength(1);
-    expect(u.places[0]).toMatchObject({
-      source: 'content_block', entityType: 'product', fieldName: 'overview',
-    });
+    expect(u.places).toHaveLength(2);
+    expect(u.places).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: 'foreign_key',
+          entityType: 'products',
+          entityId: p.id,
+          fieldName: 'featured_image_id',
+        }),
+        expect.objectContaining({
+          source: 'content_block',
+          entityType: 'product',
+          fieldName: 'overview',
+        }),
+      ]),
+    );
   });
 
   it('CHI co tham chieu tu khoi JSONB van chan duoc xoa', async () => {
@@ -293,7 +370,9 @@ run('PublishService + MediaUsageService tren PostgreSQL that', () => {
   it('go het tham chieu thi xoa duoc', async () => {
     const img = await mkImage('go-het');
     const field = {
-      entityType: 'brand', entityId: id['brand']!, fieldName: 'overview',
+      entityType: 'brand',
+      entityId: id['brand']!,
+      fieldName: 'overview',
     };
     await daos.contentMediaRefs.replaceForField(field, [img.id]);
     expect((await mu.canDelete(img.id)).allowed).toBe(false);

@@ -9,6 +9,12 @@ import type {
   PreferredContact,
 } from './object.js';
 
+function asPayload(value: unknown): Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 export function toInquiry(row: Selectable<InquiriesTable>): Inquiry {
   return {
     id: row.id,
@@ -46,6 +52,8 @@ export function toOutboxJob(row: Selectable<InquiryOutboxTable>): OutboxJob {
   return {
     id: row.id,
     inquiryId: row.inquiry_id,
+    notificationType: row.notification_type as OutboxJob['notificationType'],
+    payload: asPayload(row.payload),
     channel: row.channel,
     recipient: row.recipient,
     status: row.status as OutboxStatus,

@@ -17,7 +17,5 @@
 export type BoUndefined<T> = { [K in keyof T]?: Exclude<T[K], undefined> };
 
 export function chiCo<T extends Record<string, unknown>>(o: T): BoUndefined<T> {
-  return Object.fromEntries(
-    Object.entries(o).filter((e) => e[1] !== undefined),
-  ) as BoUndefined<T>;
+  return Object.fromEntries(Object.entries(o).filter((e) => e[1] !== undefined)) as BoUndefined<T>;
 }

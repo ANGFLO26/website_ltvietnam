@@ -96,6 +96,13 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     expect(slugs.publicPath('product', 'optidist', 'vi')).toBe('/products/optidist');
   });
 
+  it('nhan dien duong dan dong chi khi noi dung dang published', async () => {
+    const b = await mkBrand(`${tag}-live-path`);
+    expect(await slugs.isLivePath(`/brands/${b.slug}`)).toBe(false);
+    await daos.brands.publish(b.id, new Date());
+    expect(await slugs.isLivePath(`/brands/${b.slug}`)).toBe(true);
+  });
+
   // ── (C) route he thong ──
 
   it('(C) slug trung route he thong bi tu choi', async () => {
@@ -123,7 +130,9 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     const counting = createDaoManager(
       new (await import('kysely')).Kysely({
         dialect: new (await import('kysely')).PostgresDialect({ pool }),
-        log: (e) => { if (e.level === 'query') n++; },
+        log: (e) => {
+          if (e.level === 'query') n++;
+        },
       }),
     );
     const s = new SlugServiceImpl(counting);
@@ -160,7 +169,8 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
 
   it('(B) duong dan tung nam trong redirects bi tu choi', async () => {
     await daos.redirects.upsert({
-      sourcePath: `/products/${tag}-cu`, targetPath: `/products/${tag}-moi`,
+      sourcePath: `/products/${tag}-cu`,
+      targetPath: `/products/${tag}-moi`,
     });
     const r = await slugs.check({ entity: 'product', slug: `${tag}-cu` });
     expect(!r.ok && r.code).toBe('SLUG_IN_REDIRECTS');
@@ -168,7 +178,8 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
 
   it('(B) redirect da tat thi khong chan nua', async () => {
     const red = await daos.redirects.upsert({
-      sourcePath: `/products/${tag}-tat`, targetPath: `/products/${tag}-dich`,
+      sourcePath: `/products/${tag}-tat`,
+      targetPath: `/products/${tag}-dich`,
     });
     expect((await slugs.check({ entity: 'product', slug: `${tag}-tat` })).ok).toBe(false);
     await daos.redirects.update(red.id, { status: 'disabled' });
@@ -177,7 +188,8 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
 
   it('(B) redirect cua NHOM KHAC khong chan — kiem theo duong dan day du', async () => {
     await daos.redirects.upsert({
-      sourcePath: `/news/${tag}-bai`, targetPath: `/news/${tag}-bai-moi`,
+      sourcePath: `/news/${tag}-bai`,
+      targetPath: `/news/${tag}-bai-moi`,
     });
     // Cung chuoi slug nhung khac tien to -> khac duong dan -> khong va cham
     expect((await slugs.check({ entity: 'product', slug: `${tag}-bai` })).ok).toBe(true);
@@ -194,8 +206,9 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
   });
 
   it('assertAvailable nem ConflictError kem duong dan va ly do', async () => {
-    await expect(slugs.assertAvailable({ entity: 'product', slug: 'all' }))
-      .rejects.toThrow(ConflictError);
+    await expect(slugs.assertAvailable({ entity: 'product', slug: 'all' })).rejects.toThrow(
+      ConflictError,
+    );
     try {
       await slugs.assertAvailable({ entity: 'product', slug: 'all' });
     } catch (e) {
@@ -212,7 +225,10 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     await daos.brands.publish(b.id, new Date());
 
     const r = await slugs.rename({
-      entity: 'brand', id: b.id, currentSlug: b.slug, slug: `${tag}-ten-moi`,
+      entity: 'brand',
+      id: b.id,
+      currentSlug: b.slug,
+      slug: `${tag}-ten-moi`,
       wasEverPublished: true,
     });
 
@@ -229,7 +245,10 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
   it('doi slug CHUA TUNG publish: khong tao redirect', async () => {
     const b = await mkBrand(`${tag}-nhap-cu`);
     const r = await slugs.rename({
-      entity: 'brand', id: b.id, currentSlug: b.slug, slug: `${tag}-nhap-moi`,
+      entity: 'brand',
+      id: b.id,
+      currentSlug: b.slug,
+      slug: `${tag}-nhap-moi`,
       wasEverPublished: false,
     });
     // Chua ai co lien ket toi ban nhap — tao redirect chi lam ban bang
@@ -241,11 +260,17 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     const b = await mkBrand(`${tag}-v1`);
     await daos.brands.publish(b.id, new Date());
     await slugs.rename({
-      entity: 'brand', id: b.id, currentSlug: `${tag}-v1`, slug: `${tag}-v2`,
+      entity: 'brand',
+      id: b.id,
+      currentSlug: `${tag}-v1`,
+      slug: `${tag}-v2`,
       wasEverPublished: true,
     });
     await slugs.rename({
-      entity: 'brand', id: b.id, currentSlug: `${tag}-v2`, slug: `${tag}-v3`,
+      entity: 'brand',
+      id: b.id,
+      currentSlug: `${tag}-v2`,
+      slug: `${tag}-v3`,
       wasEverPublished: true,
     });
 
@@ -261,7 +286,11 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
 
     await expect(
       slugs.rename({
-        entity: 'brand', id: b.id, currentSlug: b.slug, slug: a.slug, wasEverPublished: true,
+        entity: 'brand',
+        id: b.id,
+        currentSlug: b.slug,
+        slug: a.slug,
+        wasEverPublished: true,
       }),
     ).rejects.toThrow(ConflictError);
 
@@ -274,7 +303,11 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     const b = await mkBrand(`${tag}-khong-doi`);
     await daos.brands.publish(b.id, new Date());
     const r = await slugs.rename({
-      entity: 'brand', id: b.id, currentSlug: b.slug, slug: b.slug, wasEverPublished: true,
+      entity: 'brand',
+      id: b.id,
+      currentSlug: b.slug,
+      slug: b.slug,
+      wasEverPublished: true,
     });
     expect(r.oldPath).toBe(r.newPath);
     // Khong tao redirect tro ve chinh no — do la vong lap
@@ -286,8 +319,12 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
     // Nhan mot minh cai slug se de lai ban dich thieu truong.
     await expect(
       slugs.rename({
-        entity: 'post', id: crypto.randomUUID(), currentSlug: 'a', slug: 'b',
-        locale: 'vi', wasEverPublished: true,
+        entity: 'post',
+        id: crypto.randomUUID(),
+        currentSlug: 'a',
+        slug: 'b',
+        locale: 'vi',
+        wasEverPublished: true,
       }),
     ).rejects.toThrow(/phai di qua service cua chinh no/);
   });

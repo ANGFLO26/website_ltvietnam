@@ -42,7 +42,10 @@ export interface RedirectFilter {
 }
 
 export class RedirectLoopError extends Error {
-  constructor(readonly sourcePath: string, readonly targetPath: string) {
+  constructor(
+    readonly sourcePath: string,
+    readonly targetPath: string,
+  ) {
     super(`Chuyen huong tao vong lap: ${sourcePath} -> ${targetPath}`);
     this.name = 'RedirectLoopError';
   }

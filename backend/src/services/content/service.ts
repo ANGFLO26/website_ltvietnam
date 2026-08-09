@@ -1,7 +1,6 @@
 import type {
   DocumentCardView,
   DocumentDetailView,
-  HreflangAlternateView,
   Locale,
   PageDetailView,
   PostCardView,
@@ -18,6 +17,7 @@ import type { DaoScope } from '../../dao/dao-scope.js';
 import type { PublicTranslationRow } from '../../dao/translation.support.js';
 import type { PageArg, PagedResult } from '../taxonomy/interface.js';
 import type { ContentService } from './interface.js';
+import { detailSeo, translatedDetailSeo } from '../seo/metadata.js';
 
 export type ContentDaos = DaoScope<
   'pages' | 'services' | 'projects' | 'posts' | 'postCategories' | 'documents' | 'industries'
@@ -34,19 +34,11 @@ function trang(p: PageArg | undefined): { page: number; pageSize: number } {
 
 const iso = (d: Date | null): string | null => d?.toISOString() ?? null;
 
-/**
- * `hreflang` chi co khi CA HAI ngon ngu duoc xuat ban — ADR-004.
- *
- * `hreflangAlternates` o tang dao da ap luat do (parent published + translation
- * published + it nhat hai locale). O day chi doi hinh dang, KHONG them dieu kien
- * — neu them thi co hai noi quyet dinh cung mot luat va chung se lech.
- */
-const hreflang = (
-  xs: readonly { locale: Locale; slug: string }[],
-): readonly HreflangAlternateView[] => xs.map((x) => ({ locale: x.locale, slug: x.slug }));
-
 export class ContentServiceImpl implements ContentService {
-  constructor(private readonly daos: ContentDaos) {}
+  constructor(
+    private readonly daos: ContentDaos,
+    private readonly siteUrl: string = 'http://localhost:3000',
+  ) {}
 
   // ══════════════════════════ pages ══════════════════════════
   async findPage(locale: Locale, slug: string): Promise<PageDetailView | null> {
@@ -69,9 +61,16 @@ export class ContentServiceImpl implements ContentService {
     if (r.page.status !== 'published' || r.translation.status !== 'published') return null;
 
     return {
+      ...translatedDetailSeo(
+        this.siteUrl,
+        'page',
+        locale,
+        r.translation.slug,
+        await this.daos.pages.hreflangAlternates(r.page.id),
+        r.page.pageType,
+      ),
       slug: r.translation.slug,
       locale,
-      hreflang_alternates: hreflang(await this.daos.pages.hreflangAlternates(r.page.id)),
       title: r.translation.title,
       page_type: r.page.pageType,
       summary: r.translation.summary,
@@ -158,9 +157,15 @@ export class ContentServiceImpl implements ContentService {
     if (!r) return null;
     if (r.service.status !== 'published' || r.translation.status !== 'published') return null;
     return {
+      ...translatedDetailSeo(
+        this.siteUrl,
+        'service',
+        locale,
+        r.translation.slug,
+        await this.daos.services.hreflangAlternates(r.service.id),
+      ),
       slug: r.translation.slug,
       locale,
-      hreflang_alternates: hreflang(await this.daos.services.hreflangAlternates(r.service.id)),
       title: r.translation.name,
       short_description: r.translation.shortDescription,
       overview: r.translation.overview,
@@ -268,9 +273,15 @@ export class ContentServiceImpl implements ContentService {
     if (!r) return null;
     if (r.project.status !== 'published' || r.translation.status !== 'published') return null;
     return {
+      ...translatedDetailSeo(
+        this.siteUrl,
+        'project',
+        locale,
+        r.translation.slug,
+        await this.daos.projects.hreflangAlternates(r.project.id),
+      ),
       slug: r.translation.slug,
       locale,
-      hreflang_alternates: hreflang(await this.daos.projects.hreflangAlternates(r.project.id)),
       title: r.translation.title,
       short_description: r.translation.shortDescription,
       scope_of_work: r.translation.scopeOfWork,
@@ -354,9 +365,15 @@ export class ContentServiceImpl implements ContentService {
     if (r.post.status !== 'published' || r.translation.status !== 'published') return null;
     const cats = await this.postCategoryMap([r.post.categoryId]);
     return {
+      ...translatedDetailSeo(
+        this.siteUrl,
+        'post',
+        locale,
+        r.translation.slug,
+        await this.daos.posts.hreflangAlternates(r.post.id),
+      ),
       slug: r.translation.slug,
       locale,
-      hreflang_alternates: hreflang(await this.daos.posts.hreflangAlternates(r.post.id)),
       title: r.translation.title,
       excerpt: r.translation.excerpt,
       content: r.translation.content,
@@ -428,6 +445,7 @@ export class ContentServiceImpl implements ContentService {
     const d = await this.daos.documents.findBySlug(slug);
     if (!d || d.status !== 'published') return null;
     return {
+      ...detailSeo(this.siteUrl, `/resources/${d.slug}`),
       slug: d.slug,
       title: d.title,
       document_type: d.documentType,
@@ -449,7 +467,10 @@ export class ContentServiceImpl implements ContentService {
    */
   private async serviceEntities(ids: readonly string[]) {
     if (ids.length === 0) return new Map<string, { parentId: string | null }>();
-    const r = await this.daos.services.list({ status: 'published' }, { page: 1, pageSize: TRAN_TRANG });
+    const r = await this.daos.services.list(
+      { status: 'published' },
+      { page: 1, pageSize: TRAN_TRANG },
+    );
     const can = new Set(ids);
     return new Map(
       r.data.filter((x) => can.has(x.id)).map((x) => [x.id, { parentId: x.parentId }]),
@@ -477,7 +498,10 @@ export class ContentServiceImpl implements ContentService {
   }
 
   private async serviceEntitiesFull(ids: readonly string[]) {
-    const r = await this.daos.services.list({ status: 'published' }, { page: 1, pageSize: TRAN_TRANG });
+    const r = await this.daos.services.list(
+      { status: 'published' },
+      { page: 1, pageSize: TRAN_TRANG },
+    );
     const can = new Set(ids);
     return new Map(
       r.data
@@ -491,7 +515,10 @@ export class ContentServiceImpl implements ContentService {
 
   private async projectEntities(ids: readonly string[]) {
     if (ids.length === 0) return new Map<string, never>();
-    const r = await this.daos.projects.list({ status: 'published' }, { page: 1, pageSize: TRAN_TRANG });
+    const r = await this.daos.projects.list(
+      { status: 'published' },
+      { page: 1, pageSize: TRAN_TRANG },
+    );
     const can = new Set(ids);
     return new Map(
       r.data
@@ -511,7 +538,10 @@ export class ContentServiceImpl implements ContentService {
 
   private async postEntities(ids: readonly string[]) {
     if (ids.length === 0) return new Map<string, never>();
-    const r = await this.daos.posts.list({ status: 'published' }, { page: 1, pageSize: TRAN_TRANG });
+    const r = await this.daos.posts.list(
+      { status: 'published' },
+      { page: 1, pageSize: TRAN_TRANG },
+    );
     const can = new Set(ids);
     return new Map(
       r.data

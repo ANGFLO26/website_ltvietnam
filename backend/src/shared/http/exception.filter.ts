@@ -152,7 +152,7 @@ const MA_THEO_TYPE: Record<string, string> = {
 function laLoiDauVao(e: unknown): boolean {
   if (typeof e !== 'object' || e === null) return false;
   if (e instanceof DomainError || e instanceof HttpException) return false;
-  const s = (e as { status?: unknown; statusCode?: unknown });
+  const s = e as { status?: unknown; statusCode?: unknown };
   const ma = typeof s.status === 'number' ? s.status : s.statusCode;
   return typeof ma === 'number' && ma >= 400 && ma <= 499;
 }
@@ -185,7 +185,13 @@ const MA_LOI_KET_NOI = new Set([
   'EPIPE',
   'EHOSTUNREACH',
   // PostgreSQL class 08 — loi ket noi
-  '08000', '08003', '08006', '08001', '08004', '08007', '08P01',
+  '08000',
+  '08003',
+  '08006',
+  '08001',
+  '08004',
+  '08007',
+  '08P01',
   // May chu chu dong dong ket noi hoac dang tat
   '57P01', // admin_shutdown
   '57P02', // crash_shutdown

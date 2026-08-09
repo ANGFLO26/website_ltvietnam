@@ -128,8 +128,10 @@ export class ProductQueryRunner implements ProductQuery {
     // khong phai ep kieu. Hang co 30 cot, ep kieu o day la cho de nhat de mot
     // cot moi bi bo quen ma khong ai biet.
     const row = await this.db
-      .selectFrom('products').selectAll()
-      .where('slug', '=', slug).where('deleted_at', 'is', null)
+      .selectFrom('products')
+      .selectAll()
+      .where('slug', '=', slug)
+      .where('deleted_at', 'is', null)
       .executeTakeFirst();
     if (!row) return null;
     const id = row.id;
@@ -150,8 +152,13 @@ export class ProductQueryRunner implements ProductQuery {
     `.execute(this.db);
 
     const stds = await sql<{
-      id: string; organization: string; code: string; name: string | null; slug: string;
-      compliance_type: string; note: string | null;
+      id: string;
+      organization: string;
+      code: string;
+      name: string | null;
+      slug: string;
+      compliance_type: string;
+      note: string | null;
     }>`
       SELECT s.id, s.organization, s.code, s.name, s.slug, ps.compliance_type, ps.note
       FROM ltv.product_standards ps
@@ -177,8 +184,14 @@ export class ProductQueryRunner implements ProductQuery {
     `.execute(this.db);
 
     const media = await sql<{
-      id: string; storage_path: string; public_url: string | null; alt_text: string | null;
-      caption: string | null; width: number | null; height: number | null; media_role: string;
+      id: string;
+      storage_path: string;
+      public_url: string | null;
+      alt_text: string | null;
+      caption: string | null;
+      width: number | null;
+      height: number | null;
+      media_role: string;
     }>`
       SELECT m.id, m.storage_path, m.public_url, m.alt_text, m.caption,
              m.width, m.height, pm.media_role
@@ -215,28 +228,38 @@ export class ProductQueryRunner implements ProductQuery {
     return {
       product: toProduct(row),
       brand,
-      categories: cats.rows.map(
-        (c): DetailCategory => ({ id: c.id, name: c.name, slug: c.slug, isPrimary: c.is_primary }),
-      ),
-      standards: stds.rows.map(
-        (s): DetailStandard => ({
-          id: s.id, organization: s.organization, code: s.code, name: s.name, slug: s.slug,
-          complianceType: s.compliance_type as ComplianceType, note: s.note,
-        }),
-      ),
+      categories: cats.rows.map((c): DetailCategory => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        isPrimary: c.is_primary,
+      })),
+      standards: stds.rows.map((s): DetailStandard => ({
+        id: s.id,
+        organization: s.organization,
+        code: s.code,
+        name: s.name,
+        slug: s.slug,
+        complianceType: s.compliance_type as ComplianceType,
+        note: s.note,
+      })),
       applications: apps.rows,
       industries: inds.rows,
-      media: media.rows.map(
-        (m): DetailMedia => ({
-          id: m.id, storagePath: m.storage_path, publicUrl: m.public_url,
-          altText: m.alt_text, caption: m.caption, width: m.width, height: m.height,
-          mediaRole: m.media_role as MediaRole,
-        }),
-      ),
+      media: media.rows.map((m): DetailMedia => ({
+        id: m.id,
+        storagePath: m.storage_path,
+        publicUrl: m.public_url,
+        altText: m.alt_text,
+        caption: m.caption,
+        width: m.width,
+        height: m.height,
+        mediaRole: m.media_role as MediaRole,
+      })),
       specifications: specs.rows,
-      related: rel.rows.map(
-        (r): DetailRelated => ({ relationType: r.relation_type as RelationType, card: toCard(r) }),
-      ),
+      related: rel.rows.map((r): DetailRelated => ({
+        relationType: r.relation_type as RelationType,
+        card: toCard(r),
+      })),
     };
   }
 }
@@ -390,7 +413,10 @@ function subtreeIdsBySlug(
  * Sap xep — CHI nhan cot trong danh sach trang (A14).
  * Ten cot khong bao gio den tu chuoi nguoi dung gui.
  */
-function buildOrderBy(sort?: { by?: ProductSort; direction?: 'asc' | 'desc' }): RawBuilder<unknown> {
+function buildOrderBy(sort?: {
+  by?: ProductSort;
+  direction?: 'asc' | 'desc';
+}): RawBuilder<unknown> {
   const by = assertSortable<ProductSort>(
     sort?.by,
     ['name', 'published_at', 'display_order', 'created_at'],

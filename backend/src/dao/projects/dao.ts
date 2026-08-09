@@ -5,7 +5,8 @@ import {
   TranslationSupport,
   type HreflangAlternate,
   type Locale,
-  type TranslationStatus, } from '../translation.support.js';
+  type TranslationStatus,
+} from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
 import { fromBlocks } from '../content.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
@@ -36,8 +37,12 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
   }
 
   async findById(id: string): Promise<Project | null> {
-    const row = await this.db.selectFrom('projects').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('projects')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toProject(row) : null;
   }
 
@@ -45,50 +50,76 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
     const p = normalizePage(page);
     let q = this.db.selectFrom('projects').selectAll();
     let cq = this.db.selectFrom('projects').select(({ fn }) => fn.countAll<string>().as('n'));
-    if (!filter.includeDeleted) { q = q.where('deleted_at', 'is', null); cq = cq.where('deleted_at', 'is', null); }
-    if (filter.status) { q = q.where('status', '=', filter.status); cq = cq.where('status', '=', filter.status); }
-    if (filter.projectType) { q = q.where('project_type', '=', filter.projectType); cq = cq.where('project_type', '=', filter.projectType); }
+    if (!filter.includeDeleted) {
+      q = q.where('deleted_at', 'is', null);
+      cq = cq.where('deleted_at', 'is', null);
+    }
+    if (filter.status) {
+      q = q.where('status', '=', filter.status);
+      cq = cq.where('status', '=', filter.status);
+    }
+    if (filter.projectType) {
+      q = q.where('project_type', '=', filter.projectType);
+      cq = cq.where('project_type', '=', filter.projectType);
+    }
     if (filter.isFeatured !== undefined) {
       q = q.where('is_featured', '=', filter.isFeatured);
       cq = cq.where('is_featured', '=', filter.isFeatured);
     }
-    const rows = await q.orderBy('completed_at', 'desc').orderBy('id')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('completed_at', 'desc')
+      .orderBy('id')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toProject), total, p);
   }
 
   async insert(input: CreateProjectInput): Promise<Project> {
-    const row = await this.db.insertInto('projects').values({
-      project_type: input.projectType,
-      customer_id: input.customerId ?? null,
-      // Mac dinh la `public` theo so do. Day la mot mac dinh toi KHONG thich
-      // (an toan hon la `hide_name`), nhung doi no la doi so do va anh huong
-      // ADR-013 baseline. Da ghi vao `05` de ban quyet dinh o P4.
-      ...(input.customerVisibility !== undefined && { customer_visibility: input.customerVisibility }),
-      location_text: input.locationText ?? null,
-      country_code: input.countryCode ?? null,
-      started_at: input.startedAt ?? null,
-      completed_at: input.completedAt ?? null,
-      featured_image_id: input.featuredImageId ?? null,
-      created_by: input.createdBy ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('projects')
+      .values({
+        project_type: input.projectType,
+        customer_id: input.customerId ?? null,
+        // Mac dinh la `public` theo so do. Day la mot mac dinh toi KHONG thich
+        // (an toan hon la `hide_name`), nhung doi no la doi so do va anh huong
+        // ADR-013 baseline. Da ghi vao `05` de ban quyet dinh o P4.
+        ...(input.customerVisibility !== undefined && {
+          customer_visibility: input.customerVisibility,
+        }),
+        location_text: input.locationText ?? null,
+        country_code: input.countryCode ?? null,
+        started_at: input.startedAt ?? null,
+        completed_at: input.completedAt ?? null,
+        featured_image_id: input.featuredImageId ?? null,
+        created_by: input.createdBy ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toProject(row);
   }
 
   async update(id: string, input: UpdateProjectInput): Promise<Project> {
-    const row = await this.db.updateTable('projects').set({
-      ...(input.projectType !== undefined && { project_type: input.projectType }),
-      ...(input.customerId !== undefined && { customer_id: input.customerId }),
-      ...(input.customerVisibility !== undefined && { customer_visibility: input.customerVisibility }),
-      ...(input.locationText !== undefined && { location_text: input.locationText }),
-      ...(input.countryCode !== undefined && { country_code: input.countryCode }),
-      ...(input.startedAt !== undefined && { started_at: input.startedAt }),
-      ...(input.completedAt !== undefined && { completed_at: input.completedAt }),
-      ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
-      ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
-      ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('projects')
+      .set({
+        ...(input.projectType !== undefined && { project_type: input.projectType }),
+        ...(input.customerId !== undefined && { customer_id: input.customerId }),
+        ...(input.customerVisibility !== undefined && {
+          customer_visibility: input.customerVisibility,
+        }),
+        ...(input.locationText !== undefined && { location_text: input.locationText }),
+        ...(input.countryCode !== undefined && { country_code: input.countryCode }),
+        ...(input.startedAt !== undefined && { started_at: input.startedAt }),
+        ...(input.completedAt !== undefined && { completed_at: input.completedAt }),
+        ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
+        ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
+        ...(input.updatedBy !== undefined && { updated_by: input.updatedBy }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toProject(row);
   }
 
@@ -98,17 +129,27 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
   async restore(id: string): Promise<void> {
     await this.db.updateTable('projects').set({ deleted_at: null }).where('id', '=', id).execute();
   }
+  async hardDelete(id: string): Promise<void> {
+    await this.db.deleteFrom('projects').where('id', '=', id).execute();
+  }
 
   async publish(id: string, at: Date): Promise<Project> {
-    const row = await this.db.updateTable('projects')
+    const row = await this.db
+      .updateTable('projects')
       .set({ status: 'published', published_at: at })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toProject(row);
   }
 
   async unpublish(id: string): Promise<Project> {
-    const row = await this.db.updateTable('projects').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('projects')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toProject(row);
   }
 
@@ -130,8 +171,10 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
    */
   async resolvePublicCustomerName(id: string, locale: Locale): Promise<string | null> {
     const r = await sql<{
-      visibility: string; display_name: string | null;
-      customer_name: string | null; industry_name: string | null;
+      visibility: string;
+      display_name: string | null;
+      customer_name: string | null;
+      industry_name: string | null;
     }>`
       SELECT p.customer_visibility AS visibility,
              t.customer_display_name AS display_name,
@@ -164,18 +207,30 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
 
   // ── ban dich ───────────────────────────────────────────────────
   async findBySlug(locale: Locale, slug: string): Promise<ProjectWithTranslation | null> {
-    const tr = await this.db.selectFrom('project_translations').selectAll()
-      .where('locale', '=', locale).where('slug', '=', slug).executeTakeFirst();
+    const tr = await this.db
+      .selectFrom('project_translations')
+      .selectAll()
+      .where('locale', '=', locale)
+      .where('slug', '=', slug)
+      .executeTakeFirst();
     if (!tr) return null;
-    const p = await this.db.selectFrom('projects').selectAll()
-      .where('id', '=', tr.project_id).where('deleted_at', 'is', null).executeTakeFirst();
+    const p = await this.db
+      .selectFrom('projects')
+      .selectAll()
+      .where('id', '=', tr.project_id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     if (!p) return null;
     return { project: toProject(p), translation: toProjectTranslation(tr) };
   }
 
   async findTranslation(id: string, locale: Locale): Promise<ProjectTranslation | null> {
-    const row = await this.db.selectFrom('project_translations').selectAll()
-      .where('project_id', '=', id).where('locale', '=', locale).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('project_translations')
+      .selectAll()
+      .where('project_id', '=', id)
+      .where('locale', '=', locale)
+      .executeTakeFirst();
     return row ? toProjectTranslation(row) : null;
   }
 
@@ -196,7 +251,9 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
       seo_title: input.seoTitle ?? null,
       seo_description: input.seoDescription ?? null,
     };
-    const row = await this.db.insertInto('project_translations').values(values)
+    const row = await this.db
+      .insertInto('project_translations')
+      .values(values)
       .onConflict((oc) =>
         oc.columns(['project_id', 'locale']).doUpdateSet({
           title: values.title,
@@ -210,19 +267,26 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
           seo_description: values.seo_description,
         }),
       )
-      .returningAll().executeTakeFirstOrThrow();
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toProjectTranslation(row);
   }
 
-  listTranslations(id: string): Promise<TranslationStatus[]> { return this.tr.listTranslations(id); }
+  listTranslations(id: string): Promise<TranslationStatus[]> {
+    return this.tr.listTranslations(id);
+  }
   publishTranslation(id: string, locale: Locale, at: Date): Promise<void> {
     return this.tr.publishTranslation(id, locale, at);
   }
   unpublishTranslation(id: string, locale: Locale): Promise<void> {
     return this.tr.unpublishTranslation(id, locale);
   }
-  hreflangAlternates(id: string): Promise<HreflangAlternate[]> { return this.tr.hreflangAlternates(id); }
-  publishedLocales(id: string): Promise<Locale[]> { return this.tr.publishedLocales(id); }
+  hreflangAlternates(id: string): Promise<HreflangAlternate[]> {
+    return this.tr.hreflangAlternates(id);
+  }
+  publishedLocales(id: string): Promise<Locale[]> {
+    return this.tr.publishedLocales(id);
+  }
   isLocaleSlugAvailable(locale: Locale, slug: string, exceptId?: string): Promise<boolean> {
     return this.tr.isLocaleSlugAvailable(locale, slug, exceptId);
   }
@@ -235,23 +299,30 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
     if (links.productIds !== undefined) {
       await this.db.deleteFrom('project_products').where('project_id', '=', id).execute();
       if (links.productIds.length > 0) {
-        await this.db.insertInto('project_products')
-          .values(links.productIds.map((x, i) => ({ project_id: id, product_id: x, display_order: i })))
+        await this.db
+          .insertInto('project_products')
+          .values(
+            links.productIds.map((x, i) => ({ project_id: id, product_id: x, display_order: i })),
+          )
           .execute();
       }
     }
     if (links.serviceIds !== undefined) {
       await this.db.deleteFrom('project_services').where('project_id', '=', id).execute();
       if (links.serviceIds.length > 0) {
-        await this.db.insertInto('project_services')
-          .values(links.serviceIds.map((x) => ({ project_id: id, service_id: x }))).execute();
+        await this.db
+          .insertInto('project_services')
+          .values(links.serviceIds.map((x) => ({ project_id: id, service_id: x })))
+          .execute();
       }
     }
     if (links.brandIds !== undefined) {
       await this.db.deleteFrom('project_brands').where('project_id', '=', id).execute();
       if (links.brandIds.length > 0) {
-        await this.db.insertInto('project_brands')
-          .values(links.brandIds.map((x) => ({ project_id: id, brand_id: x }))).execute();
+        await this.db
+          .insertInto('project_brands')
+          .values(links.brandIds.map((x) => ({ project_id: id, brand_id: x })))
+          .execute();
       }
     }
   }
@@ -262,17 +333,35 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
   ): Promise<void> {
     await this.db.deleteFrom('project_media').where('project_id', '=', id).execute();
     if (media.length === 0) return;
-    await this.db.insertInto('project_media').values(
-      media.map((m, i) => ({
-        project_id: id, media_id: m.mediaId, caption: m.caption ?? null, display_order: i,
-      })),
-    ).execute();
+    await this.db
+      .insertInto('project_media')
+      .values(
+        media.map((m, i) => ({
+          project_id: id,
+          media_id: m.mediaId,
+          caption: m.caption ?? null,
+          display_order: i,
+        })),
+      )
+      .execute();
   }
 
   async findLinks(id: string): Promise<Required<ProjectLinks>> {
-    const pr = await this.db.selectFrom('project_products').select('product_id').where('project_id', '=', id).execute();
-    const sv = await this.db.selectFrom('project_services').select('service_id').where('project_id', '=', id).execute();
-    const br = await this.db.selectFrom('project_brands').select('brand_id').where('project_id', '=', id).execute();
+    const pr = await this.db
+      .selectFrom('project_products')
+      .select('product_id')
+      .where('project_id', '=', id)
+      .execute();
+    const sv = await this.db
+      .selectFrom('project_services')
+      .select('service_id')
+      .where('project_id', '=', id)
+      .execute();
+    const br = await this.db
+      .selectFrom('project_brands')
+      .select('brand_id')
+      .where('project_id', '=', id)
+      .execute();
     return {
       productIds: pr.map((x) => x.product_id),
       serviceIds: sv.map((x) => x.service_id),

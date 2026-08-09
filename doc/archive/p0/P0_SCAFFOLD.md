@@ -1,4 +1,7 @@
-# Khung P0 — Website LT Vietnam
+# [Lưu trữ] Khung P0 — Website LT Vietnam
+
+> Tài liệu này mô tả scaffold P0 tại thời điểm khởi tạo và không còn là hướng dẫn vận hành.
+> Dùng `README.md` ở root và `doc/14_TRANG_THAI_HIEN_TAI.md` cho trạng thái hiện hành.
 
 Khung monorepo cho MVP. Baseline schema **v1.3 (52 bảng)** đã được kiểm chứng trên PostgreSQL 16.
 
@@ -59,14 +62,14 @@ pnpm dev:api                  # http://localhost:3001/health/live
 
 ## Lệnh thường dùng
 
-| Lệnh | Việc |
-|---|---|
-| `pnpm db:migrate` | Chạy migration còn thiếu |
-| `pnpm db:status` | Xem migration nào đã apply |
-| `pnpm db:rollback [n]` | Rollback n migration cuối (chỉ dùng khi kiểm thử) |
-| `pnpm typecheck` | Kiểm kiểu toàn workspace |
-| `pnpm test` | Chạy test |
-| `./scripts/verify-schema.sh` | Kiểm chứng baseline trên PostgreSQL thật |
+| Lệnh                         | Việc                                              |
+| ---------------------------- | ------------------------------------------------- |
+| `pnpm db:migrate`            | Chạy migration còn thiếu                          |
+| `pnpm db:status`             | Xem migration nào đã apply                        |
+| `pnpm db:rollback [n]`       | Rollback n migration cuối (chỉ dùng khi kiểm thử) |
+| `pnpm typecheck`             | Kiểm kiểu toàn workspace                          |
+| `pnpm test`                  | Chạy test                                         |
+| `./scripts/verify-schema.sh` | Kiểm chứng baseline trên PostgreSQL thật          |
 
 ## Migration runner — bảo đảm gì
 
@@ -87,11 +90,11 @@ Definition of Done của P0. Bằng chứng: `implementation/evidence/p0-spike-3
 
 **Phát hiện quyết định** — đo thật trên Next.js 15.5.22 production:
 
-| Cách | Status | Body | Thỏa D17? |
-|---|---:|---:|---|
-| `redirect()` App Router | 307 | 5.858 B **có HTML** | ❌ |
-| `permanentRedirect()` App Router | 308 | 5.861 B **có HTML** | ❌ |
-| middleware `NextResponse.redirect(url, 301)` | **301** | **18 B** | ✅ |
+| Cách                                         |  Status |                Body | Thỏa D17? |
+| -------------------------------------------- | ------: | ------------------: | --------- |
+| `redirect()` App Router                      |     307 | 5.858 B **có HTML** | ❌        |
+| `permanentRedirect()` App Router             |     308 | 5.861 B **có HTML** | ❌        |
+| middleware `NextResponse.redirect(url, 301)` | **301** |            **18 B** | ✅        |
 
 Hai helper của App Router vi phạm ba yêu cầu cùng lúc: sai mã trạng thái, gửi kèm HTML đã render, và vì có HTML nghĩa là trang đã render xong rồi mới redirect.
 

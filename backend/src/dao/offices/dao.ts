@@ -5,8 +5,11 @@ import { toOffice } from './mapper.js';
 
 export class KyselyOfficeDao extends BaseDao implements OfficeDao {
   async findById(id: string): Promise<Office | null> {
-    const row = await this.db.selectFrom('offices').selectAll()
-      .where('id', '=', id).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('offices')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     return row ? toOffice(row) : null;
   }
 
@@ -24,48 +27,62 @@ export class KyselyOfficeDao extends BaseDao implements OfficeDao {
    * vi ai do nhap nham loai van phong.
    */
   async findHeadOffice(): Promise<Office | null> {
-    const row = await this.db.selectFrom('offices').selectAll()
-      .where('office_type', '=', 'head_office').where('status', '=', 'published')
-      .orderBy('display_order').executeTakeFirst();
+    const row = await this.db
+      .selectFrom('offices')
+      .selectAll()
+      .where('office_type', '=', 'head_office')
+      .where('status', '=', 'published')
+      .orderBy('display_order')
+      .executeTakeFirst();
     return row ? toOffice(row) : null;
   }
 
   async insert(input: CreateOfficeInput): Promise<Office> {
-    const row = await this.db.insertInto('offices').values({
-      office_type: input.officeType,
-      name: input.name,
-      address: input.address,
-      working_hours: input.workingHours ?? null,
-      description: input.description ?? null,
-      phone: input.phone ?? null,
-      fax: input.fax ?? null,
-      email: input.email ?? null,
-      map_url: input.mapUrl ?? null,
-      // NUMERIC: kieu ghi la `string` (giong BIGINT) de khong mat do chinh
-      // xac khi di qua JavaScript. Ep o day, khong de lot len interface.
-      latitude: toNumeric(input.latitude),
-      longitude: toNumeric(input.longitude),
-      featured_image_id: input.featuredImageId ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('offices')
+      .values({
+        ...(input.initialStatus !== undefined && { status: input.initialStatus }),
+        office_type: input.officeType,
+        name: input.name,
+        address: input.address,
+        working_hours: input.workingHours ?? null,
+        description: input.description ?? null,
+        phone: input.phone ?? null,
+        fax: input.fax ?? null,
+        email: input.email ?? null,
+        map_url: input.mapUrl ?? null,
+        // NUMERIC: kieu ghi la `string` (giong BIGINT) de khong mat do chinh
+        // xac khi di qua JavaScript. Ep o day, khong de lot len interface.
+        latitude: toNumeric(input.latitude),
+        longitude: toNumeric(input.longitude),
+        featured_image_id: input.featuredImageId ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toOffice(row);
   }
 
   async update(id: string, input: UpdateOfficeInput): Promise<Office> {
-    const row = await this.db.updateTable('offices').set({
-      ...(input.officeType !== undefined && { office_type: input.officeType }),
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.address !== undefined && { address: input.address }),
-      ...(input.workingHours !== undefined && { working_hours: input.workingHours }),
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.phone !== undefined && { phone: input.phone }),
-      ...(input.fax !== undefined && { fax: input.fax }),
-      ...(input.email !== undefined && { email: input.email }),
-      ...(input.mapUrl !== undefined && { map_url: input.mapUrl }),
-      ...(input.latitude !== undefined && { latitude: toNumeric(input.latitude) }),
-      ...(input.longitude !== undefined && { longitude: toNumeric(input.longitude) }),
-      ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('offices')
+      .set({
+        ...(input.officeType !== undefined && { office_type: input.officeType }),
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.address !== undefined && { address: input.address }),
+        ...(input.workingHours !== undefined && { working_hours: input.workingHours }),
+        ...(input.description !== undefined && { description: input.description }),
+        ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.fax !== undefined && { fax: input.fax }),
+        ...(input.email !== undefined && { email: input.email }),
+        ...(input.mapUrl !== undefined && { map_url: input.mapUrl }),
+        ...(input.latitude !== undefined && { latitude: toNumeric(input.latitude) }),
+        ...(input.longitude !== undefined && { longitude: toNumeric(input.longitude) }),
+        ...(input.featuredImageId !== undefined && { featured_image_id: input.featuredImageId }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toOffice(row);
   }
 
@@ -74,13 +91,21 @@ export class KyselyOfficeDao extends BaseDao implements OfficeDao {
   }
 
   async publish(id: string): Promise<Office> {
-    const row = await this.db.updateTable('offices').set({ status: 'published' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('offices')
+      .set({ status: 'published' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toOffice(row);
   }
   async unpublish(id: string): Promise<Office> {
-    const row = await this.db.updateTable('offices').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('offices')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toOffice(row);
   }
 }

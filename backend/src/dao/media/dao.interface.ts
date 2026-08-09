@@ -1,5 +1,11 @@
 import type { Page, Paged } from '../helpers.js';
-import type { CreateMediaInput, Media, MediaFilter, UpdateMediaInput } from './object.js';
+import type {
+  CreateMediaInput,
+  Media,
+  MediaFilter,
+  MediaReferencePlace,
+  UpdateMediaInput,
+} from './object.js';
 
 /**
  * Hop dong truy cap bang `media`.
@@ -10,6 +16,9 @@ import type { CreateMediaInput, Media, MediaFilter, UpdateMediaInput } from './o
 export interface MediaDao {
   findById(id: string): Promise<Media | null>;
 
+  /** Doc ca ban ghi da xoa mem; chi dung cho purge noi bo. */
+  findStoredById(id: string): Promise<Media | null>;
+
   /**
    * Lay nhieu id trong MOT truy van.
    *
@@ -19,6 +28,13 @@ export interface MediaDao {
   findManyByIds(ids: readonly string[]): Promise<Media[]>;
 
   findByStoragePath(path: string): Promise<Media | null>;
+
+  /**
+   * Phan giai mot tep cong khai tu original HOAC variants.
+   * Khong bao gio tra protected/deleted, nen controller `/media/*` khong the
+   * bien thanh static file server mo cho ca MEDIA_ROOT.
+   */
+  findActiveByPublicAssetPath(path: string): Promise<Media | null>;
 
   /** Tra ve ban ghi cu neu tep trung — dung de khong luu hai lan cung mot anh. */
   findByChecksum(checksum: string): Promise<Media | null>;
@@ -60,4 +76,7 @@ export interface MediaDao {
    * dem thieu mot nguon la xoa nham anh dang hien tren trang.
    */
   countReferences(id: string): Promise<number>;
+
+  /** Liet ke toa do cac FK truc tiep (khong gom content_media_refs). */
+  findReferencePlaces(id: string): Promise<readonly MediaReferencePlace[]>;
 }

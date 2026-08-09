@@ -1,10 +1,13 @@
 import type {
   ApplicationCardView,
+  ApplicationDetailView,
   ApplicationTreeView,
   BrandCardView,
   BrandDetailView,
   IndustryCardView,
+  IndustryDetailView,
   ProductCategoryCardView,
+  ProductCategoryDetailView,
   ProductCategoryTreeView,
   ProductCardView,
   StandardCardView,
@@ -47,43 +50,57 @@ export interface PagedResult<T> {
  */
 export interface TaxonomyService {
   // ── brands ──
-  listBrands(filter: {
-    readonly brandType?: string | undefined;
-    readonly featured?: boolean | undefined;
-    /** Slug cua hang cha. `null` = chi lay hang goc. */
-    readonly parentSlug?: string | null | undefined;
-  }, page?: PageArg): Promise<PagedResult<BrandCardView>>;
+  listBrands(
+    filter: {
+      readonly brandType?: string | undefined;
+      readonly featured?: boolean | undefined;
+      /** Slug cua hang cha. `null` = chi lay hang goc. */
+      readonly parentSlug?: string | null | undefined;
+    },
+    page?: PageArg,
+  ): Promise<PagedResult<BrandCardView>>;
   findBrand(slug: string): Promise<BrandDetailView | null>;
   listBrandChildren(slug: string): Promise<readonly BrandCardView[] | null>;
 
   // ── product categories ──
-  listProductCategories(filter: {
-    readonly featured?: boolean | undefined;
-    readonly parentSlug?: string | null | undefined;
-  }, page?: PageArg): Promise<PagedResult<ProductCategoryCardView>>;
+  listProductCategories(
+    filter: {
+      readonly featured?: boolean | undefined;
+      readonly parentSlug?: string | null | undefined;
+    },
+    page?: PageArg,
+  ): Promise<PagedResult<ProductCategoryCardView>>;
   productCategoryTree(): Promise<readonly ProductCategoryTreeView[]>;
-  findProductCategory(slug: string): Promise<ProductCategoryCardView | null>;
+  findProductCategory(slug: string): Promise<ProductCategoryDetailView | null>;
 
   // ── standards ──
-  listStandards(filter: {
-    readonly organization?: string | undefined;
-    readonly search?: string | undefined;
-    readonly featured?: boolean | undefined;
-  }, page?: PageArg): Promise<PagedResult<StandardCardView>>;
+  listStandards(
+    filter: {
+      readonly organization?: string | undefined;
+      readonly search?: string | undefined;
+      readonly featured?: boolean | undefined;
+    },
+    page?: PageArg,
+  ): Promise<PagedResult<StandardCardView>>;
   findStandard(slug: string): Promise<StandardDetailView | null>;
 
   // ── applications ──
-  listApplications(filter: {
-    readonly featured?: boolean | undefined;
-    readonly parentSlug?: string | null | undefined;
-  }, page?: PageArg): Promise<PagedResult<ApplicationCardView>>;
+  listApplications(
+    filter: {
+      readonly featured?: boolean | undefined;
+      readonly parentSlug?: string | null | undefined;
+    },
+    page?: PageArg,
+  ): Promise<PagedResult<ApplicationCardView>>;
   applicationTree(): Promise<readonly ApplicationTreeView[]>;
-  findApplication(slug: string): Promise<ApplicationCardView | null>;
+  findApplication(slug: string): Promise<ApplicationDetailView | null>;
 
   // ── industries ──
-  listIndustries(filter: { readonly featured?: boolean | undefined }, page?: PageArg):
-    Promise<PagedResult<IndustryCardView>>;
-  findIndustry(slug: string): Promise<IndustryCardView | null>;
+  listIndustries(
+    filter: { readonly featured?: boolean | undefined },
+    page?: PageArg,
+  ): Promise<PagedResult<IndustryCardView>>;
+  findIndustry(slug: string): Promise<IndustryDetailView | null>;
 
   /**
    * San pham theo mot nhanh taxonomy — MO RONG NHANH CON (ADR-015).

@@ -21,8 +21,15 @@ export type BannerStatus = 'draft' | 'published' | 'hidden';
  * giai khong ra dia chi — bo qua banner do, khong phat mot lien ket gay.
  */
 export type BannerLinkType =
-  | 'product' | 'product_category' | 'brand' | 'service'
-  | 'project' | 'post' | 'page' | 'custom_url' | 'none';
+  | 'product'
+  | 'product_category'
+  | 'brand'
+  | 'service'
+  | 'project'
+  | 'post'
+  | 'page'
+  | 'custom_url'
+  | 'none';
 
 export interface Banner {
   readonly id: string;

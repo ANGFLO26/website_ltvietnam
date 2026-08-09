@@ -4,6 +4,16 @@ import type { Setting, UpsertSettingInput } from './object.js';
 import { toSetting } from './mapper.js';
 
 export class KyselySettingDao extends BaseDao implements SettingDao {
+  async listAll(): Promise<Setting[]> {
+    const rows = await this.db
+      .selectFrom('settings')
+      .selectAll()
+      .orderBy('group_name')
+      .orderBy('setting_key')
+      .execute();
+    return rows.map(toSetting);
+  }
+
   async findByGroup(group: string): Promise<Setting[]> {
     const rows = await this.db
       .selectFrom('settings')

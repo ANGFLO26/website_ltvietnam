@@ -24,16 +24,20 @@ export class KyselyBrandDao extends TreeDao implements BrandDao {
   // ── doc ────────────────────────────────────────────────────────
   async findById(id: string): Promise<Brand | null> {
     const row = await this.db
-      .selectFrom('brands').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null)
+      .selectFrom('brands')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
       .executeTakeFirst();
     return row ? toBrand(row) : null;
   }
 
   async findBySlug(slug: string): Promise<Brand | null> {
     const row = await this.db
-      .selectFrom('brands').selectAll()
-      .where('slug', '=', slug).where('deleted_at', 'is', null)
+      .selectFrom('brands')
+      .selectAll()
+      .where('slug', '=', slug)
+      .where('deleted_at', 'is', null)
       .executeTakeFirst();
     return row ? toBrand(row) : null;
   }
@@ -45,12 +49,18 @@ export class KyselyBrandDao extends TreeDao implements BrandDao {
     if (filter.status) q = q.where('status', '=', filter.status);
     if (filter.isFeatured !== undefined) q = q.where('is_featured', '=', filter.isFeatured);
     if (filter.parentId !== undefined) {
-      q = filter.parentId === null
-        ? q.where('parent_id', 'is', null)
-        : q.where('parent_id', '=', filter.parentId);
+      q =
+        filter.parentId === null
+          ? q.where('parent_id', 'is', null)
+          : q.where('parent_id', '=', filter.parentId);
     }
 
-    const rows = await q.orderBy('display_order').orderBy('name').limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('display_order')
+      .orderBy('name')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
 
     let cq = this.db.selectFrom('brands').select(({ fn }) => fn.countAll<string>().as('n'));
     if (!filter.includeDeleted) cq = cq.where('deleted_at', 'is', null);
@@ -133,15 +143,22 @@ export class KyselyBrandDao extends TreeDao implements BrandDao {
       .executeTakeFirstOrThrow();
     // Set mot lan, khong ghi de khi republish (ADR-002 muc 7).
     await this.slugs.markFirstPublished(id, at);
-    const fresh = await this.db.selectFrom('brands').selectAll().where('id', '=', id).executeTakeFirstOrThrow();
+    const fresh = await this.db
+      .selectFrom('brands')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirstOrThrow();
     void row;
     return toBrand(fresh);
   }
 
   async unpublish(id: string): Promise<Brand> {
     const row = await this.db
-      .updateTable('brands').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+      .updateTable('brands')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toBrand(row);
   }
 
@@ -159,4 +176,3 @@ export class KyselyBrandDao extends TreeDao implements BrandDao {
     return this.slugs.canHardDelete(id);
   }
 }
-

@@ -8,11 +8,11 @@
   },
   "scripts": {
     "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @ltv/backend build && pnpm --filter @ltv/frontend build && pnpm --filter @ltv/worker build",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm build:packages && pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "pnpm -r test",
+    "test": "pnpm build:packages && pnpm -r test",
     "db:migrate": "pnpm build:packages && pnpm --filter @ltv/db migrate",
     "db:status": "pnpm build:packages && pnpm --filter @ltv/db status",
     "db:rollback": "pnpm build:packages && pnpm --filter @ltv/db rollback",

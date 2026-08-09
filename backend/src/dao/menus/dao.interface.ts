@@ -5,6 +5,7 @@ import type {
   MenuLocation,
   MenuTree,
   UpsertMenuItemInput,
+  UpdateMenuInput,
 } from './object.js';
 
 export interface MenuDao {
@@ -14,6 +15,7 @@ export interface MenuDao {
   listAll(): Promise<Menu[]>;
 
   insert(input: CreateMenuInput): Promise<Menu>;
+  update(id: string, input: UpdateMenuInput): Promise<Menu>;
   delete(id: string): Promise<void>;
 
   /**
@@ -27,6 +29,11 @@ export interface MenuDao {
 
   /** Danh sach phang, ke ca muc an — cho man hinh quan tri. */
   listItems(menuId: string): Promise<MenuItem[]>;
+  findItemById(id: string): Promise<MenuItem | null>;
+  insertItem(menuId: string, input: UpsertMenuItemInput): Promise<MenuItem>;
+  updateItem(id: string, input: Partial<UpsertMenuItemInput>): Promise<MenuItem>;
+  deleteItem(id: string): Promise<void>;
+  reorderItems(menuId: string, itemIds: readonly string[]): Promise<void>;
 
   /**
    * Thay TOAN BO muc cua mot menu.

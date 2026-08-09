@@ -215,7 +215,9 @@ export interface InquiriesTable {
 
 export interface InquiryOutboxTable {
   id: Generated<string>;
-  inquiry_id: string;
+  inquiry_id: string | null;
+  notification_type: Generated<string>;
+  payload: JsonGen;
   channel: Generated<string>;
   recipient: string;
   status: Generated<string>;

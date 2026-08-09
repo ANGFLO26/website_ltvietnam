@@ -21,14 +21,22 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
   }
 
   async findById(id: string): Promise<Standard | null> {
-    const row = await this.db.selectFrom('standards').selectAll()
-      .where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('standards')
+      .selectAll()
+      .where('id', '=', id)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toStandard(row) : null;
   }
 
   async findBySlug(slug: string): Promise<Standard | null> {
-    const row = await this.db.selectFrom('standards').selectAll()
-      .where('slug', '=', slug).where('deleted_at', 'is', null).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('standards')
+      .selectAll()
+      .where('slug', '=', slug)
+      .where('deleted_at', 'is', null)
+      .executeTakeFirst();
     return row ? toStandard(row) : null;
   }
 
@@ -38,7 +46,9 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
    * khi INSERT lai bi tu choi vi trung — mot loi rat kho lan ra.
    */
   async findByCode(organization: string, code: string): Promise<Standard | null> {
-    const row = await this.db.selectFrom('standards').selectAll()
+    const row = await this.db
+      .selectFrom('standards')
+      .selectAll()
       .where(sql<boolean>`upper(organization) = upper(${organization})`)
       .where(sql<boolean>`upper(code) = upper(${code})`)
       .where('deleted_at', 'is', null)
@@ -51,10 +61,10 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
   ): Promise<Standard[]> {
     if (pairs.length === 0) return [];
     // MOT truy van cho ca lo — nhap 200 san pham khong sinh 200 vong lap.
-    const tuples = sql.join(
-      pairs.map((p) => sql`(upper(${p.organization}), upper(${p.code}))`),
-    );
-    const rows = await this.db.selectFrom('standards').selectAll()
+    const tuples = sql.join(pairs.map((p) => sql`(upper(${p.organization}), upper(${p.code}))`));
+    const rows = await this.db
+      .selectFrom('standards')
+      .selectAll()
       .where(sql<boolean>`(upper(organization), upper(code)) IN (${tuples})`)
       .where('deleted_at', 'is', null)
       .execute();
@@ -66,15 +76,22 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
     let q = this.db.selectFrom('standards').selectAll();
     let cq = this.db.selectFrom('standards').select(({ fn }) => fn.countAll<string>().as('n'));
 
-    if (!filter.includeDeleted) { q = q.where('deleted_at', 'is', null); cq = cq.where('deleted_at', 'is', null); }
-    if (filter.status) { q = q.where('status', '=', filter.status); cq = cq.where('status', '=', filter.status); }
+    if (!filter.includeDeleted) {
+      q = q.where('deleted_at', 'is', null);
+      cq = cq.where('deleted_at', 'is', null);
+    }
+    if (filter.status) {
+      q = q.where('status', '=', filter.status);
+      cq = cq.where('status', '=', filter.status);
+    }
     if (filter.isFeatured !== undefined) {
       q = q.where('is_featured', '=', filter.isFeatured);
       cq = cq.where('is_featured', '=', filter.isFeatured);
     }
     if (filter.organization) {
       const cond = sql<boolean>`upper(organization) = upper(${filter.organization})`;
-      q = q.where(cond); cq = cq.where(cond);
+      q = q.where(cond);
+      cq = cq.where(cond);
     }
     if (filter.search) {
       const needle = `%${escapeLike(filter.search)}%`;
@@ -82,8 +99,13 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
       cq = cq.where((eb) => eb.or([eb('code', 'ilike', needle), eb('name', 'ilike', needle)]));
     }
 
-    const rows = await q.orderBy('display_order').orderBy('organization').orderBy('code')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+    const rows = await q
+      .orderBy('display_order')
+      .orderBy('organization')
+      .orderBy('code')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toStandard), total, p);
   }
@@ -100,30 +122,40 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
   }
 
   async insert(input: CreateStandardInput): Promise<Standard> {
-    const row = await this.db.insertInto('standards').values({
-      organization: input.organization,
-      code: input.code,
-      slug: input.slug,
-      name: input.name ?? null,
-      description: input.description ?? null,
-      seo_title: input.seoTitle ?? null,
-      seo_description: input.seoDescription ?? null,
-    }).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .insertInto('standards')
+      .values({
+        ...(input.initialStatus !== undefined && { status: input.initialStatus }),
+        organization: input.organization,
+        code: input.code,
+        slug: input.slug,
+        name: input.name ?? null,
+        description: input.description ?? null,
+        seo_title: input.seoTitle ?? null,
+        seo_description: input.seoDescription ?? null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toStandard(row);
   }
 
   async update(id: string, input: UpdateStandardInput): Promise<Standard> {
-    const row = await this.db.updateTable('standards').set({
-      ...(input.organization !== undefined && { organization: input.organization }),
-      ...(input.code !== undefined && { code: input.code }),
-      ...(input.slug !== undefined && { slug: input.slug }),
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.description !== undefined && { description: input.description }),
-      ...(input.seoTitle !== undefined && { seo_title: input.seoTitle }),
-      ...(input.seoDescription !== undefined && { seo_description: input.seoDescription }),
-      ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
-      ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-    }).where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('standards')
+      .set({
+        ...(input.organization !== undefined && { organization: input.organization }),
+        ...(input.code !== undefined && { code: input.code }),
+        ...(input.slug !== undefined && { slug: input.slug }),
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.description !== undefined && { description: input.description }),
+        ...(input.seoTitle !== undefined && { seo_title: input.seoTitle }),
+        ...(input.seoDescription !== undefined && { seo_description: input.seoDescription }),
+        ...(input.isFeatured !== undefined && { is_featured: input.isFeatured }),
+        ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toStandard(row);
   }
 
@@ -138,17 +170,27 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
   }
 
   async publish(id: string, at: Date): Promise<Standard> {
-    await this.db.updateTable('standards')
-      .set({ status: 'published', published_at: at }).where('id', '=', id).execute();
+    await this.db
+      .updateTable('standards')
+      .set({ status: 'published', published_at: at })
+      .where('id', '=', id)
+      .execute();
     await this.slugs.markFirstPublished(id, at);
-    const row = await this.db.selectFrom('standards').selectAll()
-      .where('id', '=', id).executeTakeFirstOrThrow();
+    const row = await this.db
+      .selectFrom('standards')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirstOrThrow();
     return toStandard(row);
   }
 
   async unpublish(id: string): Promise<Standard> {
-    const row = await this.db.updateTable('standards').set({ status: 'hidden' })
-      .where('id', '=', id).returningAll().executeTakeFirstOrThrow();
+    const row = await this.db
+      .updateTable('standards')
+      .set({ status: 'hidden' })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
     return toStandard(row);
   }
 
@@ -158,8 +200,12 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
   assertSlugAvailable(slug: string, exceptId?: string): Promise<void> {
     return this.slugs.assertSlugAvailable(slug, undefined, exceptId);
   }
-  wasEverPublished(id: string): Promise<boolean> { return this.slugs.wasEverPublished(id); }
-  canHardDelete(id: string): Promise<boolean> { return this.slugs.canHardDelete(id); }
+  wasEverPublished(id: string): Promise<boolean> {
+    return this.slugs.wasEverPublished(id);
+  }
+  canHardDelete(id: string): Promise<boolean> {
+    return this.slugs.canHardDelete(id);
+  }
 }
 
 function escapeLike(s: string): string {

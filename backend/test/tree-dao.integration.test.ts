@@ -24,8 +24,10 @@ run('TreeDao + SlugSupport tren PostgreSQL that', () => {
 
   const mk = async (key: string, parent: string | null) => {
     const b = await daos.brands.insert({
-      parentId: parent, brandType: parent ? 'sub_brand' : 'manufacturer',
-      name: `${tag}-${key}`, slug: `${tag}-${key}`,
+      parentId: parent,
+      brandType: parent ? 'sub_brand' : 'manufacturer',
+      name: `${tag}-${key}`,
+      slug: `${tag}-${key}`,
     });
     ids[key] = b.id;
     return b;
@@ -130,7 +132,7 @@ run('TreeDao + SlugSupport tren PostgreSQL that', () => {
   it('slug cua noi dung DA XOA MEM van bi giu (ADR-002 muc 3)', async () => {
     const tmp = await mk('tam', null);
     await daos.brands.softDelete(tmp.id, new Date());
-    expect(await daos.brands.findById(tmp.id)).toBeNull();      // khong con thay
+    expect(await daos.brands.findById(tmp.id)).toBeNull(); // khong con thay
     expect(await daos.brands.isSlugAvailable(tmp.slug)).toBe(false); // nhung slug van bi giu
   });
 
@@ -145,8 +147,8 @@ run('TreeDao + SlugSupport tren PostgreSQL that', () => {
     const t2 = new Date('2026-06-01T00:00:00Z');
     await daos.brands.publish(b.id, t2);
     const after2 = await daos.brands.findById(b.id);
-    expect(after2!.publishedAt?.toISOString()).toBe(t2.toISOString());       // doi
-    expect(after2!.firstPublishedAt?.toISOString()).toBe(t1.toISOString());  // KHONG doi
+    expect(after2!.publishedAt?.toISOString()).toBe(t2.toISOString()); // doi
+    expect(after2!.firstPublishedAt?.toISOString()).toBe(t1.toISOString()); // KHONG doi
   });
 
   it('canHardDelete tu choi noi dung da tung cong khai', async () => {

@@ -3,6 +3,7 @@ import type {
   ClaimedOutboxJob,
   CreateInquiryInput,
   CreateOutboxJobInput,
+  CreatePasswordResetJobInput,
   EmailStatus,
   Inquiry,
   InquiryCreateResult,
@@ -45,6 +46,9 @@ export interface InquiryDao {
    * neu da co, de goi lai khi replay khong bi loi.
    */
   enqueueEmail(input: CreateOutboxJobInput): Promise<OutboxJob | null>;
+
+  /** Tao job reset mat khau. Token CHI nam trong payload outbox, khong vao log. */
+  enqueuePasswordReset(input: CreatePasswordResetJobInput): Promise<OutboxJob>;
 
   findJobsByInquiry(inquiryId: string): Promise<OutboxJob[]>;
 

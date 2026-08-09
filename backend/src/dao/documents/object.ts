@@ -1,8 +1,14 @@
 import type { EntityStatus } from '../brands/object.js';
 
 export type DocumentType =
-  | 'catalogue' | 'brochure' | 'datasheet' | 'application_note'
-  | 'company_profile' | 'manual' | 'certificate' | 'other';
+  | 'catalogue'
+  | 'brochure'
+  | 'datasheet'
+  | 'application_note'
+  | 'company_profile'
+  | 'manual'
+  | 'certificate'
+  | 'other';
 
 /**
  * MUC DO HIEN THI cua tai lieu — ranh gioi D20.
@@ -17,7 +23,7 @@ export type DocumentType =
  * YouTube/Vimeo qua khoi `external_video`, khong luu tep.
  */
 export type DocumentVisibility =
-  | 'public' | 'hidden' | 'email_required' | 'customer_only' | 'staff_only';
+  'public' | 'hidden' | 'email_required' | 'customer_only' | 'staff_only';
 
 export interface AppDocument {
   readonly id: string;

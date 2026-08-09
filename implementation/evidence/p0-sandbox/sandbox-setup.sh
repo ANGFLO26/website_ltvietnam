@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# LUU TRU BANG CHUNG P0: chi tai hien moi truong sandbox cu, khong dung cho local dev.
 # ─────────────────────────────────────────────────────────────────────
 # Dung moi truong kiem thu trong sandbox Linux (KHONG co Docker, khong sudo).
 #
@@ -9,8 +10,8 @@
 # Vi sao chep ma nguon sang /tmp: thu muc lam viec duoc gan qua he thong tep
 # cua Windows, va `node_modules` tren do cham toi muc khong dung duoc.
 #
-#   bash scripts/sandbox-setup.sh          # dung tu dau
-#   bash scripts/sandbox-setup.sh sync     # chi dong bo ma nguon (nhanh)
+#   bash implementation/evidence/p0-sandbox/sandbox-setup.sh
+#   bash implementation/evidence/p0-sandbox/sandbox-setup.sh sync
 # ─────────────────────────────────────────────────────────────────────
 set -euo pipefail
 

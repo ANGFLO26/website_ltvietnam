@@ -1,5 +1,5 @@
 # =====================================================================
-# LT VIETNAM - SQL Execution Verification (v1.2.1) - Windows PowerShell
+# LT VIETNAM - SQL Execution Verification (v1.2.1 legacy) - Windows PowerShell
 # Run the complete verification suite against a real PostgreSQL 16 server.
 #
 # Requirement: psql (Postgres 16 client) must be in PATH and connected to PostgreSQL 16.

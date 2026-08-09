@@ -34,9 +34,19 @@ import type { SiteService } from './interface.js';
  * co the tro toi tam loai thuc the, va do la cai gia cua lien ket da hinh.
  */
 export type SiteDaos = DaoScope<
-  | 'menus' | 'banners' | 'customers' | 'offices' | 'homepageSections'
-  | 'pages' | 'productCategories' | 'brands' | 'services'
-  | 'postCategories' | 'products' | 'posts' | 'projects'
+  | 'menus'
+  | 'banners'
+  | 'customers'
+  | 'offices'
+  | 'homepageSections'
+  | 'pages'
+  | 'productCategories'
+  | 'brands'
+  | 'services'
+  | 'postCategories'
+  | 'products'
+  | 'posts'
+  | 'projects'
 >;
 
 /** Bao nhieu phan tu moi nhom o trang chu. */
@@ -339,11 +349,7 @@ export class SiteServiceImpl implements SiteService {
   }
 
   // ══════════════════════════ tim kiem ══════════════════════════
-  async search(
-    q: string,
-    _locale: Locale,
-    page?: PageArg,
-  ): Promise<PagedResult<SearchHitView>> {
+  async search(q: string, _locale: Locale, page?: PageArg): Promise<PagedResult<SearchHitView>> {
     const p = trang(page);
     /**
      * Dung lai `ProductQueryService.list({ search })`, khong viet truy van moi.

@@ -20,8 +20,11 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
     daos = createDaoManager(createKysely(pool));
   });
   afterAll(async () => {
-    await pool.query(`DELETE FROM ltv.services WHERE id IN
-      (SELECT service_id FROM ltv.service_translations WHERE slug LIKE $1)`, [`${tag}-%`]);
+    await pool.query(
+      `DELETE FROM ltv.services WHERE id IN
+      (SELECT service_id FROM ltv.service_translations WHERE slug LIKE $1)`,
+      [`${tag}-%`],
+    );
     await pool.query(`DELETE FROM ltv.pages WHERE page_type LIKE $1`, [`${tag}-%`]);
     await pool.end();
   });
@@ -30,10 +33,14 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
   const makeService = async (key: string) => {
     const s = await daos.services.insert({ serviceType: 'calibration' });
     await daos.services.upsertTranslation(s.id, {
-      locale: 'vi', name: `Hieu chuan ${key}`, slug: slug(`${key}-vi`),
+      locale: 'vi',
+      name: `Hieu chuan ${key}`,
+      slug: slug(`${key}-vi`),
     });
     await daos.services.upsertTranslation(s.id, {
-      locale: 'en', name: `Calibration ${key}`, slug: slug(`${key}-en`),
+      locale: 'en',
+      name: `Calibration ${key}`,
+      slug: slug(`${key}-en`),
     });
     return s;
   };
@@ -136,8 +143,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
 
   it('xuat ban ban dich khong ton tai  →  nem loi, khong im lang', async () => {
     const s = await daos.services.insert({});
-    await expect(daos.services.publishTranslation(s.id, 'en', new Date()))
-      .rejects.toThrow(TranslationMissingError);
+    await expect(daos.services.publishTranslation(s.id, 'en', new Date())).rejects.toThrow(
+      TranslationMissingError,
+    );
   });
 
   // ══════════════════ slug phan pham vi theo locale ══════════════════
@@ -161,7 +169,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
 
     expect(await daos.services.isLocaleSlugAvailable('vi', chung)).toBe(false);
     expect(await daos.services.isLocaleSlugAvailable('en', chung)).toBe(true);
-    await expect(daos.services.assertLocaleSlugAvailable('vi', chung)).rejects.toThrow(SlugTakenError);
+    await expect(daos.services.assertLocaleSlugAvailable('vi', chung)).rejects.toThrow(
+      SlugTakenError,
+    );
     await expect(
       daos.services.upsertTranslation(s2.id, { locale: 'vi', name: 'B', slug: chung }),
     ).rejects.toThrow();
@@ -170,10 +180,15 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
   it('upsert lan hai SUA cho, khong tao hang moi', async () => {
     const s = await daos.services.insert({});
     const a = await daos.services.upsertTranslation(s.id, {
-      locale: 'vi', name: 'Ban dau', slug: slug('upsert'),
+      locale: 'vi',
+      name: 'Ban dau',
+      slug: slug('upsert'),
     });
     const b = await daos.services.upsertTranslation(s.id, {
-      locale: 'vi', name: 'Da sua', slug: slug('upsert'), shortDescription: 'them mo ta',
+      locale: 'vi',
+      name: 'Da sua',
+      slug: slug('upsert'),
+      shortDescription: 'them mo ta',
     });
     expect(b.id).toBe(a.id);
     expect(b.name).toBe('Da sua');
@@ -188,7 +203,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
     // Sua mot loi chinh ta khong duoc lam doi `published_at` —
     // neu doi thi sitemap bao voi Google la trang moi tinh, moi lan sua.
     await daos.services.upsertTranslation(s.id, {
-      locale: 'vi', name: 'Hieu chuan (da sua chinh ta)', slug: slug('h-vi'),
+      locale: 'vi',
+      name: 'Hieu chuan (da sua chinh ta)',
+      slug: slug('h-vi'),
     });
     const vi = (await daos.services.listTranslations(s.id)).find((t) => t.locale === 'vi')!;
     expect(vi.status).toBe('published');
@@ -230,12 +247,13 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
     const cha = await makeService('cha');
     const con = await daos.services.insert({ parentId: cha.id });
     await daos.services.upsertTranslation(con.id, {
-      locale: 'vi', name: 'Dich vu con', slug: slug('con-vi'),
+      locale: 'vi',
+      name: 'Dich vu con',
+      slug: slug('con-vi'),
     });
 
     expect((await daos.services.findById(con.id))!.depth).toBe(1);
-    expect((await daos.services.findSubtreeIds(cha.id)).sort())
-      .toEqual([cha.id, con.id].sort());
+    expect((await daos.services.findSubtreeIds(cha.id)).sort()).toEqual([cha.id, con.id].sort());
 
     await daos.transaction((tx) => tx.services.moveNode(con.id, null));
     expect((await daos.services.findById(con.id))!.depth).toBe(0);
@@ -249,7 +267,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
   it('trang he thong THIEU ban tieng Anh da xuat ban bi neu ten', async () => {
     const p = await daos.pages.insert({ pageType: slug('privacy'), isSystemPage: true });
     await daos.pages.upsertTranslation(p.id, {
-      locale: 'vi', title: 'Chinh sach bao mat', slug: slug('chinh-sach'),
+      locale: 'vi',
+      title: 'Chinh sach bao mat',
+      slug: slug('chinh-sach'),
     });
     await daos.pages.publishTranslation(p.id, 'vi', new Date());
 
@@ -259,7 +279,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
     // Viet ban `en` nhung de NHAP — van la thieu.
     // Day la ly do phai dung NOT EXISTS chu khong phai dem so ban dich.
     await daos.pages.upsertTranslation(p.id, {
-      locale: 'en', title: 'Privacy Policy', slug: slug('privacy-policy'),
+      locale: 'en',
+      title: 'Privacy Policy',
+      slug: slug('privacy-policy'),
     });
     thieu = await daos.pages.findSystemPagesMissingEnglish();
     expect(thieu).toContain(slug('privacy'));
@@ -334,7 +356,9 @@ run('Nhom noi dung co ban dich tren PostgreSQL that', () => {
 
       const con = await daos.services.insert({ serviceType: 'calibration', parentId: goc.id });
       await daos.services.upsertTranslation(con.id, {
-        locale: 'vi', name: 'Con', slug: slug('w-con-vi'),
+        locale: 'vi',
+        name: 'Con',
+        slug: slug('w-con-vi'),
       });
       await daos.services.publishTranslation(con.id, 'vi', new Date());
       await daos.services.publish(con.id, new Date());

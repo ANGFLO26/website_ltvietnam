@@ -6,21 +6,32 @@ import { toHomepageSection } from './mapper.js';
 
 export class KyselyHomepageSectionDao extends BaseDao implements HomepageSectionDao {
   async listAll(): Promise<HomepageSection[]> {
-    const rows = await this.db.selectFrom('homepage_sections').selectAll()
-      .orderBy('display_order').orderBy('section_type').execute();
+    const rows = await this.db
+      .selectFrom('homepage_sections')
+      .selectAll()
+      .orderBy('display_order')
+      .orderBy('section_type')
+      .execute();
     return rows.map(toHomepageSection);
   }
 
   async listEnabled(): Promise<HomepageSection[]> {
-    const rows = await this.db.selectFrom('homepage_sections').selectAll()
+    const rows = await this.db
+      .selectFrom('homepage_sections')
+      .selectAll()
       .where('is_enabled', '=', true)
-      .orderBy('display_order').orderBy('section_type').execute();
+      .orderBy('display_order')
+      .orderBy('section_type')
+      .execute();
     return rows.map(toHomepageSection);
   }
 
   async findByType(sectionType: string): Promise<HomepageSection | null> {
-    const row = await this.db.selectFrom('homepage_sections').selectAll()
-      .where('section_type', '=', sectionType).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('homepage_sections')
+      .selectAll()
+      .where('section_type', '=', sectionType)
+      .executeTakeFirst();
     return row ? toHomepageSection(row) : null;
   }
 
@@ -40,28 +51,43 @@ export class KyselyHomepageSectionDao extends BaseDao implements HomepageSection
      * Loi chi lo ra khi hang DA TON TAI, nen lan chay dau tien tren so do
      * sach van xanh. Bai kiem sap xep bat duoc cho nay.
      */
-    const row = Object.keys(changes).length === 0
-      ? await this.db.insertInto('homepage_sections')
-          .values({ section_type: input.sectionType, settings: JSON.stringify(input.settings ?? {}) })
-          .onConflict((oc) => oc.column('section_type').doNothing())
-          .returningAll()
-          .executeTakeFirst()
-        ?? await this.db.selectFrom('homepage_sections').selectAll()
-          .where('section_type', '=', input.sectionType).executeTakeFirstOrThrow()
-      : await this.db.insertInto('homepage_sections').values({
-          section_type: input.sectionType,
-          ...(input.isEnabled !== undefined && { is_enabled: input.isEnabled }),
-          ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
-          settings: JSON.stringify(input.settings ?? {}),
-        }).onConflict((oc) => oc.column('section_type').doUpdateSet(changes))
-          .returningAll().executeTakeFirstOrThrow();
+    const row =
+      Object.keys(changes).length === 0
+        ? ((await this.db
+            .insertInto('homepage_sections')
+            .values({
+              section_type: input.sectionType,
+              settings: JSON.stringify(input.settings ?? {}),
+            })
+            .onConflict((oc) => oc.column('section_type').doNothing())
+            .returningAll()
+            .executeTakeFirst()) ??
+          (await this.db
+            .selectFrom('homepage_sections')
+            .selectAll()
+            .where('section_type', '=', input.sectionType)
+            .executeTakeFirstOrThrow()))
+        : await this.db
+            .insertInto('homepage_sections')
+            .values({
+              section_type: input.sectionType,
+              ...(input.isEnabled !== undefined && { is_enabled: input.isEnabled }),
+              ...(input.displayOrder !== undefined && { display_order: input.displayOrder }),
+              settings: JSON.stringify(input.settings ?? {}),
+            })
+            .onConflict((oc) => oc.column('section_type').doUpdateSet(changes))
+            .returningAll()
+            .executeTakeFirstOrThrow();
 
     return toHomepageSection(row);
   }
 
   async setEnabled(sectionType: string, enabled: boolean): Promise<void> {
-    await this.db.updateTable('homepage_sections').set({ is_enabled: enabled })
-      .where('section_type', '=', sectionType).execute();
+    await this.db
+      .updateTable('homepage_sections')
+      .set({ is_enabled: enabled })
+      .where('section_type', '=', sectionType)
+      .execute();
   }
 
   /**

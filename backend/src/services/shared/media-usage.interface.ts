@@ -29,8 +29,7 @@ export interface MediaUsagePlace {
 }
 
 export type MediaDeleteDecision =
-  | { readonly allowed: true }
-  | { readonly allowed: false; readonly usage: MediaUsage };
+  { readonly allowed: true } | { readonly allowed: false; readonly usage: MediaUsage };
 
 export interface MediaUsageService {
   /**

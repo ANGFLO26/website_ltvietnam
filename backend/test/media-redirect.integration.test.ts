@@ -46,7 +46,7 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
     const m = await upload('a', { width: 1200, height: 800, altText: 'may cat OptiDist' });
     const back = await daos.media.findById(m.id);
     expect(back!.storageClass).toBe('public');
-    expect(back!.fileSize).toBe(123_456);       // BIGINT ve dung so, khong phai chuoi
+    expect(back!.fileSize).toBe(123_456); // BIGINT ve dung so, khong phai chuoi
     expect(typeof back!.fileSize).toBe('number');
     expect(back!.width).toBe(1200);
     expect(back!.variants).toEqual({});
@@ -57,14 +57,15 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
     const b = await upload('b2');
     const got = await daos.media.findManyByIds([a.id, b.id, crypto.randomUUID()]);
     expect(got.map((x) => x.id).sort()).toEqual([a.id, b.id].sort());
-    expect(await daos.media.findManyByIds([])).toEqual([]);   // khong ban truy van rong
+    expect(await daos.media.findManyByIds([])).toEqual([]); // khong ban truy van rong
   });
 
   it('setVariants ghi va doc lai duoc; gia tri la se bi loai', async () => {
     const m = await upload('c');
     await daos.media.setVariants(m.id, { thumb: 'p/t.jpg', large: 'p/l.jpg' });
     expect((await daos.media.findById(m.id))!.variants).toEqual({
-      thumb: 'p/t.jpg', large: 'p/l.jpg',
+      thumb: 'p/t.jpg',
+      large: 'p/l.jpg',
     });
     // JSONB tu do: hinh dang la phai bi mapper loai, khong duoc lot len tren
     await pool.query(`UPDATE ltv.media SET variants = '{"thumb": 5}'::jsonb WHERE id = $1`, [m.id]);
@@ -118,7 +119,10 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
 
     // Tham chieu qua KHOA NGOAI
     const b = await daos.brands.insert({
-      brandType: 'manufacturer', name: `${tag}-ref`, slug: `${tag}-ref`, logoId: logo.id,
+      brandType: 'manufacturer',
+      name: `${tag}-ref`,
+      slug: `${tag}-ref`,
+      logoId: logo.id,
     });
     expect(await daos.media.countReferences(logo.id)).toBe(1);
 
@@ -152,7 +156,7 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
 
     await daos.media.markPurged(m.id, new Date());
     const after = await daos.media.findPurgeCandidates(new Date(Date.now() - 30 * 86_400_000), 50);
-    expect(after.map((x) => x.id)).not.toContain(m.id);  // khong don hai lan
+    expect(after.map((x) => x.id)).not.toContain(m.id); // khong don hai lan
   });
 
   // ── redirects ──────────────────────────────────────────────────
@@ -164,9 +168,15 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
   });
 
   it('GOP CHUOI — doi slug lan hai van chi mot chang', async () => {
-    const A = `/${tag}/a`, B = `/${tag}/b`, C = `/${tag}/c`;
-    await daos.transaction((tx) => tx.redirects.createCollapsingChain({ sourcePath: A, targetPath: B }));
-    await daos.transaction((tx) => tx.redirects.createCollapsingChain({ sourcePath: B, targetPath: C }));
+    const A = `/${tag}/a`,
+      B = `/${tag}/b`,
+      C = `/${tag}/c`;
+    await daos.transaction((tx) =>
+      tx.redirects.createCollapsingChain({ sourcePath: A, targetPath: B }),
+    );
+    await daos.transaction((tx) =>
+      tx.redirects.createCollapsingChain({ sourcePath: B, targetPath: C }),
+    );
 
     // A phai tro THANG toi C, khong phai qua B
     expect((await daos.redirects.findActiveBySource(A))!.targetPath).toBe(C);
@@ -174,49 +184,86 @@ run('MediaDao + RedirectDao tren PostgreSQL that', () => {
   });
 
   it('GOP CHUOI — dich da la source thi di thang toi cuoi', async () => {
-    const X = `/${tag}/x`, Y = `/${tag}/y`, Z = `/${tag}/z`;
+    const X = `/${tag}/x`,
+      Y = `/${tag}/y`,
+      Z = `/${tag}/z`;
     await daos.redirects.upsert({ sourcePath: Y, targetPath: Z });
     // Tao X -> Y, ma Y da tro toi Z: phai luu thang X -> Z
-    await daos.transaction((tx) => tx.redirects.createCollapsingChain({ sourcePath: X, targetPath: Y }));
+    await daos.transaction((tx) =>
+      tx.redirects.createCollapsingChain({ sourcePath: X, targetPath: Y }),
+    );
     expect((await daos.redirects.findActiveBySource(X))!.targetPath).toBe(Z);
   });
 
   it('CHAN vong lap: A -> B roi B -> A', async () => {
-    const A = `/${tag}/p`, B = `/${tag}/q`;
+    const A = `/${tag}/p`,
+      B = `/${tag}/q`;
     await daos.redirects.upsert({ sourcePath: A, targetPath: B });
     await expect(
-      daos.transaction((tx) => tx.redirects.createCollapsingChain({ sourcePath: B, targetPath: A })),
+      daos.transaction((tx) =>
+        tx.redirects.createCollapsingChain({ sourcePath: B, targetPath: A }),
+      ),
     ).rejects.toThrow(RedirectLoopError);
   });
 
   it('CHAN tro ve chinh minh', async () => {
     const S = `/${tag}/self`;
-    await expect(daos.redirects.upsert({ sourcePath: S, targetPath: S })).rejects.toThrow(RedirectLoopError);
+    await expect(daos.redirects.upsert({ sourcePath: S, targetPath: S })).rejects.toThrow(
+      RedirectLoopError,
+    );
   });
 
   it('findLoops khong bao dong gia tren du lieu sach', async () => {
-    expect(await daos.redirects.findLoops()).toEqual([]);
+    const loops = await daos.redirects.findLoops();
+    // Other integration files intentionally create a loop and Vitest runs
+    // files concurrently. Only assert that this fixture created no loop.
+    expect(loops.filter((path) => path.includes(tag))).toEqual([]);
   });
 
   it('nhap hang loat bo qua source da co, khong lam hong cai cu', async () => {
     const rows = [
       { sourcePath: `/${tag}/m1.aspx`, targetPath: `/${tag}/m1` },
       { sourcePath: `/${tag}/m2.aspx`, targetPath: `/${tag}/m2` },
-      { sourcePath: `/${tag}/m2.aspx`, targetPath: `/${tag}/khac` },  // trung trong cung lo
+      { sourcePath: `/${tag}/m2.aspx`, targetPath: `/${tag}/khac` }, // trung trong cung lo
     ];
     const n = await daos.redirects.bulkInsert(rows.slice(0, 2));
     expect(n).toBe(2);
     const again = await daos.redirects.bulkInsert([rows[1]!, rows[2]!]);
     expect(again).toBe(0);
-    expect((await daos.redirects.findActiveBySource(`/${tag}/m2.aspx`))!.targetPath).toBe(`/${tag}/m2`);
+    expect((await daos.redirects.findActiveBySource(`/${tag}/m2.aspx`))!.targetPath).toBe(
+      `/${tag}/m2`,
+    );
   });
 
   it('recordHit tang tai cho — hai lan goi cung luc khong mat dem', async () => {
-    const r = await daos.redirects.upsert({ sourcePath: `/${tag}/hit`, targetPath: `/${tag}/dich` });
+    const r = await daos.redirects.upsert({
+      sourcePath: `/${tag}/hit`,
+      targetPath: `/${tag}/dich`,
+    });
     await Promise.all(Array.from({ length: 10 }, () => daos.redirects.recordHit(r.id, new Date())));
     const after = await daos.redirects.findById(r.id);
     expect(after!.hitCount).toBe(10);
     expect(after!.lastHitAt).not.toBeNull();
+  });
+
+  it('retarget giu nguyen id va lich su truy cap', async () => {
+    const r = await daos.redirects.upsert({
+      sourcePath: `/${tag}/retarget`,
+      targetPath: `/${tag}/old-target`,
+    });
+    await daos.redirects.recordHit(r.id, new Date());
+
+    const updated = await daos.transaction((tx) =>
+      tx.redirects.retargetCollapsingChain(r.id, {
+        targetPath: `/${tag}/new-target`,
+        status: 'disabled',
+      }),
+    );
+
+    expect(updated.id).toBe(r.id);
+    expect(updated.hitCount).toBe(1);
+    expect(updated.targetPath).toBe(`/${tag}/new-target`);
+    expect(updated.status).toBe('disabled');
   });
 
   it('ROLLBACK: doi slug that bai thi KHONG con redirect mo coi', async () => {

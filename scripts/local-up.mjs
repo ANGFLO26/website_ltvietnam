@@ -92,7 +92,9 @@ function noiDuoc(port) {
 function datEnv(khoa, giaTri) {
   const cu = readFileSync('.env', 'utf8');
   const mau = new RegExp(`^${khoa}=.*$`, 'm');
-  const moi = mau.test(cu) ? cu.replace(mau, `${khoa}=${giaTri}`) : `${cu.trimEnd()}\n${khoa}=${giaTri}\n`;
+  const moi = mau.test(cu)
+    ? cu.replace(mau, `${khoa}=${giaTri}`)
+    : `${cu.trimEnd()}\n${khoa}=${giaTri}\n`;
   writeFileSync('.env', moi);
 }
 
@@ -170,14 +172,20 @@ async function chonCongTrong() {
 
   let moi = null;
   for (let p = dangDung + 1; p <= dangDung + 20; p++) {
-    if (await conTrong(p)) { moi = p; break; }
+    if (await conTrong(p)) {
+      moi = p;
+      break;
+    }
   }
   if (moi === null) chet(`Cong ${dangDung} bi chiem va khong tim duoc cong trong nao gan do.`);
 
   loi(`Cong ${dangDung} da bi mot chuong trinh khac chiem`);
   if (docker.has(dangDung)) {
     const ai = thu('docker', ['ps', '--format', '{{.Names}} {{.Ports}}']);
-    const ten = ai.out.split('\n').find((d) => d.includes(`:${dangDung}->`))?.split(' ')[0];
+    const ten = ai.out
+      .split('\n')
+      .find((d) => d.includes(`:${dangDung}->`))
+      ?.split(' ')[0];
     loi(`(container docker "${ten ?? '?'}" dang gan cong nay)`);
   } else {
     loi('(thuong la mot ban PostgreSQL cai truc tiep tren may)');
@@ -278,14 +286,29 @@ if (congThat === null) {
 }
 if (congThat !== Number(docEnv('POSTGRES_HOST_PORT') ?? 5432)) {
   datEnv('POSTGRES_HOST_PORT', String(congThat));
-  datEnv('DATABASE_URL', (docEnv('DATABASE_URL') ?? '').replace(/(@[^/:]+):\d+\//, `$1:${congThat}/`));
+  datEnv(
+    'DATABASE_URL',
+    (docEnv('DATABASE_URL') ?? '').replace(/(@[^/:]+):\d+\//, `$1:${congThat}/`),
+  );
   xong(`dong bo .env theo cong docker da gan: ${congThat}`);
 }
 
 process.stdout.write('    cho PostgreSQL san sang');
 let san = false;
 for (let i = 0; i < 60; i++) {
-  if (thu('docker', ['compose', 'exec', '-T', 'postgres', 'pg_isready', '-U', 'ltv', '-d', 'ltvn_dev']).ok) {
+  if (
+    thu('docker', [
+      'compose',
+      'exec',
+      '-T',
+      'postgres',
+      'pg_isready',
+      '-U',
+      'ltv',
+      '-d',
+      'ltvn_dev',
+    ]).ok
+  ) {
     san = true;
     break;
   }

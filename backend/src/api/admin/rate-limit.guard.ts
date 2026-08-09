@@ -39,8 +39,7 @@ export interface RateLimitSpec {
 
 const RATE_LIMIT = 'api:rate-limit';
 
-export const RateLimit = (spec: RateLimitSpec): CustomDecorator =>
-  SetMetadata(RATE_LIMIT, spec);
+export const RateLimit = (spec: RateLimitSpec): CustomDecorator => SetMetadata(RATE_LIMIT, spec);
 
 /**
  * GIỚI HẠN TỐC ĐỘ — chạy TRƯỚC khi chạm tới hàm băm.

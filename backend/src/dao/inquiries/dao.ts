@@ -6,6 +6,7 @@ import type {
   ClaimedOutboxJob,
   CreateInquiryInput,
   CreateOutboxJobInput,
+  CreatePasswordResetJobInput,
   EmailStatus,
   Inquiry,
   InquiryCreateResult,
@@ -16,14 +17,20 @@ import { toInquiry, toOutboxJob } from './mapper.js';
 
 export class KyselyInquiryDao extends BaseDao implements InquiryDao {
   async findById(id: string): Promise<Inquiry | null> {
-    const row = await this.db.selectFrom('inquiries').selectAll()
-      .where('id', '=', id).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('inquiries')
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
     return row ? toInquiry(row) : null;
   }
 
   async findByIdempotencyKey(key: string): Promise<Inquiry | null> {
-    const row = await this.db.selectFrom('inquiries').selectAll()
-      .where('idempotency_key', '=', key).executeTakeFirst();
+    const row = await this.db
+      .selectFrom('inquiries')
+      .selectAll()
+      .where('idempotency_key', '=', key)
+      .executeTakeFirst();
     return row ? toInquiry(row) : null;
   }
 
@@ -31,15 +38,32 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
     const p = normalizePage(page);
     let q = this.db.selectFrom('inquiries').selectAll();
     let cq = this.db.selectFrom('inquiries').select(({ fn }) => fn.countAll<string>().as('n'));
-    if (filter.inquiryType) { q = q.where('inquiry_type', '=', filter.inquiryType); cq = cq.where('inquiry_type', '=', filter.inquiryType); }
-    if (filter.emailStatus) { q = q.where('email_status', '=', filter.emailStatus); cq = cq.where('email_status', '=', filter.emailStatus); }
-    if (filter.productId) { q = q.where('product_id', '=', filter.productId); cq = cq.where('product_id', '=', filter.productId); }
-    if (filter.handled !== undefined) {
-      q = filter.handled ? q.where('handled_at', 'is not', null) : q.where('handled_at', 'is', null);
-      cq = filter.handled ? cq.where('handled_at', 'is not', null) : cq.where('handled_at', 'is', null);
+    if (filter.inquiryType) {
+      q = q.where('inquiry_type', '=', filter.inquiryType);
+      cq = cq.where('inquiry_type', '=', filter.inquiryType);
     }
-    const rows = await q.orderBy('created_at', 'desc').orderBy('id')
-      .limit(p.pageSize).offset(offsetOf(p)).execute();
+    if (filter.emailStatus) {
+      q = q.where('email_status', '=', filter.emailStatus);
+      cq = cq.where('email_status', '=', filter.emailStatus);
+    }
+    if (filter.productId) {
+      q = q.where('product_id', '=', filter.productId);
+      cq = cq.where('product_id', '=', filter.productId);
+    }
+    if (filter.handled !== undefined) {
+      q = filter.handled
+        ? q.where('handled_at', 'is not', null)
+        : q.where('handled_at', 'is', null);
+      cq = filter.handled
+        ? cq.where('handled_at', 'is not', null)
+        : cq.where('handled_at', 'is', null);
+    }
+    const rows = await q
+      .orderBy('created_at', 'desc')
+      .orderBy('id')
+      .limit(p.pageSize)
+      .offset(offsetOf(p))
+      .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toInquiry), total, p);
   }
@@ -48,29 +72,33 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
    * D19. Mot cau lenh quyet dinh, khong co khoang trong giua kiem va ghi.
    */
   async createIdempotent(input: CreateInquiryInput): Promise<InquiryCreateResult> {
-    const inserted = await this.db.insertInto('inquiries').values({
-      inquiry_type: input.inquiryType,
-      full_name: input.fullName,
-      company_name: input.companyName ?? null,
-      phone: input.phone ?? null,
-      email: input.email ?? null,
-      message: input.message,
-      product_id: input.productId ?? null,
-      service_id: input.serviceId ?? null,
-      source_url: input.sourceUrl ?? null,
-      ...(input.locale !== undefined && { locale: input.locale }),
-      preferred_contact_method: input.preferredContactMethod ?? null,
-      province: input.province ?? null,
-      privacy_consent_at: input.privacyConsentAt,
-      idempotency_key: input.idempotencyKey,
-      request_fingerprint: input.requestFingerprint ?? null,
-      request_fingerprint_version: input.requestFingerprintVersion ?? null,
-      ip_address: input.ipAddress ?? null,
-      user_agent: input.userAgent ?? null,
-      // NUMERIC(3,2) — kieu ghi la chuoi.
-      captcha_score: input.captchaScore === undefined || input.captchaScore === null
-        ? null : String(input.captchaScore),
-    })
+    const inserted = await this.db
+      .insertInto('inquiries')
+      .values({
+        inquiry_type: input.inquiryType,
+        full_name: input.fullName,
+        company_name: input.companyName ?? null,
+        phone: input.phone ?? null,
+        email: input.email ?? null,
+        message: input.message,
+        product_id: input.productId ?? null,
+        service_id: input.serviceId ?? null,
+        source_url: input.sourceUrl ?? null,
+        ...(input.locale !== undefined && { locale: input.locale }),
+        preferred_contact_method: input.preferredContactMethod ?? null,
+        province: input.province ?? null,
+        privacy_consent_at: input.privacyConsentAt,
+        idempotency_key: input.idempotencyKey,
+        request_fingerprint: input.requestFingerprint ?? null,
+        request_fingerprint_version: input.requestFingerprintVersion ?? null,
+        ip_address: input.ipAddress ?? null,
+        user_agent: input.userAgent ?? null,
+        // NUMERIC(3,2) — kieu ghi la chuoi.
+        captcha_score:
+          input.captchaScore === undefined || input.captchaScore === null
+            ? null
+            : String(input.captchaScore),
+      })
       // Khong `doUpdateSet`: yeu cau da gui roi thi KHONG duoc sua. Lan gui
       // thu hai cung khoa la mot lan bam nut lap, khong phai mot ban sua.
       .onConflict((oc) => oc.column('idempotency_key').doNothing())
@@ -80,8 +108,11 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
     if (inserted) return { inquiry: toInquiry(inserted), replayed: false };
 
     // `DO NOTHING` khong tra ve hang khi trung — doc lai ban ghi da co.
-    const existing = await this.db.selectFrom('inquiries').selectAll()
-      .where('idempotency_key', '=', input.idempotencyKey).executeTakeFirst();
+    const existing = await this.db
+      .selectFrom('inquiries')
+      .selectAll()
+      .where('idempotency_key', '=', input.idempotencyKey)
+      .executeTakeFirst();
     if (!existing) {
       // Chi xay ra neu hang bi xoa giua hai cau. Nem loi ro rang thay vi
       // tra ve mot ket qua bia dat.
@@ -93,35 +124,62 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
   }
 
   async setEmailStatus(id: string, status: EmailStatus): Promise<void> {
-    await this.db.updateTable('inquiries').set({ email_status: status })
-      .where('id', '=', id).execute();
+    await this.db
+      .updateTable('inquiries')
+      .set({ email_status: status })
+      .where('id', '=', id)
+      .execute();
   }
 
   async markHandled(id: string, at: Date, byUserId: string | null): Promise<void> {
-    await this.db.updateTable('inquiries')
+    await this.db
+      .updateTable('inquiries')
       .set({ handled_at: at, handled_by: byUserId })
-      .where('id', '=', id).execute();
+      .where('id', '=', id)
+      // Nguoi xu ly dau tien la lich su; bam lai khong duoc chiem cong.
+      .where('handled_at', 'is', null)
+      .execute();
   }
 
   // ══════════════════ hang doi gui email ══════════════════
 
   async enqueueEmail(input: CreateOutboxJobInput): Promise<OutboxJob | null> {
-    const row = await this.db.insertInto('inquiry_outbox').values({
-      inquiry_id: input.inquiryId,
-      recipient: input.recipient,
-      ...(input.channel !== undefined && { channel: input.channel }),
-    })
-      .onConflict((oc) =>
-        oc.columns(['inquiry_id', 'channel', 'recipient']).doNothing(),
-      )
+    const row = await this.db
+      .insertInto('inquiry_outbox')
+      .values({
+        inquiry_id: input.inquiryId,
+        notification_type: 'inquiry_received',
+        payload: {},
+        recipient: input.recipient,
+        ...(input.channel !== undefined && { channel: input.channel }),
+      })
+      .onConflict((oc) => oc.columns(['inquiry_id', 'channel', 'recipient']).doNothing())
       .returningAll()
       .executeTakeFirst();
     return row ? toOutboxJob(row) : null;
   }
 
+  async enqueuePasswordReset(input: CreatePasswordResetJobInput): Promise<OutboxJob> {
+    const row = await this.db
+      .insertInto('inquiry_outbox')
+      .values({
+        inquiry_id: null,
+        notification_type: 'password_reset',
+        recipient: input.recipient,
+        payload: { token: input.token },
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return toOutboxJob(row);
+  }
+
   async findJobsByInquiry(inquiryId: string): Promise<OutboxJob[]> {
-    const rows = await this.db.selectFrom('inquiry_outbox').selectAll()
-      .where('inquiry_id', '=', inquiryId).orderBy('created_at').execute();
+    const rows = await this.db
+      .selectFrom('inquiry_outbox')
+      .selectAll()
+      .where('inquiry_id', '=', inquiryId)
+      .orderBy('created_at')
+      .execute();
     return rows.map(toOutboxJob);
   }
 
@@ -136,11 +194,7 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
    * Nho vay worker khong the vo tinh lay job ngoai transaction va de hai
    * worker giu cung mot job.
    */
-  async claimJobs(
-    workerId: string,
-    batchSize: number,
-    now: Date,
-  ): Promise<ClaimedOutboxJob[]> {
+  async claimJobs(workerId: string, batchSize: number, now: Date): Promise<ClaimedOutboxJob[]> {
     const limit = Math.max(1, Math.trunc(batchSize));
     const r = await sql<Record<string, unknown>>`
       UPDATE ltv.inquiry_outbox o
@@ -161,9 +215,13 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
   }
 
   async markJobSent(jobId: string, at: Date): Promise<void> {
-    await this.db.updateTable('inquiry_outbox').set({
-      status: 'sent', sent_at: at, locked_at: null, locked_by: null, last_error: null,
-    }).where('id', '=', jobId).execute();
+    await sql`
+      UPDATE ltv.inquiry_outbox
+      SET status = 'sent', sent_at = ${at}, locked_at = NULL, locked_by = NULL,
+          last_error = NULL,
+          payload = CASE WHEN notification_type = 'password_reset' THEN '{}'::jsonb ELSE payload END
+      WHERE id = ${jobId}
+    `.execute(this.db);
   }
 
   /**
@@ -186,7 +244,10 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
           locked_at       = NULL,
           locked_by       = NULL,
           status          = ${nextAttemptAt === null ? 'failed' : 'pending'},
-          next_attempt_at = COALESCE(${nextAttemptAt}, next_attempt_at)
+          next_attempt_at = COALESCE(${nextAttemptAt}, next_attempt_at),
+          payload         = CASE
+            WHEN ${nextAttemptAt}::timestamptz IS NULL AND notification_type = 'password_reset'
+            THEN '{}'::jsonb ELSE payload END
       WHERE id = ${jobId}
     `.execute(this.db);
   }

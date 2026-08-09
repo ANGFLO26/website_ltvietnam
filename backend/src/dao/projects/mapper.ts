@@ -3,12 +3,7 @@ import type { ProjectsTable, ProjectTranslationsTable } from '@ltv/db';
 import type { EntityStatus } from '../brands/object.js';
 import { toBlocks } from '../content.js';
 import type { Locale } from '../translation.support.js';
-import type {
-  CustomerVisibility,
-  Project,
-  ProjectTranslation,
-  ProjectType,
-} from './object.js';
+import type { CustomerVisibility, Project, ProjectTranslation, ProjectType } from './object.js';
 
 export function toProject(row: Selectable<ProjectsTable>): Project {
   return {
