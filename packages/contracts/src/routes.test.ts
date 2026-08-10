@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ROUTES, buildReservedPaths, isReservedPath, localizedPath } from './routes.js';
+import {
+  ROUTES,
+  buildReservedPaths,
+  isReservedPath,
+  localizedPath,
+  routeProgress,
+} from './routes.js';
 
 const DOC = resolve(import.meta.dirname, '../../../doc/02_SITEMAP_VA_CAU_TRUC_DIEU_HUONG.md');
 
@@ -13,6 +19,27 @@ describe('bang route', () => {
 
   it('moi path bat dau bang /', () => {
     for (const r of ROUTES) expect(r.path.startsWith('/')).toBe(true);
+  });
+
+  it('khai bao du 26 route, 15 route co bien the /vi va phase co chu so huu', () => {
+    expect(ROUTES).toHaveLength(26);
+    expect(ROUTES.filter((route) => route.localized)).toHaveLength(15);
+    expect(ROUTES.every((route) => /^W[1-6]$/.test(route.phase))).toBe(true);
+  });
+
+  it('tien do duoc sinh tu status cua route', () => {
+    expect(routeProgress()).toEqual({
+      done: 26,
+      total: 26,
+      byPhase: {
+        W1: { done: 1, total: 1 },
+        W4: { done: 13, total: 13 },
+        W2: { done: 5, total: 5 },
+        W3: { done: 1, total: 1 },
+        W5: { done: 2, total: 2 },
+        W6: { done: 4, total: 4 },
+      },
+    });
   });
 
   /**

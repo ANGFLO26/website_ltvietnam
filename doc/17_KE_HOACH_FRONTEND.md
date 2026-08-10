@@ -60,8 +60,8 @@ một lý do khác hẳn: không phải "không fallback", mà là **không có 
 |---|---|
 | Backend | **198/198 endpoint**, 594 test, 38 phép tiêm lỗi, smoke 228+38 |
 | `packages/contracts` | 13 file kiểu dùng chung + `ROUTES` + `API_ENDPOINTS` (máy đọc được) |
-| `frontend/` | **4 file**: `layout.tsx`, `page.tsx`, `middleware.ts`, `next.config.mjs` |
-| Test frontend | **chưa có** — `package.json` không có test runner |
+| `frontend/` | **W0–W8 hoàn thành**: 26/26 route manifest; SEO, hiệu năng, accessibility và responsive đã nghiệm thu |
+| Test frontend | **64/64 xanh**; 10 luật kiến trúc và 8 phép tiêm W8 được kiểm tự động |
 
 `middleware.ts` là thứ duy nhất đã hoàn chỉnh và **đã được chứng minh bằng đo đạc**
 (spike P0: `redirect()` → 307 + 5.858 byte HTML; middleware → 301 + 18 byte). Không thay
@@ -253,6 +253,13 @@ structured data Product (KHÔNG giá) · BreadcrumbList
 - `external_video` chỉ render embed YouTube/Vimeo đã được backend validate; nội dung chứa
   raw `iframe` → **không render** (ADR-012)
 
+**Đã nghiệm thu ngày 2026-08-10:** route chi tiết 111 kB First Load JS; sản phẩm thường và
+ngừng kinh doanh trả 200, slug sai trả 404; mobile 390 px không tràn ngang và bảng thông số
+cuộn trong vùng riêng; CTA mobile fixed; đúng một `<h1>`; JSON-LD Product/BreadcrumbList
+không có giá/offers; console trình duyệt không có warning/error. API chi tiết hiện chưa có
+quan hệ tài liệu, nên `DocumentDownload` sẽ được nối khi hợp đồng backend cung cấp document
+slug, không dùng UUID làm URL tạm.
+
 ---
 
 ## W4 — Hãng, nội dung có bản dịch, và `/vi`
@@ -280,6 +287,13 @@ structured data Product (KHÔNG giá) · BreadcrumbList
 - tên khách hàng chỉ hiện khi `customer_name != null` — `null` nghĩa là "không được nêu
   tên", **không** phải "không có khách hàng"
 
+**Đã nghiệm thu ngày 2026-08-10:** 13/13 route W4 hoàn thành, gồm 13 trang EN và 9 biến
+thể VI; toàn cây App Router có 29 `page.tsx`. Contracts 35/35, frontend 45/45 test xanh;
+typecheck, lint, format và production build đều xanh. Browser desktop/mobile xác nhận
+canonical/hreflang đúng theo trạng thái published, chuyển ngôn ngữ cập nhật đúng
+`<html lang>`, hai trang About trả 200, các route VI không được hỗ trợ cùng nội dung
+nháp/thiếu bản dịch trả 404 thật, và viewport 390 px không tràn ngang.
+
 ---
 
 ## W5 — Form báo giá và liên hệ — đường tiền
@@ -300,17 +314,52 @@ InquiryModal (dùng chung) · ContactForm · /contact · /request-success
 - `/request-success` **không lộ** dữ liệu nhạy cảm và là `noindex`
 - **không có** ô đính kèm ở P0 (`doc/08` PHẦN XI muc 3)
 
+**Đã nghiệm thu ngày 2026-08-10:** 2/2 route W5 hoàn thành, gồm `/contact` và
+`/request-success` ở cả EN/VI; toàn cây App Router có 33 `page.tsx`. Contracts 35/35,
+frontend 48/48 test xanh; typecheck, lint, format và production build đều xanh. Browser
+desktop/mobile xác nhận form tự nhận nguồn sản phẩm/dịch vụ, modal giữ và trả focus đúng,
+lỗi validate hiện bằng chữ, submit thật đi tới trang thành công, trang thành công không lộ
+dữ liệu và có `noindex,follow`, viewport 390 px không tràn ngang. Hai lần POST thật cùng
+`Idempotency-Key` trả cùng `request_id`; backend ánh xạ slug công khai sang đúng quan hệ
+database và dữ liệu QA đã được dọn sạch sau phép kiểm.
+
 ---
 
-## W6 — SEO toàn site, đo bằng máy
+## W6 — Tìm kiếm và trang hệ thống
 
-W0 đã đặt cơ chế; phase này **xác minh trên site đã dựng xong**.
+```
+/search?q=  ·  404  ·  error  ·  /privacy-policy /terms-of-use /cookie-policy
+```
+
+Thêm `CookieBanner`; trạng thái đồng ý chỉ là giao diện hệ thống, không nằm trong crawler SEO.
+
+### Tự kiểm
+
+- `q` dưới 2 ký tự → **không gọi API** (backend trả 422; frontend không nên tạo ra 422)
+- 0 kết quả → gợi ý, không trang trắng
+- `/search` là `noindex`
+- 404 có ô tìm kiếm + link về nhóm sản phẩm (`doc/08` PHẦN VIII)
+
+**Đã nghiệm thu ngày 2026-08-10:** 4/4 route W6 hoàn thành, gồm search và ba policy ở cả
+EN/VI; toàn cây App Router có 41 `page.tsx` và route manifest đạt 26/26. Contracts 35/35,
+frontend 54/54 test xanh; typecheck, lint, format và production build đều xanh, route nặng
+nhất có First Load JS 137 kB. Browser desktop/mobile xác nhận search đúng locale và dữ liệu,
+canonical sạch với `noindex,follow`, trạng thái truy vấn ngắn/rỗng có hướng dẫn và hành động
+tiếp theo; sáu policy có một `<h1>`, canonical/hreflang đúng; lựa chọn Cookie Banner còn
+hiệu lực sau điều hướng. Trang 404 không gọi API và có đủ ô tìm kiếm, link trang chủ cùng
+link danh mục sản phẩm.
+
+---
+
+## W7 — SEO toàn site, đo bằng máy
+
+W0 đã đặt cơ chế; phase này **xác minh trên site đã dựng xong**, gồm cả các trang W6.
 
 ### Làm gì
 
 Structured data (Organization/LocalBusiness, Product, Article, BreadcrumbList, FAQPage),
-OG image theo chuỗi fallback (featured → cover → logo → default_social_image),
-`CookieBanner`, nối `sitemap.xml`/`robots.txt` của backend.
+OG image theo chuỗi fallback (featured → cover → logo → default_social_image), nối
+`sitemap.xml`/`robots.txt` của backend.
 
 ### Tự kiểm — **bằng cách bò qua site thật**, không đọc mã
 
@@ -321,20 +370,15 @@ OG image theo chuỗi fallback (featured → cover → logo → default_social_i
 - `canonical` của mọi trang khớp `ROUTES.robots`
 - không trang nào vừa `noindex` vừa nằm trong sitemap
 
----
-
-## W7 — Tìm kiếm và trang hệ thống
-
-```
-/search?q=  ·  404  ·  error  ·  /privacy-policy /terms-of-use /cookie-policy
-```
-
-### Tự kiểm
-
-- `q` dưới 2 ký tự → **không gọi API** (backend trả 422; frontend không nên tạo ra 422)
-- 0 kết quả → gợi ý, không trang trắng
-- `/search` là `noindex`
-- 404 có ô tìm kiếm + link về nhóm sản phẩm (`doc/08` PHẦN VIII)
+**Đã nghiệm thu ngày 2026-08-10:** crawler `smoke-web.mjs` lấy URL từ sitemap thật và đạt
+**380/380** phép kiểm; toàn bộ trang trong sitemap trả 200 không redirect, có đúng một
+`<h1>`, canonical tự tham chiếu và không mang `noindex`. Các trang noindex đã biết không
+nằm trong sitemap và giữ `noindex,follow`; `robots.txt` trỏ đúng sitemap. Trình duyệt xác
+nhận homepage phát Organization/LocalBusiness, bài viết phát NewsArticle, sản phẩm phát
+Product và trang dịch vụ vừa hiển thị FAQ vừa phát FAQPage từ cùng nguồn dữ liệu. Migration
+`038` chuẩn hóa FAQ dịch vụ; fallback OG image được kiểm theo đúng thứ tự. Frontend 58/58
+test xanh; toàn monorepo test, typecheck, lint và production build đều đạt, First Load JS
+lớn nhất 137 kB. Các ảnh OG cấp site sẽ được khai báo qua biến môi trường khi triển khai.
 
 ---
 
@@ -348,6 +392,15 @@ Không phải "đánh bóng" — là **ngưỡng có số**, đo bằng lệnh.
   `Esc`; tương phản đủ
 - **Responsive**: 4 mốc (<768, 768–1023, ≥1024, ≥1440)
 - ảnh qua `next/image`, WebP/AVIF, lazy load
+
+**Đã nghiệm thu ngày 2026-08-10:** 41 route đều dưới ngân sách 150 KiB gzip, lớn nhất
+**133,8 KiB**. Lighthouse mobile mô phỏng trên trang chủ/chi tiết sản phẩm lần lượt ghi LCP
+**1.892/1.964 ms**, CLS **0,000/0,000**, Performance **99/100** và Accessibility
+**100/100**. Bộ kiểm Chrome thật đạt **11/11** tại 390/768/1024/1440 px, gồm không tràn
+ngang, bàn phím qua menu desktop, menu mobile đóng bằng `Esc`, focus trap và trả focus của
+modal. Ảnh đã bật chuỗi AVIF/WebP và `sizes`; reduced motion cùng focus contrast được ép
+bằng test. `inject-web.mjs` đạt **8/8**, frontend 64/64 test xanh; typecheck, lint, format,
+production build và crawler SEO 380/380 đều đạt. Xem báo cáo [`doc/20`](20_BAO_CAO_NGHIEM_THU_FRONTEND_W0_W8.md).
 
 ---
 

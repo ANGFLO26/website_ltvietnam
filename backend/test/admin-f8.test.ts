@@ -12,7 +12,11 @@ import {
 } from '../src/services/admin-redirects/service.js';
 import { SettingServiceImpl, type SettingDaos } from '../src/services/settings/service.js';
 import { adminDeleteQuerySchema } from '../src/api/dto/admin-taxonomy.dto.js';
-import { contentListSchema, postTranslationSchema } from '../src/api/dto/admin-content.dto.js';
+import {
+  contentListSchema,
+  postTranslationSchema,
+  serviceTranslationSchema,
+} from '../src/api/dto/admin-content.dto.js';
 import { redirectListQuerySchema } from '../src/api/dto/admin-system.dto.js';
 import {
   AdminContentServiceImpl,
@@ -53,6 +57,21 @@ const product: Product = {
 };
 
 describe('F8 admin commands', () => {
+  it('accepts structured FAQ and rejects the legacy content-block array', () => {
+    const faq = {
+      version: 1,
+      items: [
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          question: 'Question?',
+          answer_spans: [{ text: 'Answer.' }],
+        },
+      ],
+    };
+    expect(serviceTranslationSchema.safeParse({ faq }).success).toBe(true);
+    expect(serviceTranslationSchema.safeParse({ faq: [] }).success).toBe(false);
+  });
+
   it('parses false query booleans as false and rejects ambiguous values', () => {
     expect(adminDeleteQuerySchema.parse({ hard: 'false' }).hard).toBe(false);
     expect(adminDeleteQuerySchema.parse({ hard: '0' }).hard).toBe(false);
@@ -112,7 +131,7 @@ describe('F8 admin commands', () => {
       scopeOfWork: [],
       process: [],
       benefits: [],
-      faq: [],
+      faq: { version: 1, items: [] },
       seoTitle: 'Keep SEO',
       seoDescription: null,
       status: 'draft' as const,

@@ -371,13 +371,19 @@ Header: Idempotency-Key: <uuid>  (hoặc body.request_id)
 Body:
 ```json
 { "inquiry_type":"quotation","full_name":"...","company_name":"...","phone":"...","email":"...",
-  "message":"...","product_id":"uuid|null","service_id":"uuid|null","source_url":"/products/...",
+  "message":"...","product_slug":"optidist-2","service_slug":null,"source_url":"/products/...",
   "preferred_contact_method":"phone","province":"...","privacy_consent":true,"locale":"vi","captcha_token":"..." }
 ```
+Client công khai gửi `product_slug` hoặc `service_slug`; backend kiểm nội dung đang
+published rồi ánh xạ sang `product_id`/`service_id` để lưu. Client nội bộ cũ vẫn có thể
+gửi UUID, nhưng không được gửi đồng thời ID và slug của cùng một nguồn, cũng không được
+gắn cả sản phẩm lẫn dịch vụ vào một inquiry.
+
 Luồng (v1.2 — concurrency, ADR-003):
 ```text
 Validate DTO → CAPTCHA → Rate limit (5/10'/IP)
 → Kiểm idempotency_key (UNIQUE): nếu đã tồn tại → trả lại 202 của inquiry cũ (KHÔNG tạo mới)
+→ Giải product_slug/service_slug đã published thành UUID nội bộ
 → BEGIN
     INSERT inquiries (email_status='email_pending', privacy_consent_at=NOW(), idempotency_key)
     INSERT inquiry_outbox (status='pending', recipient=settings.email.inquiry_recipient, next_attempt_at=NOW())

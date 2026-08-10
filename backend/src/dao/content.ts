@@ -1,4 +1,4 @@
-import { anyBlockSchema, type ContentBlock } from '@ltv/contracts';
+import { anyBlockSchema, faqSchema, type ContentBlock, type Faq } from '@ltv/contracts';
 
 export type { ContentBlock };
 
@@ -27,4 +27,14 @@ export function toBlocks(raw: unknown): ContentBlock[] {
 /** Ghi mang khoi xuong cot JSONB. */
 export function fromBlocks(blocks: readonly ContentBlock[] | undefined): string {
   return JSON.stringify(blocks ?? []);
+}
+
+/** FAQ có cấu trúc riêng để UI và JSON-LD dùng đúng cùng một nguồn dữ liệu. */
+export function toFaq(raw: unknown): Faq {
+  const parsed = faqSchema.safeParse(raw);
+  return parsed.success ? parsed.data : { version: 1, items: [] };
+}
+
+export function fromFaq(faq: Faq | undefined): string {
+  return JSON.stringify(faq ?? { version: 1, items: [] });
 }

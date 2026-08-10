@@ -55,8 +55,17 @@ function harness(existing: Inquiry | null = null) {
   };
   const daos = {
     inquiries,
-    products: { findById: vi.fn(async () => ({ id: 'p' })) },
-    services: { findById: vi.fn(async () => ({ id: 's' })) },
+    products: {
+      findById: vi.fn(async () => ({ id: 'p', status: 'published' })),
+      findBySlug: vi.fn(async () => ({ id: 'product-id', status: 'published' })),
+    },
+    services: {
+      findById: vi.fn(async () => ({ id: 's', status: 'published' })),
+      findBySlug: vi.fn(async () => ({
+        service: { id: 'service-id', status: 'published' },
+        translation: { status: 'published' },
+      })),
+    },
     transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn({ inquiries })),
   };
   return {
@@ -96,6 +105,32 @@ describe('InquiryService F5', () => {
     vi.mocked(h.captcha.verify).mockResolvedValue({ success: false });
     await expect(h.service.submit(input)).rejects.toMatchObject({ code: 'CAPTCHA_INVALID' });
     expect(h.daos.transaction).not.toHaveBeenCalled();
+  });
+
+  it('giai slug cong khai thanh id truoc khi luu inquiry', async () => {
+    const h = harness();
+    await h.service.submit({
+      ...input,
+      product_slug: 'optidist-2',
+    });
+    expect(h.daos.products.findBySlug).toHaveBeenCalledWith('optidist-2');
+    expect(h.createIdempotent).toHaveBeenCalledWith(
+      expect.objectContaining({ productId: 'product-id' }),
+    );
+  });
+
+  it('giai service slug theo dung locale cua form', async () => {
+    const h = harness();
+    await h.service.submit({
+      ...input,
+      inquiry_type: 'technical_support',
+      locale: 'vi',
+      service_slug: 'installation-commissioning-vi',
+    });
+    expect(h.daos.services.findBySlug).toHaveBeenCalledWith('vi', 'installation-commissioning-vi');
+    expect(h.createIdempotent).toHaveBeenCalledWith(
+      expect.objectContaining({ serviceId: 'service-id' }),
+    );
   });
 
   it('admin detail khong tiet lo khoa idempotency hay du lieu chong spam', async () => {

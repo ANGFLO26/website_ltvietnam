@@ -1,7 +1,7 @@
 import type { Selectable } from 'kysely';
 import type { ServicesTable, ServiceTranslationsTable } from '@ltv/db';
 import type { EntityStatus } from '../brands/object.js';
-import { toBlocks } from '../content.js';
+import { toBlocks, toFaq } from '../content.js';
 import type { Locale } from '../translation.support.js';
 import type { Service, ServiceTranslation } from './object.js';
 
@@ -35,7 +35,7 @@ export function toServiceTranslation(
     scopeOfWork: toBlocks(row.scope_of_work),
     process: toBlocks(row.process),
     benefits: toBlocks(row.benefits),
-    faq: toBlocks(row.faq),
+    faq: toFaq(row.faq),
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
     status: row.status as 'draft' | 'published' | 'hidden',

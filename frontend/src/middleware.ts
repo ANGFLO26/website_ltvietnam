@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { ResolveResponse } from '@ltv/contracts';
+import { getServerConfig } from './config';
+import { decodeDataEnvelope } from './lib/api/envelope';
+import { localeFromPath } from './lib/localized-content';
 
 /**
  * Giao redirect theo D11/D17. DA DUOC CHUNG MINH bang spike P0.
@@ -18,11 +21,11 @@ import type { ResolveResponse } from '@ltv/contracts';
  * KHONG dung redirect() hay permanentRedirect() cua App Router: chung phat
  * 307 va 308, khong thoa D17 (plan 12 muc 5).
  */
-const RESOLVER = process.env.INTERNAL_API_URL ?? 'http://127.0.0.1:3001/api/v1';
-const CEILING_MS = Number(process.env.RESOLVER_CEILING_MS ?? 350);
+const { internalApiUrl, resolverCeilingMs } = getServerConfig();
+const resolverBase = internalApiUrl.toString().replace(/\/$/, '');
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap).*)'],
+  matcher: ['/((?!api/|media/|health/|_next/static|_next/image|favicon.ico|robots.txt|sitemap).*)'],
 };
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
@@ -30,9 +33,10 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
   const started = Date.now();
 
   let rule: ResolveResponse;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), CEILING_MS);
+    timer = setTimeout(() => ctrl.abort(), resolverCeilingMs);
     /**
      * `/resolve`, va doc `data` — HAI cho nay truoc F0 deu SAI.
      *
@@ -45,15 +49,12 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
      * chu khong o `backend/src/api/dto`: hai dau import CUNG mot kieu, nen lech
      * hinh dang la loi BIEN DICH thay vi mot su co luc chay.
      */
-    const res = await fetch(`${RESOLVER}/resolve?path=${encodeURIComponent(path)}`, {
+    const res = await fetch(`${resolverBase}/resolve?path=${encodeURIComponent(path)}`, {
       signal: ctrl.signal,
       cache: 'no-store',
     });
-    clearTimeout(timer);
     if (!res.ok) throw new Error(`resolver ${res.status}`);
-    const body = (await res.json()) as { data?: ResolveResponse };
-    if (!body.data) throw new Error('resolver: thieu `data` trong vo phan hoi');
-    rule = body.data;
+    rule = decodeDataEnvelope<ResolveResponse>(await res.json());
   } catch {
     // Fail-safe (plan 12 muc 6): tra 503, KHONG render noi dung doan,
     // KHONG phuc vu ban cache 200 khi route co the da doi thanh redirect.
@@ -65,6 +66,8 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
         'x-resolver-ms': String(Date.now() - started),
       },
     });
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 
   const elapsed = String(Date.now() - started);
@@ -91,7 +94,9 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
    * day, vi `rule` luc do khong con hep ve `{ kind: 'content' }`. Do la ca ly do
    * kieu nay nam trong `@ltv/contracts`.
    */
-  const res = NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-ltv-locale', localeFromPath(path));
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set('x-resolver', 'content');
   res.headers.set('x-resolver-ms', elapsed);
   return res;

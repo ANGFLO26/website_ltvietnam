@@ -45,7 +45,7 @@ contracts test                 33/33 xanh
 config test                    8/8 xanh
 db migration-runner            13/13 xanh
 API                            198/198 endpoint (F8: 136/136)
-PostgreSQL migration           37/37 đã apply; manifest 37/37 hợp lệ
+PostgreSQL migration           38/38 đã apply; manifest 38/38 hợp lệ
 smoke-api.mjs                  228/228 qua HTTP thật
 smoke-auth.mjs                 38/38 (41/41 o lan chay dau — xem muc 9)
 inject-f4.mjs                  14/14 (đã sửa: trước đó 11/14 — xem mục 9)
@@ -179,8 +179,9 @@ DATABASE_URL=... pnpm inject:f5-f8
 
 ## 8. Xác nhận môi trường đã hoàn tất
 
-PostgreSQL cục bộ đã chạy; migration `034`–`037` được áp dụng và tổng trạng thái là
-37/37. Toàn bộ 533 test backend (gồm integration DB) cùng 228 kiểm tra smoke HTTP đều xanh.
+PostgreSQL cục bộ đã chạy; migration `034`–`038` được áp dụng và tổng trạng thái là
+38/38. Migration `038` chuẩn hóa cấu trúc FAQ dịch vụ cho W7 frontend. Toàn bộ 533 test
+backend của đợt rà soát F1–F8 (gồm integration DB) cùng 228 kiểm tra smoke HTTP đều xanh.
 Smoke hiện bao phủ API công khai F1–F6; F7 và F8 được bảo vệ bởi unit/integration test,
 kiểm tra kiến trúc và hợp đồng endpoint. Chưa có smoke HTTP đăng nhập riêng cho toàn bộ
 136 endpoint quản trị F8.
@@ -198,8 +199,9 @@ Báo cáo chi tiết: [`doc/15_BAO_CAO_RA_SOAT_F1_F8.md`](15_BAO_CAO_RA_SOAT_F1_
 
 ## 9. Đính chính sau khi kiểm chứng lại
 
-Toàn bộ số đo ở mục 2 đã được **chạy lại từ đầu** trên PostgreSQL thật (37 migration áp
-dụng từ cơ sở dữ liệu trống, seed bootstrap + demo, backend khởi động thật).
+Toàn bộ số đo ở mục 2 đã được **chạy lại từ đầu** trên PostgreSQL thật (37 migration của
+đợt rà soát F1–F8 áp dụng từ cơ sở dữ liệu trống, seed bootstrap + demo, backend khởi động
+thật). Sau đó migration `038` của W7 đã được áp dụng riêng và manifest hiện có 38 mục.
 
 ### 9.1. `inject-f4.mjs` đã tự hỏng — và hỏng đúng theo kiểu nó sinh ra để bắt
 
@@ -245,5 +247,5 @@ mã "không có vấn đề gì". Đã thêm file vào `.gitignore` và vào `ig
 
 592 test workspace (533 backend / 35 file, 33 contracts, 8 config, 13 db, 5 worker) — nay
 là **594** sau khi thêm hai bài kiểm (ranh giới `storage_class`, và mục menu trỏ tới bản
-ghi ngoài trang đầu — xem `doc/13` mục 23), 198/198 endpoint, 37 migration, smoke-api 228/228, typecheck + lint +
+ghi ngoài trang đầu — xem `doc/13` mục 23), 198/198 endpoint, 38 migration, smoke-api 228/228, typecheck + lint +
 format:check + build đều sạch.

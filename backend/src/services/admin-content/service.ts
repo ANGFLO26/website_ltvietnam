@@ -476,7 +476,6 @@ async function syncTranslationRefs(
         'scopeOfWork',
         'process',
         'benefits',
-        'faq',
         'implementation',
         'result',
         'content',

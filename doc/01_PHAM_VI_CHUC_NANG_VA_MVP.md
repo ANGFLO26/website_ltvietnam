@@ -160,13 +160,14 @@ Khi có `discontinued_at`: **giữ trang công khai**, hiển thị nhãn "Sản
 
 URL: `/products/{product-slug}` (ADR-001). Nội dung: tên/model/hãng/ảnh/mô tả, tính năng, ứng dụng, tiêu chuẩn, thông số, catalogue, video, sản phẩm/dịch vụ/dự án liên quan, nút báo giá/tư vấn, form yêu cầu.
 
-Nút "Yêu cầu báo giá" tự điền `product_id`, `inquiry_type=quotation`, `source_url`.
+Nút "Yêu cầu báo giá" tự điền `product_slug`, `inquiry_type=quotation`, `source_url`;
+backend ánh xạ slug đã published sang `product_id` trước khi lưu inquiry.
 
 # 12. Dịch vụ kỹ thuật
 
 Cây `Nhóm dịch vụ → Dịch vụ cụ thể`. URL chi tiết **phẳng**: `/services/{service-slug}` (ADR-001; **không** `/services/{nhóm}/{dịch-vụ}`).
 
-Nội dung: tên, mô tả, vấn đề khách gặp, phạm vi, quy trình, thiết bị/hãng liên quan, hình ảnh, dự án đã làm, tài liệu, FAQ, form yêu cầu hỗ trợ. Form tự ghi `service_id`, `inquiry_type=technical_support`.
+Nội dung: tên, mô tả, vấn đề khách gặp, phạm vi, quy trình, thiết bị/hãng liên quan, hình ảnh, dự án đã làm, tài liệu, FAQ, form yêu cầu hỗ trợ. Form gửi `service_slug`, `inquiry_type=technical_support`; backend ánh xạ slug đã published sang `service_id` trước khi lưu inquiry.
 
 # 13. Dự án và bàn giao
 

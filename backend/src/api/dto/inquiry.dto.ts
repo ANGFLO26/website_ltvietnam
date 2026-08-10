@@ -11,6 +11,14 @@ const inquiryType = z.enum([
 const emailStatus = z.enum(['email_pending', 'email_sent', 'email_failed']);
 const preferredContact = z.enum(['phone', 'email', 'zalo', 'any']);
 const optionalText = (max: number) => z.string().trim().min(1).max(max).nullable().optional();
+const optionalSlug = z
+  .string()
+  .trim()
+  .min(1)
+  .max(255)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .nullable()
+  .optional();
 
 export const inquiryBodySchema = z
   .object({
@@ -21,7 +29,9 @@ export const inquiryBodySchema = z
     email: z.string().trim().email().max(320).nullable().optional(),
     message: z.string().trim().min(1).max(10_000),
     product_id: z.string().uuid().nullable().optional(),
+    product_slug: optionalSlug,
     service_id: z.string().uuid().nullable().optional(),
+    service_slug: optionalSlug,
     source_url: z
       .string()
       .trim()
@@ -46,6 +56,27 @@ export const inquiryBodySchema = z
         code: z.ZodIssueCode.custom,
         path: ['phone'],
         message: 'Can it nhat phone hoac email',
+      });
+    }
+    if (value.product_id && value.product_slug) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['product_slug'],
+        message: 'Chi gui product_id hoac product_slug',
+      });
+    }
+    if (value.service_id && value.service_slug) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['service_slug'],
+        message: 'Chi gui service_id hoac service_slug',
+      });
+    }
+    if ((value.product_id || value.product_slug) && (value.service_id || value.service_slug)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['service_slug'],
+        message: 'Mot yeu cau chi duoc gan mot san pham hoac mot dich vu',
       });
     }
   });

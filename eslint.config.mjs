@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -64,6 +65,18 @@ export default tseslint.config(
      */
     files: ['**/*.{ts,tsx,mts}'],
     rules: { 'no-undef': 'off' },
+  },
+  {
+    plugins: { '@next/next': nextPlugin },
+  },
+  {
+    files: ['frontend/**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      // Du an chi dung App Router; khong co `pages/` de luat nay quet.
+      '@next/next/no-html-link-for-pages': 'off',
+    },
   },
   {
     rules: {

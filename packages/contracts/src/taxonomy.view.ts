@@ -133,6 +133,8 @@ export interface ProductCardView {
   readonly short_description: string | null;
   readonly featured_image_id: string | null;
   readonly brand: { readonly slug: string; readonly name: string } | null;
+  /** Danh sach gon de ve nhan tieu chuan ngay tren card, khong goi them API. */
+  readonly standards: readonly StandardCardView[];
   readonly is_featured: boolean;
   /** ADR-011: san pham ngung kinh doanh VAN duoc tra ve va van index. */
   readonly discontinued: boolean;

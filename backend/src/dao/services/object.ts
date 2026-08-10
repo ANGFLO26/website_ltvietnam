@@ -1,4 +1,5 @@
 import type { EntityStatus } from '../brands/object.js';
+import type { Faq } from '@ltv/contracts';
 import type { ContentBlock } from '../content.js';
 import type { Locale } from '../translation.support.js';
 
@@ -42,7 +43,7 @@ export interface ServiceTranslation {
   readonly scopeOfWork: ContentBlock[];
   readonly process: ContentBlock[];
   readonly benefits: ContentBlock[];
-  readonly faq: ContentBlock[];
+  readonly faq: Faq;
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly status: 'draft' | 'published' | 'hidden';
@@ -74,7 +75,7 @@ export interface UpsertServiceTranslationInput {
   readonly scopeOfWork?: ContentBlock[];
   readonly process?: ContentBlock[];
   readonly benefits?: ContentBlock[];
-  readonly faq?: ContentBlock[];
+  readonly faq?: Faq;
   readonly seoTitle?: string | null;
   readonly seoDescription?: string | null;
 }

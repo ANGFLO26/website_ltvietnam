@@ -97,3 +97,25 @@ pnpm build
 
 Lệnh này sẽ tạo lại `dist/`, `.next/` và `tsconfig.tsbuildinfo`; các thư mục đó vẫn được Git
 ignore và có thể dọn lại bất kỳ lúc nào.
+
+## 9. Dọn dẹp sau frontend W0–W8 — 2026-08-10
+
+Lần kiểm kê thứ hai được thực hiện sau khi frontend công khai W0–W8 hoàn tất:
+
+- Phân tích đồ thị import của 357 file nguồn chỉ tìm thấy một file không có đầu vào và không phải
+  framework/CLI entrypoint: `frontend/src/components/ui/ErrorState.tsx`. Component này chưa từng
+  được render; `src/app/error.tsx` đã tự cung cấp màn hình lỗi hoàn chỉnh, nên file được xóa.
+- `packages/db/src/cli.ts` có số import vào bằng 0 nhưng **không dư**: các script `migrate`, `status`,
+  `rollback` và `verify` gọi trực tiếp output biên dịch của file này.
+- Ba `tsconfig.json` và ba `vitest.config.ts` trùng nội dung vẫn được giữ vì công cụ cần config tại
+  từng package; gộp chúng không giảm ranh giới package và có thể làm hỏng cách chạy độc lập.
+- `planning/implementation/`, `implementation/evidence/`, `doc/archive/` và `doc/verify/` tiếp tục
+  được giữ do manifest, workflow CI và tài liệu hiện hành tham chiếu trực tiếp.
+- Bổ sung `pnpm clean` với allowlist cố định. Lệnh chỉ xóa `.tmp`, `dist`, `.next`, declaration/cache
+  sinh tự động; không xóa `node_modules`, `.pnpm-store`, `.env` hoặc `.data`. Cần dừng dev
+  server/worker trước khi chạy để Windows không giữ handle trên log hoặc output.
+- README được đồng bộ từ trạng thái frontend scaffold/37 migration sang frontend W0–W8/38 migration;
+  mục lệnh nghiệm thu web cũng được bổ sung.
+
+Sau khi kiểm tra xong, `pnpm clean` giải phóng khoảng 330 MiB output có thể tái tạo và 0,22 MiB log
+tạm. Dependency cache được giữ để không buộc cài lại toàn workspace.

@@ -16,6 +16,10 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = 'en';
 
+/** Phase trien khai frontend cong khai theo `doc/17` va `doc/19`. */
+export type WebPhase = 'W0' | 'W1' | 'W2' | 'W3' | 'W4' | 'W5' | 'W6' | 'W7' | 'W8';
+export type WebRouteStatus = 'todo' | 'done';
+
 /** Bon nhom co ban dich — chi bon nhom nay co bien the `/vi`. */
 export const TRANSLATED_ENTITIES = ['pages', 'posts', 'services', 'projects'] as const;
 export type TranslatedEntity = (typeof TRANSLATED_ENTITIES)[number];
@@ -29,51 +33,228 @@ export interface RouteDef {
   readonly localized: boolean;
   /** robots mac dinh. `conditional` = phu thuoc du lieu (ADR-011 muc 2b). */
   readonly robots: 'index' | 'noindex' | 'conditional';
+  /** Phase so huu route; dung de kiem hai chieu voi cay `app/`. */
+  readonly phase: WebPhase;
+  /** Chi doi thanh `done` khi route va cac phep kiem nghiem thu da xanh. */
+  readonly status: WebRouteStatus;
 }
 
 export const ROUTES = [
-  { key: 'home', path: '/', localized: false, robots: 'index' },
-  { key: 'about', path: '/about', localized: true, robots: 'index' },
-  { key: 'about.page', path: '/about/:slug', localized: true, robots: 'index' },
-  { key: 'products.landing', path: '/products', localized: false, robots: 'index' },
-  { key: 'products.all', path: '/products/all', localized: false, robots: 'index' },
+  { key: 'home', path: '/', localized: false, robots: 'index', phase: 'W1', status: 'done' },
+  { key: 'about', path: '/about', localized: true, robots: 'index', phase: 'W4', status: 'done' },
+  {
+    key: 'about.page',
+    path: '/about/:slug',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'products.landing',
+    path: '/products',
+    localized: false,
+    robots: 'index',
+    phase: 'W2',
+    status: 'done',
+  },
+  {
+    key: 'products.all',
+    path: '/products/all',
+    localized: false,
+    robots: 'index',
+    phase: 'W2',
+    status: 'done',
+  },
   {
     key: 'products.category',
     path: '/products/category/:slug',
     localized: false,
     robots: 'conditional',
+    phase: 'W2',
+    status: 'done',
   },
   {
     key: 'products.standard',
     path: '/products/standard/:slug',
     localized: false,
     robots: 'conditional',
+    phase: 'W2',
+    status: 'done',
   },
   {
     key: 'products.application',
     path: '/products/application/:slug',
     localized: false,
     robots: 'conditional',
+    phase: 'W2',
+    status: 'done',
   },
-  { key: 'products.detail', path: '/products/:slug', localized: false, robots: 'index' },
-  { key: 'brands.list', path: '/brands', localized: false, robots: 'index' },
-  { key: 'brands.detail', path: '/brands/:slug', localized: false, robots: 'index' },
-  { key: 'services.list', path: '/services', localized: true, robots: 'index' },
-  { key: 'services.detail', path: '/services/:slug', localized: true, robots: 'index' },
-  { key: 'projects.list', path: '/projects', localized: true, robots: 'index' },
-  { key: 'projects.detail', path: '/projects/:slug', localized: true, robots: 'index' },
-  { key: 'news.list', path: '/news', localized: true, robots: 'index' },
-  { key: 'news.category', path: '/news/category/:slug', localized: true, robots: 'index' },
-  { key: 'news.detail', path: '/news/:slug', localized: true, robots: 'index' },
-  { key: 'resources.list', path: '/resources', localized: false, robots: 'index' },
-  { key: 'resources.detail', path: '/resources/:slug', localized: false, robots: 'index' },
-  { key: 'contact', path: '/contact', localized: true, robots: 'index' },
-  { key: 'search', path: '/search', localized: true, robots: 'noindex' },
-  { key: 'request-success', path: '/request-success', localized: true, robots: 'noindex' },
-  { key: 'privacy-policy', path: '/privacy-policy', localized: true, robots: 'index' },
-  { key: 'terms-of-use', path: '/terms-of-use', localized: true, robots: 'index' },
-  { key: 'cookie-policy', path: '/cookie-policy', localized: true, robots: 'index' },
+  {
+    key: 'products.detail',
+    path: '/products/:slug',
+    localized: false,
+    robots: 'index',
+    phase: 'W3',
+    status: 'done',
+  },
+  {
+    key: 'brands.list',
+    path: '/brands',
+    localized: false,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'brands.detail',
+    path: '/brands/:slug',
+    localized: false,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'services.list',
+    path: '/services',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'services.detail',
+    path: '/services/:slug',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'projects.list',
+    path: '/projects',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'projects.detail',
+    path: '/projects/:slug',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'news.list',
+    path: '/news',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'news.category',
+    path: '/news/category/:slug',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'news.detail',
+    path: '/news/:slug',
+    localized: true,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'resources.list',
+    path: '/resources',
+    localized: false,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'resources.detail',
+    path: '/resources/:slug',
+    localized: false,
+    robots: 'index',
+    phase: 'W4',
+    status: 'done',
+  },
+  {
+    key: 'contact',
+    path: '/contact',
+    localized: true,
+    robots: 'index',
+    phase: 'W5',
+    status: 'done',
+  },
+  {
+    key: 'search',
+    path: '/search',
+    localized: true,
+    robots: 'noindex',
+    phase: 'W6',
+    status: 'done',
+  },
+  {
+    key: 'request-success',
+    path: '/request-success',
+    localized: true,
+    robots: 'noindex',
+    phase: 'W5',
+    status: 'done',
+  },
+  {
+    key: 'privacy-policy',
+    path: '/privacy-policy',
+    localized: true,
+    robots: 'index',
+    phase: 'W6',
+    status: 'done',
+  },
+  {
+    key: 'terms-of-use',
+    path: '/terms-of-use',
+    localized: true,
+    robots: 'index',
+    phase: 'W6',
+    status: 'done',
+  },
+  {
+    key: 'cookie-policy',
+    path: '/cookie-policy',
+    localized: true,
+    robots: 'index',
+    phase: 'W6',
+    status: 'done',
+  },
 ] as const satisfies readonly RouteDef[];
+
+/** Tien do frontend doc duoc tu bang route, khong tu bao cao bang van xuoi. */
+export function routeProgress(): {
+  readonly done: number;
+  readonly total: number;
+  readonly byPhase: Record<string, { done: number; total: number }>;
+} {
+  const routes: readonly RouteDef[] = ROUTES;
+  const byPhase: Record<string, { done: number; total: number }> = {};
+  for (const route of routes) {
+    const progress = (byPhase[route.phase] ??= { done: 0, total: 0 });
+    progress.total += 1;
+    if (route.status === 'done') progress.done += 1;
+  }
+  return {
+    done: routes.filter((route) => route.status === 'done').length,
+    total: routes.length,
+    byPhase,
+  };
+}
 
 /** Tien to ky thuat khong bao gio duoc cap cho slug. */
 export const TECHNICAL_PREFIXES = [

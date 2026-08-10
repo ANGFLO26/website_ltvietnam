@@ -1,4 +1,4 @@
-import type { ContentBlock } from './blocks.js';
+import type { ContentBlock, Faq } from './blocks.js';
 import type { Locale } from './routes.js';
 import type { SeoDetailView } from './seo.view.js';
 
@@ -128,7 +128,7 @@ export interface ServiceDetailView extends TranslatedBase {
   readonly scope_of_work: readonly ContentBlock[];
   readonly process: readonly ContentBlock[];
   readonly benefits: readonly ContentBlock[];
-  readonly faq: readonly ContentBlock[];
+  readonly faq: Faq;
   readonly featured_image_id: string | null;
   readonly depth: number;
   readonly seo_title: string | null;

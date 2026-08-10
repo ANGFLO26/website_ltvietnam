@@ -202,8 +202,16 @@ export interface ProductCard {
   readonly featuredImageId: string | null;
   readonly featuredImagePath: string | null;
   readonly featuredImageAlt: string | null;
+  readonly standards: readonly CardStandard[];
   readonly isFeatured: boolean;
   readonly discontinuedAt: Date | null;
+}
+
+export interface CardStandard {
+  readonly slug: string;
+  readonly organization: string;
+  readonly code: string;
+  readonly name: string | null;
 }
 
 // ─────────────── hinh dang ket qua cua TRANG CHI TIET ───────────────

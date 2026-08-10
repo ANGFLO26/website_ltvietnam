@@ -121,7 +121,7 @@ Nội dung yêu cầu *
 [HỦY]                                   [GỬI YÊU CẦU]
 ```
 - **P0 không có nút "Chọn file"** (attachment là P1).
-- Tự điền: từ trang SP → `product_id`, `inquiry_type=quotation`, `source_url`; từ trang DV → `service_id`, `inquiry_type=technical_support`, `source_url`.
+- Tự điền: từ trang SP → `product_slug`, `inquiry_type=quotation`, `source_url`; từ trang DV → `service_slug`, `inquiry_type=technical_support`, `source_url`. Backend kiểm trạng thái published và ánh xạ slug sang UUID nội bộ trước khi lưu.
 - **Idempotency (ADR-003):** frontend sinh `request_id`/`Idempotency-Key` duy nhất cho mỗi lần mở form; gửi kèm; khóa nút khi đang gửi để không gửi trùng.
 - Trạng thái: "Đang gửi…" (khóa nút) → Thành công ("✓ Yêu cầu đã được gửi. LT Vietnam sẽ chủ động liên hệ.") → Lỗi ("Không thể gửi lúc này, vui lòng thử lại hoặc liên hệ ☎/✉"). Không lộ lỗi kỹ thuật.
 - Backend trả `202` sau khi đã **lưu DB** (không phụ thuộc SMTP) — khách yên tâm không mất yêu cầu.

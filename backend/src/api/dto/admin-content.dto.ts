@@ -1,4 +1,4 @@
-import { anyBlockSchema } from '@ltv/contracts';
+import { anyBlockSchema, faqSchema } from '@ltv/contracts';
 import { z } from 'zod';
 import { queryBooleanSchema } from './parse.js';
 const uuid = z.string().uuid(),
@@ -126,7 +126,7 @@ export const serviceTranslationSchema = translationPatch({
   scope_of_work: blocks.optional(),
   process: blocks.optional(),
   benefits: blocks.optional(),
-  faq: blocks.optional(),
+  faq: faqSchema.optional(),
   ...seo,
 });
 export const projectTranslationSchema = translationPatch({

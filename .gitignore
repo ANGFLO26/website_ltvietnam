@@ -64,6 +64,3 @@ secrets*.json
 # Du lieu chay local
 .data/
 *.local
-
-# Turbo / build cache
-.turbo/

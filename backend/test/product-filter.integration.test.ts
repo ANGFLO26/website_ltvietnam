@@ -350,6 +350,20 @@ run('Bo loc san pham tren PostgreSQL that', () => {
     expect(many.queries).toBe(2); // van the du tra ve gap nhieu lan
   });
 
+  it('card mang san tieu chuan trong cung hai cau SQL', async () => {
+    const before = sqlCount;
+    const r = await daos.products.filter(
+      { search: tag, standardSlugs: [slug('astm-d86')] },
+      undefined,
+      { pageSize: 100 },
+    );
+
+    expect(sqlCount - before).toBe(2);
+    expect(r.data.find((p) => p.slug === slug('optidist'))?.standards).toEqual([
+      expect.objectContaining({ slug: slug('astm-d86'), organization: 'ASTM' }),
+    ]);
+  });
+
   it('KHONG N+1: trang chi tiet co so cau CO DINH, khong theo so quan he', async () => {
     // OptiDist co 1 tieu chuan, 1 ung dung, 1 danh muc, 1 nganh
     const before1 = sqlCount;

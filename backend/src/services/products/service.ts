@@ -29,6 +29,7 @@ export const productCard = (p: ProductCard): ProductCardView => ({
   short_description: p.shortDescription,
   featured_image_id: p.featuredImageId,
   brand: { slug: p.brandSlug, name: p.brandName },
+  standards: p.standards,
   is_featured: p.isFeatured,
   discontinued: p.discontinuedAt !== null,
 });

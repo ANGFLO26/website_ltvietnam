@@ -1,16 +1,42 @@
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
+import type { Locale } from '@ltv/contracts';
+import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { TopBar } from '@/components/layout/TopBar';
+import { CookieBanner } from '@/components/ui/CookieBanner';
+import { getDictionary } from '@/lib/i18n';
+import { loadSiteShellSafe } from '@/lib/site-shell';
+import './globals.css';
 
-export const metadata = {
-  title: 'LT Vietnam Technology Co., Ltd',
-  description:
-    'Technical services, spare parts, equipment and consumables for heavy industrial plants in Vietnam.',
-};
+/** API duoc doc luc request; production build va trang 404 khong can backend. */
+export const dynamic = 'force-dynamic';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  // Ngon ngu mac dinh la tieng Anh (ADR-001/014).
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = requestLocale(await headers());
+  const dictionary = getDictionary(locale);
+  const shell = await loadSiteShellSafe(locale);
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang={locale}>
+      <body>
+        <a className="skip-link" href="#main-content">
+          {dictionary.common.skipToContent}
+        </a>
+        <TopBar locale={locale} dictionary={dictionary} />
+        <Header
+          header={shell.header}
+          mobile={shell.mobile}
+          dictionary={dictionary}
+          locale={locale}
+        />
+        <main id="main-content">{children}</main>
+        <Footer navigation={shell.footer} dictionary={dictionary} />
+        <CookieBanner locale={locale} dictionary={dictionary} />
+      </body>
     </html>
   );
+}
+
+function requestLocale(requestHeaders: Headers): Locale {
+  return requestHeaders.get('x-ltv-locale') === 'vi' ? 'vi' : 'en';
 }

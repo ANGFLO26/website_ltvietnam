@@ -1,0 +1,14 @@
+{
+  "javascript_budget_kib": 150,
+  "minimum_route_count": 41,
+  "lcp_budget_ms": 2500,
+  "cls_budget": 0.1,
+  "minimum_accessibility_score": 1,
+  "metric_paths": ["/", "/products/isl-optidist-2-automatic-distillation-analyzer"],
+  "viewports": [
+    { "name": "mobile", "width": 390, "height": 844 },
+    { "name": "tablet", "width": 768, "height": 1024 },
+    { "name": "desktop", "width": 1024, "height": 768 },
+    { "name": "wide", "width": 1440, "height": 900 }
+  ]
+}

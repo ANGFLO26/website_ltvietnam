@@ -217,6 +217,16 @@ run('ProductQueryService tren PostgreSQL that', () => {
       expect(sp6.discontinued).toBe(true);
     });
 
+    it('the san pham co du tieu chuan ma khong goi them theo tung dong', async () => {
+      const truoc = sqlCount;
+      const result = await ps.list({ brandSlugs: [s('hang-a')] }, 'default', { pageSize: 100 });
+      expect(sqlCount - truoc).toBe(2);
+      expect(result.items.find((p) => p.slug === s('sp1'))?.standards).toEqual([
+        expect.objectContaining({ slug: s('tc-x'), code: 'X' }),
+      ]);
+      expect(result.items.find((p) => p.slug === s('sp2'))?.standards).toEqual([]);
+    });
+
     it('NGUNG KINH DOANH van tra chi tiet 200 voi co + moc thoi gian', async () => {
       const d = (await ps.findBySlug(s('sp6')))!;
       expect(d).not.toBeNull();

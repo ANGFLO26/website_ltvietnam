@@ -99,6 +99,7 @@ const productCard = (p: ProductCard): ProductCardView => ({
   short_description: p.shortDescription,
   featured_image_id: p.featuredImageId,
   brand: { slug: p.brandSlug, name: p.brandName },
+  standards: p.standards,
   is_featured: p.isFeatured,
   // ADR-011: co, khong phai loc. San pham ngung KD van tra ve va van index.
   discontinued: p.discontinuedAt !== null,

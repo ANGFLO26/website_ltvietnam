@@ -67,7 +67,8 @@ export class ProductQueryRunner implements ProductQuery {
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
-        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt
+        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt,
+        ${cardStandards()} AS standards
       FROM ltv.products p
       JOIN ltv.brands b ON b.id = p.brand_id
       LEFT JOIN ltv.media m ON m.id = p.featured_image_id AND m.deleted_at IS NULL
@@ -90,7 +91,8 @@ export class ProductQueryRunner implements ProductQuery {
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
-        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt
+        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt,
+        ${cardStandards()} AS standards
       FROM ltv.products p
       JOIN ltv.brands b ON b.id = p.brand_id
       LEFT JOIN ltv.media m ON m.id = p.featured_image_id AND m.deleted_at IS NULL
@@ -215,7 +217,8 @@ export class ProductQueryRunner implements ProductQuery {
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
-        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt
+        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt,
+        ${cardStandards()} AS standards
       FROM ltv.related_products rp
       JOIN ltv.products p ON p.id = rp.related_product_id
       JOIN ltv.brands  b ON b.id = p.brand_id
@@ -463,6 +466,34 @@ interface CardRow {
   featured_image_id: string | null;
   image_path: string | null;
   image_alt: string | null;
+  standards: CardStandardRow[];
+}
+
+interface CardStandardRow {
+  slug: string;
+  organization: string;
+  code: string;
+  name: string | null;
+}
+
+/**
+ * Gom tieu chuan ngay trong cau lay card. Day van la MOT cau SQL cho danh sach,
+ * va khong tang theo so san pham nhu cach goi `findStandards` trong mot vong lap.
+ */
+function cardStandards(): RawBuilder<CardStandardRow[]> {
+  return sql<CardStandardRow[]>`COALESCE((
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'slug', s.slug,
+        'organization', s.organization,
+        'code', s.code,
+        'name', s.name
+      ) ORDER BY ps.display_order, s.organization, s.code
+    )
+    FROM ltv.product_standards ps
+    JOIN ltv.standards s ON s.id = ps.standard_id
+    WHERE ps.product_id = p.id AND s.deleted_at IS NULL
+  ), '[]'::jsonb)`;
 }
 
 function toCard(r: CardRow): ProductCard {
@@ -478,6 +509,7 @@ function toCard(r: CardRow): ProductCard {
     featuredImageId: r.featured_image_id,
     featuredImagePath: r.image_path,
     featuredImageAlt: r.image_alt,
+    standards: r.standards,
     isFeatured: r.is_featured,
     discontinuedAt: r.discontinued_at,
   };

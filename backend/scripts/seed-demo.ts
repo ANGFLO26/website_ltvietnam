@@ -156,6 +156,7 @@ const DANH_MUC: readonly NodeDemo[] = [
     children: [
       { slug: 'density-meters', name: 'Density Meters' },
       { slug: 'viscometers', name: 'Viscometers' },
+      { slug: 'cold-properties', name: 'Cold Properties' },
     ],
   },
   { slug: 'sample-preparation', name: 'Sample Preparation' },
@@ -248,6 +249,69 @@ const TIEU_CHUAN = [
     code: '123',
     slug: 'ip-123',
     name: 'Distillation of Petroleum Products',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D1078',
+    slug: 'astm-d1078',
+    name: 'Distillation Range of Volatile Organic Liquids',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D850',
+    slug: 'astm-d850',
+    name: 'Distillation of Industrial Aromatic Hydrocarbons',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D92',
+    slug: 'astm-d92',
+    name: 'Flash and Fire Points by Cleveland Open Cup',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D445',
+    slug: 'astm-d445',
+    name: 'Kinematic Viscosity of Transparent and Opaque Liquids',
+    featured: true,
+  },
+  {
+    org: 'ASTM',
+    code: 'D2500',
+    slug: 'astm-d2500',
+    name: 'Cloud Point of Petroleum Products and Liquid Fuels',
+    featured: true,
+  },
+  {
+    org: 'ASTM',
+    code: 'D5771',
+    slug: 'astm-d5771',
+    name: 'Cloud Point of Petroleum Products by Optical Detection',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D97',
+    slug: 'astm-d97',
+    name: 'Pour Point of Petroleum Products',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D5950',
+    slug: 'astm-d5950',
+    name: 'Pour Point of Petroleum Products by Automatic Tilt Method',
+    featured: false,
+  },
+  {
+    org: 'ASTM',
+    code: 'D7346',
+    slug: 'astm-d7346',
+    name: 'No Flow Point and Pour Point of Petroleum Products',
     featured: false,
   },
 ] as const;
@@ -474,6 +538,58 @@ const SAN_PHAM: readonly SanPhamDemo[] = [
     industries: ['oil-and-gas'],
     discontinued: true,
   },
+  {
+    slug: 'isl-optidist-2-automatic-distillation-analyzer',
+    name: 'OptiDist 2',
+    model: 'OptiDist 2',
+    brand: 'isl',
+    categories: ['atmospheric-distillation', 'distillation'],
+    standards: ['astm-d86', 'astm-d1078', 'astm-d850'],
+    applications: ['gasoline', 'diesel'],
+    industries: ['oil-and-gas', 'quality-control-lab'],
+    featured: true,
+  },
+  {
+    slug: 'isl-optiflash-automatic-flash-point-analyzer',
+    name: 'OptiFlash',
+    model: 'OptiFlash',
+    brand: 'isl',
+    categories: ['flash-point', 'closed-cup', 'open-cup'],
+    standards: ['astm-d93', 'astm-d92'],
+    applications: ['fuel-analysis', 'lubricant-analysis'],
+    industries: ['oil-and-gas', 'quality-control-lab'],
+  },
+  {
+    slug: 'herzog-hvm-472-automatic-viscometer',
+    name: 'HVM 472',
+    model: 'HVM 472',
+    brand: 'herzog',
+    categories: ['viscometers'],
+    standards: ['astm-d445'],
+    applications: ['lubricant-analysis'],
+    industries: ['petrochemical', 'quality-control-lab'],
+  },
+  {
+    slug: 'isl-opticpp-cloud-and-pour-point-analyzer',
+    name: 'OptiCPP',
+    model: 'OptiCPP',
+    brand: 'isl',
+    categories: ['cold-properties'],
+    standards: ['astm-d2500', 'astm-d5771', 'astm-d97', 'astm-d5950'],
+    applications: ['diesel', 'lubricant-analysis'],
+    industries: ['oil-and-gas', 'quality-control-lab'],
+    featured: true,
+  },
+  {
+    slug: 'isl-optimpp-cloud-and-pour-point-analyzer',
+    name: 'OptiMPP',
+    model: 'OptiMPP',
+    brand: 'isl',
+    categories: ['cold-properties'],
+    standards: ['astm-d2500', 'astm-d7346'],
+    applications: ['diesel', 'lubricant-analysis'],
+    industries: ['oil-and-gas', 'quality-control-lab'],
+  },
 ];
 
 async function seedSanPham(
@@ -576,6 +692,100 @@ async function seedSanPham(
   log(`  san pham        ${n}`);
 }
 
+/**
+ * DU LIEU NGHIEM THU W3 — replace-set nen chay lai van cho cung mot ket qua.
+ *
+ * Cac gia tri la du lieu demo de chung minh bang thong so va quan he thay the;
+ * can duoc bo phan ky thuat duyet truoc khi dung tren site that.
+ */
+async function seedChiTietSanPhamW3(daos: DaoManager): Promise<void> {
+  const details = [
+    {
+      slug: 'isl-optidist-2-automatic-distillation-analyzer',
+      specifications: [
+        { groupKey: 'Method', label: 'Test methods', value: 'ASTM D86 / D1078 / D850' },
+        { groupKey: 'Sample', label: 'Nominal sample volume', value: '100', unit: 'mL' },
+        { groupKey: 'Operation', label: 'Operating mode', value: 'Automatic' },
+        { groupKey: 'Electrical', label: 'Supply voltage', value: '230', unit: 'V' },
+      ],
+      related: [
+        ['optidist-automatic-distillation-analyzer', 'similar'],
+        ['herzog-hda-627-distillation-analyzer', 'alternative'],
+      ],
+    },
+    {
+      slug: 'isl-optiflash-automatic-flash-point-analyzer',
+      specifications: [
+        { groupKey: 'Method', label: 'Test methods', value: 'ASTM D92 / D93' },
+        { groupKey: 'Operation', label: 'Ignition sequence', value: 'Automatic' },
+        { groupKey: 'Operation', label: 'Result detection', value: 'Automatic' },
+      ],
+      related: [
+        ['herzog-hfp-386-flash-point-tester', 'alternative'],
+        ['isl-oc-open-cup-flash-point-tester', 'similar'],
+      ],
+    },
+    {
+      slug: 'herzog-hvm-472-automatic-viscometer',
+      specifications: [
+        { groupKey: 'Method', label: 'Test method', value: 'ASTM D445' },
+        { groupKey: 'Operation', label: 'Measurement mode', value: 'Automatic' },
+        { groupKey: 'Result', label: 'Reported property', value: 'Kinematic viscosity' },
+      ],
+      related: [['anton-paar-svm-3001-viscometer', 'similar']],
+    },
+    {
+      slug: 'isl-opticpp-cloud-and-pour-point-analyzer',
+      specifications: [
+        { groupKey: 'Method', label: 'Cloud point methods', value: 'ASTM D2500 / D5771' },
+        { groupKey: 'Method', label: 'Pour point methods', value: 'ASTM D97 / D5950' },
+        { groupKey: 'Operation', label: 'Measurement mode', value: 'Automatic' },
+      ],
+      related: [['isl-optimpp-cloud-and-pour-point-analyzer', 'alternative']],
+    },
+    {
+      slug: 'isl-optimpp-cloud-and-pour-point-analyzer',
+      specifications: [
+        { groupKey: 'Method', label: 'Cloud point methods', value: 'ASTM D2500 / D7346' },
+        { groupKey: 'Operation', label: 'Measurement mode', value: 'Automatic' },
+        { groupKey: 'Sample', label: 'Sample positions', value: 'Multiple' },
+      ],
+      related: [['isl-opticpp-cloud-and-pour-point-analyzer', 'alternative']],
+    },
+    {
+      slug: 'isl-legacy-distillation-analyzer',
+      specifications: [
+        { groupKey: 'Lifecycle', label: 'Commercial status', value: 'Discontinued' },
+        { groupKey: 'Method', label: 'Test method', value: 'ASTM D86' },
+      ],
+      related: [['isl-optidist-2-automatic-distillation-analyzer', 'alternative']],
+    },
+  ] as const;
+
+  const products = new Map<string, string>();
+  for (const product of SAN_PHAM) {
+    const found = await daos.products.findBySlug(product.slug);
+    if (found) products.set(product.slug, found.id);
+  }
+
+  await daos.transaction(async (tx) => {
+    for (const detail of details) {
+      const productId = products.get(detail.slug);
+      if (!productId) throw new Error(`W3: khong thay san pham ${detail.slug}`);
+      await tx.products.replaceSpecifications(productId, detail.specifications);
+      await tx.products.replaceRelated(
+        productId,
+        detail.related.map(([slug, relationType], displayOrder) => {
+          const relatedProductId = products.get(slug);
+          if (!relatedProductId) throw new Error(`W3: khong thay san pham lien quan ${slug}`);
+          return { relatedProductId, relationType, displayOrder };
+        }),
+      );
+    }
+  });
+  log(`  chi tiet W3     ${details.length} san pham (thong so + lien quan)`);
+}
+
 // ══════════════════════════════════════════════════════════════
 // NOI DUNG CO BAN DICH (F3)
 // ══════════════════════════════════════════════════════════════
@@ -653,6 +863,7 @@ async function seedDichVu(
         shortDescription: `${ten} — ${VAN_BAN_THAY_THE}`,
         overview: [tieuDe('Overview'), doan(VAN_BAN_THAY_THE)],
         scopeOfWork: [gachDau(['Van ban demo 1', 'Van ban demo 2'])],
+        faq: { version: 1, items: [] },
       });
       await daos.services.publishTranslation(sv.id, locale, new Date());
     }
@@ -673,6 +884,44 @@ async function seedDichVu(
   const dau = ra.get('installation-commissioning');
   const ng = nganh.get('oil-and-gas');
   if (dau && ng) await daos.services.replaceLinks(dau, { industryIds: [ng] });
+
+  /** W7: FAQ thật để UI và JSON-LD `FAQPage` được nghiệm thu trên cùng dữ liệu. */
+  for (const [locale, slug, question, answer, itemId] of [
+    [
+      'en',
+      'calibration-service',
+      'How long does a standard calibration take?',
+      'The usual turnaround is three working days after the equipment is received.',
+      '00000000-0000-4000-8000-000000000071',
+    ],
+    [
+      'vi',
+      'calibration-service-vi',
+      'Hiệu chuẩn tiêu chuẩn mất bao lâu?',
+      'Thời gian thông thường là ba ngày làm việc kể từ khi tiếp nhận thiết bị.',
+      '00000000-0000-4000-8000-000000000072',
+    ],
+  ] as const) {
+    const current = await daos.services.findBySlug(locale, slug);
+    if (!current) continue;
+    await daos.services.upsertTranslation(current.service.id, {
+      locale,
+      name: current.translation.name,
+      slug: current.translation.slug,
+      shortDescription: current.translation.shortDescription,
+      overview: current.translation.overview,
+      customerProblems: current.translation.customerProblems,
+      scopeOfWork: current.translation.scopeOfWork,
+      process: current.translation.process,
+      benefits: current.translation.benefits,
+      faq: {
+        version: 1,
+        items: [{ id: itemId, question, answer_spans: [{ text: answer }] }],
+      },
+      seoTitle: current.translation.seoTitle,
+      seoDescription: current.translation.seoDescription,
+    });
+  }
 
   log(`  dich vu         ${ra.size}`);
   return ra;
@@ -882,8 +1131,54 @@ async function seedTaiLieu(daos: DaoManager): Promise<void> {
 }
 
 const TRANG = [
-  { type: 'about', slug: 'about-us', title: 'About LT Vietnam' },
-  { type: 'contact', slug: 'contact-us', title: 'Contact Us' },
+  {
+    type: 'about',
+    slug: 'about-us',
+    title: 'About LT Vietnam',
+    viSlug: 'about-us-vi',
+    viTitle: 'Về LT Vietnam',
+    system: true,
+  },
+  {
+    type: 'contact',
+    slug: 'contact-us',
+    title: 'Contact Us',
+    viSlug: 'contact-us-vi',
+    viTitle: 'Liên hệ',
+    system: true,
+  },
+  {
+    type: 'company_history',
+    slug: 'company-history',
+    title: 'Company History',
+    viSlug: 'lich-su-cong-ty',
+    viTitle: 'Lịch sử công ty',
+    system: false,
+  },
+  {
+    type: 'privacy_policy',
+    slug: 'privacy-policy',
+    title: 'Privacy Policy',
+    viSlug: 'privacy-policy-vi',
+    viTitle: 'Chính sách bảo mật',
+    system: true,
+  },
+  {
+    type: 'terms_of_use',
+    slug: 'terms-of-use',
+    title: 'Terms of Use',
+    viSlug: 'terms-of-use-vi',
+    viTitle: 'Điều khoản sử dụng',
+    system: true,
+  },
+  {
+    type: 'cookie_policy',
+    slug: 'cookie-policy',
+    title: 'Cookie Policy',
+    viSlug: 'cookie-policy-vi',
+    viTitle: 'Chính sách cookie',
+    system: true,
+  },
 ] as const;
 
 async function seedTrang(daos: DaoManager): Promise<void> {
@@ -895,24 +1190,22 @@ async function seedTrang(daos: DaoManager): Promise<void> {
      * `findByType` la phep kiem idempotent dung o day: chay lai seed khong duoc
      * dinh `duplicate key value violates unique constraint pages_page_type_key`.
      */
-    if (await daos.pages.findByType(t.type)) {
-      dem.daCo += 1;
-      n += 1;
-      continue;
-    }
-    const p = await daos.pages.insert({ pageType: t.type, isSystemPage: true });
+    const existing = await daos.pages.findByType(t.type);
+    const p = existing ?? (await daos.pages.insert({ pageType: t.type, isSystemPage: t.system }));
     for (const locale of ['en', 'vi'] as const) {
+      const title = locale === 'en' ? t.title : t.viTitle;
       await daos.pages.upsertTranslation(p.id, {
         locale,
-        title: t.title,
-        slug: locale === 'en' ? t.slug : `${t.slug}-vi`,
-        summary: `${t.title} — ${VAN_BAN_THAY_THE}`,
-        content: [tieuDe(t.title), doan(VAN_BAN_THAY_THE)],
+        title,
+        slug: locale === 'en' ? t.slug : t.viSlug,
+        summary: `${title} — ${VAN_BAN_THAY_THE}`,
+        content: [tieuDe(title), doan(VAN_BAN_THAY_THE)],
       });
       await daos.pages.publishTranslation(p.id, locale, new Date());
     }
     await daos.pages.publish(p.id, new Date());
-    dem.moi += 1;
+    if (existing) dem.daCo += 1;
+    else dem.moi += 1;
     n += 1;
   }
   log(`  trang tinh      ${n}`);
@@ -1243,6 +1536,7 @@ async function main(): Promise<void> {
     log(`  ung dung        ${ungDung.size}`);
     const nganh = await seedNganh(daos);
     await seedSanPham(daos, hang, danhMuc, tieuChuan, ungDung, nganh);
+    await seedChiTietSanPhamW3(daos);
 
     // ── F3: noi dung co ban dich ──
     await seedDichVu(daos, nganh);

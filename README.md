@@ -6,21 +6,26 @@ website công khai, REST API quản trị/nội dung, PostgreSQL và worker xử
 ## Trạng thái hiện tại
 
 - Backend F1–F8 đã hoàn tất: **198/198 endpoint**, trong đó F8 có 136 endpoint quản trị.
-- PostgreSQL có **37/37 migration** đã được kiểm tra và áp dụng trên môi trường local.
-- Toàn workspace có **592/592 test** xanh; smoke HTTP công khai 228/228 và auth 38/38.
-- Frontend hiện mới là scaffold tối thiểu; bước tiếp theo là triển khai UI công khai và UI admin.
+- PostgreSQL có **38/38 migration** đã được kiểm tra và áp dụng trên môi trường local.
+- Frontend công khai W0–W8 đã hoàn tất; crawler web đạt **380/380**, responsive đạt **11/11**
+  và Lighthouse đạt 99 Performance / 100 Accessibility trên các trang trọng yếu.
+- Quality gate tĩnh và production build đều đạt. Lần chạy integration test đầy đủ gần nhất đạt
+  **665/668**; ba lỗi còn lại là một ca SiteService vượt timeout khi chạy song song và hai lỗi
+  dây chuyền từ chính ca timeout đó.
+- UI quản trị chưa được triển khai; backend quản trị và hợp đồng API đã sẵn sàng cho phase tiếp theo.
 
 Chi tiết đo đạc và các giới hạn còn lại:
 
 - [Trạng thái hiện tại](doc/14_TRANG_THAI_HIEN_TAI.md)
 - [Báo cáo rà soát F1–F8](doc/15_BAO_CAO_RA_SOAT_F1_F8.md)
 - [Báo cáo dọn dẹp cấu trúc](doc/16_BAO_CAO_DON_DEP_CAU_TRUC.md)
+- [Báo cáo nghiệm thu frontend W0–W8](doc/20_BAO_CAO_NGHIEM_THU_FRONTEND_W0_W8.md)
 
 ## Cấu trúc repository
 
 ```text
 backend/                 NestJS API, DAO, service và test
-frontend/                Next.js public + /admin
+frontend/                Next.js public site; UI admin là phase tiếp theo
 worker/                  Email outbox worker
 packages/
   config/                Xác thực biến môi trường dùng chung
@@ -63,6 +68,7 @@ pnpm typecheck               # build package dependency rồi kiểm TypeScript 
 pnpm lint                    # ESLint
 pnpm format:check            # Prettier
 pnpm build                   # production build
+pnpm clean                   # dừng dev server trước; giữ dependency, .env và dữ liệu local
 
 pnpm db:migrate              # áp dụng migration còn thiếu
 pnpm db:status               # trạng thái migration
@@ -71,6 +77,10 @@ pnpm db:seed:demo            # dữ liệu demo idempotent
 
 pnpm smoke:api               # backend phải đang chạy
 pnpm smoke:auth              # backend phải đang chạy
+pnpm smoke:web               # backend + frontend production phải đang chạy
+pnpm smoke:responsive        # kiểm viewport, bàn phím và focus bằng Chromium
+pnpm quality:web             # kiểm ngân sách JavaScript sau next build
+pnpm measure:web             # đo Lighthouse trên frontend đang chạy
 ```
 
 ## Nguồn sự thật kỹ thuật

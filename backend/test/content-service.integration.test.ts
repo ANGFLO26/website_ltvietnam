@@ -109,7 +109,7 @@ run('ContentService tren PostgreSQL that', () => {
         scopeOfWork: [],
         process: [],
         benefits: [],
-        faq: [],
+        faq: { version: 1, items: [] },
       } as never);
       await daos.services.publishTranslation(sv.id, 'vi', new Date());
       await daos.services.publish(sv.id, new Date());

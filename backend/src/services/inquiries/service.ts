@@ -25,9 +25,9 @@ export class InquiryServiceImpl implements InquiryService {
     if (!captcha.success) {
       throw new DomainError('CAPTCHA_INVALID', 'CAPTCHA khong hop le hoac da het han');
     }
-    await this.assertReferences(input.product_id, input.service_id);
+    const references = await this.resolveReferences(input);
 
-    const fingerprint = fingerprintOf(input);
+    const fingerprint = fingerprintOf(input, references);
     const result = await this.daos.transaction(async (tx) => {
       const created = await tx.inquiries.createIdempotent({
         inquiryType: input.inquiry_type,
@@ -36,8 +36,8 @@ export class InquiryServiceImpl implements InquiryService {
         ...(input.phone !== undefined && { phone: input.phone }),
         ...(input.email !== undefined && { email: input.email?.toLowerCase() ?? null }),
         message: input.message,
-        ...(input.product_id !== undefined && { productId: input.product_id }),
-        ...(input.service_id !== undefined && { serviceId: input.service_id }),
+        ...(references.productId !== null && { productId: references.productId }),
+        ...(references.serviceId !== null && { serviceId: references.serviceId }),
         ...(input.source_url !== undefined && { sourceUrl: input.source_url }),
         locale: input.locale,
         ...(input.preferred_contact_method !== undefined && {
@@ -93,24 +93,53 @@ export class InquiryServiceImpl implements InquiryService {
     return this.findById(id);
   }
 
-  private async assertReferences(
-    productId?: string | null,
-    serviceId?: string | null,
-  ): Promise<void> {
-    if (productId && !(await this.daos.products.findById(productId))) {
-      throw new DomainError('INQUIRY_PRODUCT_INVALID', 'San pham duoc chon khong ton tai');
+  private async resolveReferences(input: SubmitInquiryInput): Promise<ResolvedReferences> {
+    let productId = input.product_id ?? null;
+    if (input.product_slug) {
+      const product = await this.daos.products.findBySlug(input.product_slug);
+      if (!product || product.status !== 'published') {
+        throw new DomainError('INQUIRY_PRODUCT_INVALID', 'San pham duoc chon khong ton tai');
+      }
+      productId = product.id;
+    } else if (productId) {
+      const product = await this.daos.products.findById(productId);
+      if (!product || product.status !== 'published') {
+        throw new DomainError('INQUIRY_PRODUCT_INVALID', 'San pham duoc chon khong ton tai');
+      }
     }
-    if (serviceId && !(await this.daos.services.findById(serviceId))) {
-      throw new DomainError('INQUIRY_SERVICE_INVALID', 'Dich vu duoc chon khong ton tai');
+
+    let serviceId = input.service_id ?? null;
+    if (input.service_slug) {
+      const service = await this.daos.services.findBySlug(input.locale, input.service_slug);
+      if (
+        !service ||
+        service.service.status !== 'published' ||
+        service.translation.status !== 'published'
+      ) {
+        throw new DomainError('INQUIRY_SERVICE_INVALID', 'Dich vu duoc chon khong ton tai');
+      }
+      serviceId = service.service.id;
+    } else if (serviceId) {
+      const service = await this.daos.services.findById(serviceId);
+      if (!service || service.status !== 'published') {
+        throw new DomainError('INQUIRY_SERVICE_INVALID', 'Dich vu duoc chon khong ton tai');
+      }
     }
+
+    return { productId, serviceId };
   }
+}
+
+interface ResolvedReferences {
+  readonly productId: string | null;
+  readonly serviceId: string | null;
 }
 
 function accepted(id: string): InquiryAcceptedView {
   return { request_id: id, message: 'Yêu cầu đã được tiếp nhận.' };
 }
 
-function fingerprintOf(input: SubmitInquiryInput): string {
+function fingerprintOf(input: SubmitInquiryInput, references: ResolvedReferences): string {
   const canonical = {
     inquiry_type: input.inquiry_type,
     full_name: input.full_name,
@@ -118,8 +147,8 @@ function fingerprintOf(input: SubmitInquiryInput): string {
     phone: input.phone ?? null,
     email: input.email?.toLowerCase() ?? null,
     message: input.message,
-    product_id: input.product_id ?? null,
-    service_id: input.service_id ?? null,
+    product_id: references.productId,
+    service_id: references.serviceId,
     source_url: input.source_url ?? null,
     preferred_contact_method: input.preferred_contact_method ?? null,
     province: input.province ?? null,

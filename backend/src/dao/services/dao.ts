@@ -7,7 +7,7 @@ import {
   type TranslationStatus,
 } from '../translation.support.js';
 import type { KyselyExecutor } from '../connection.js';
-import { fromBlocks } from '../content.js';
+import { fromBlocks, fromFaq } from '../content.js';
 import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
 import type { ServiceDao } from './dao.interface.js';
 import type {
@@ -220,7 +220,7 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
       scope_of_work: fromBlocks(input.scopeOfWork),
       process: fromBlocks(input.process),
       benefits: fromBlocks(input.benefits),
-      faq: fromBlocks(input.faq),
+      faq: fromFaq(input.faq),
       seo_title: input.seoTitle ?? null,
       seo_description: input.seoDescription ?? null,
     };

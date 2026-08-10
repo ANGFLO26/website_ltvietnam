@@ -130,8 +130,8 @@ export function taoBoTiem({ goc, cwd = 'backend', db = process.env.DATABASE_URL 
   function testXanh(file, ten) {
     try {
       execFileSync(
-        join(goc, 'node_modules/.bin/vitest'),
-        ['run', file, '-t', ten, '--reporter=dot'],
+        process.execPath,
+        [join(goc, 'node_modules/vitest/vitest.mjs'), 'run', file, '-t', ten, '--reporter=dot'],
         {
           cwd: join(goc, cwd),
           env: { ...process.env, ...(db ? { DATABASE_URL: db } : {}) },

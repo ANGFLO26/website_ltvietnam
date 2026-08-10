@@ -17,7 +17,9 @@ export interface SubmitInquiryInput {
   readonly email?: string | null | undefined;
   readonly message: string;
   readonly product_id?: string | null | undefined;
+  readonly product_slug?: string | null | undefined;
   readonly service_id?: string | null | undefined;
+  readonly service_slug?: string | null | undefined;
   readonly source_url?: string | null | undefined;
   readonly preferred_contact_method?: InquiryPreferredContact | null | undefined;
   readonly province?: string | null | undefined;
