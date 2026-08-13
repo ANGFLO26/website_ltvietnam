@@ -29,6 +29,10 @@ run('Nhom noi dung: posts, projects, documents, customers', () => {
       originalName: `${tag} logo.png`,
       storageClass: 'public',
       storagePath: `public-media/${tag}/logo.png`,
+      // `findPublicWithLogo` doi `public_url IS NOT NULL` — no tu choi phat mot
+      // the <img> tro vao dia chi rong. Media that luon co URL sau khi upload,
+      // nen fixture khong co URL la mot ban ghi KHONG THE ton tai that.
+      publicUrl: `/media/public-media/${tag}/logo.png`,
       mimeType: 'image/png',
       fileExtension: 'png',
       fileSize: 2048,
@@ -404,6 +408,7 @@ run('Nhom noi dung: posts, projects, documents, customers', () => {
       originalName: `${tag} logo2.png`,
       storageClass: 'public',
       storagePath: `public-media/${tag}/logo2.png`,
+      publicUrl: `/media/public-media/${tag}/logo2.png`,
       mimeType: 'image/png',
       fileExtension: 'png',
       fileSize: 100,

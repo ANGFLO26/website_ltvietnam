@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type pg from 'pg';
 import { createTestClient, createTestPool } from '@ltv/testing';
 import { createKysely } from '../src/dao/connection.js';
@@ -31,28 +31,27 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
   beforeAll(async () => {
     pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
-    /**
-     * Don job cua cac tep test KHAC truoc khi bat dau.
-     *
-     * NO GIOI HAN CON LAI (chua sua xong): cac bai kiem lay job trong tep nay
-     * van chua co lap voi NHAU. `claimJobs(worker, n, ...)` lay `n` dong DAU CUA
-     * CA BANG chu khong phai `n` job cua rieng bai kiem dang chay; cac bai kiem
-     * truoc trong chinh tep nay de lai job `pending`, nen khi tong vuot `n` thi
-     * mot phan job cua bai kiem hien tai nam NGOAI cua so lay, va
-     * `FOR UPDATE SKIP LOCKED` khong quet lai de bu.
-     *
-     * Hau qua do duoc: chay rieng tep nay thi hong ~1/6 lan; chay ca bo test thi
-     * hong gan nhu moi lan (vi co nhieu job ton hon).
-     *
-     * MA NGUON KHONG SAI — da doi chieu rieng bang mot kich ban tai hien: cau
-     * lenh `UPDATE ... FROM (SELECT ... FOR UPDATE SKIP LOCKED)` cua `claimJobs`
-     * chay dung 20/20 lan khi hang doi sach, khong mat va khong trung job nao.
-     *
-     * Sua tan goc phai tach fixture cho tung bai kiem lay job (hoac dat moi bai
-     * trong mot `describe` rieng co `beforeEach` don hang doi) — mot viec rieng,
-     * khong gop vao dot ra soat nay. Dung `beforeEach` don sach o day thi bai
-     * kiem "dem theo trang thai" do, vi no lai DUA VAO job do bai kiem truoc tao.
-     */
+  });
+
+  /**
+   * HANG DOI SACH TRUOC MOI BAI KIEM — day la dieu kien dung cua ca tep.
+   *
+   * `claimJobs(worker, n, ...)` lay `n` dong DAU CUA CA BANG chu khong phai `n`
+   * job cua rieng bai kiem dang chay. Khi bai kiem truoc de lai job `pending` va
+   * tong vuot `n`, mot phan job cua bai kiem hien tai nam NGOAI cua so lay, va
+   * `FOR UPDATE SKIP LOCKED` khong quet lai de bu — bai kiem do trong khi MA
+   * NGUON HOAN TOAN DUNG.
+   *
+   * Truoc day day la `beforeAll`, va hau qua do duoc: chay rieng tep nay hong
+   * ~1/6 lan, chay ca bo test thi hong gan nhu moi lan. `doc/30` muc 4 ghi lai
+   * hien tuong do va hoan viec sua, vi khi ay `beforeEach` lam do bai kiem
+   * "dem theo trang thai" — no DUA VAO job do bai kiem truoc tao ra.
+   *
+   * Cho phu thuoc do la mot LOI cua chinh bai kiem ay chu khong phai mot rang
+   * buoc that: mot phep dem phai tu tao du lieu no dem. Nay no tu seed, nen
+   * `beforeEach` khong con vuong gi.
+   */
+  beforeEach(async () => {
     await pool.query(`DELETE FROM ltv.inquiry_outbox`);
   });
 
@@ -212,6 +211,26 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
 
   // ══════════════════ FV-08 — lay job dong thoi ══════════════════
 
+  /**
+   * Tao `count` job DA DEN HAN.
+   *
+   * Dong `UPDATE` cuoi ham la phan quan trong nhat, va day la nguyen nhan THAT
+   * cua viec tep nay hong that thuong — `doc/30` muc 4 doan sai sang huong khac
+   * ("cua so `n` dong dau bang"), nen viec sua da bi hoan mot cach khong can.
+   *
+   * `next_attempt_at` mac dinh la `NOW()` cua POSTGRES, con `claimJobs` so no
+   * voi mot moc do NODE sinh ra (`next_attempt_at <= ${now}`). Hai dong ho do
+   * KHONG bang nhau: do tren may nay, Postgres dang nhanh hon Node ~280ms. Job
+   * duoc tao sau cung vi the co the "chua den han" so voi `new Date()` ma bai
+   * kiem lay ngay sau do — va phep lay tra ve 9 job thay vi 10.
+   *
+   * Do la ly do lo hong chi xuat hien doi khi, va vi sao no bien mat khi chay
+   * mot minh (seed nhanh hon, sai so nho hon nen thinh thoang van kip).
+   *
+   * Ep moc ve qua khu la cach noi ro dieu ma bai kiem VON GIA DINH: nhung job
+   * nay da den han. Bai kiem lich hen tuong lai co moc rieng nen khong anh
+   * huong.
+   */
   const seedJobs = async (count: number, prefix: string) => {
     const ids: string[] = [];
     for (let i = 0; i < count; i++) {
@@ -222,6 +241,11 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
       });
       ids.push(job!.id);
     }
+    await pool.query(
+      `UPDATE ltv.inquiry_outbox SET next_attempt_at = now() - interval '1 minute'
+       WHERE id = ANY($1::uuid[])`,
+      [ids],
+    );
     return ids;
   };
 
@@ -448,8 +472,12 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
   });
 
   it('dem theo trang thai — dung cho canh bao van hanh', async () => {
+    // Tu tao du lieu can dem. Ban truoc dua vao job con sot lai cua bai kiem
+    // truoc, nen no vua kiem sai thu (thu tu chay) vua chan viec don hang doi
+    // giua cac bai kiem — thu duy nhat lam ca tep nay hong that thuong.
+    await seedJobs(2, 'counts');
     const counts = await daos.inquiries.countJobsByStatus();
-    expect(Object.keys(counts).length).toBeGreaterThan(0);
+    expect(counts['pending']).toBe(2);
     for (const v of Object.values(counts)) expect(typeof v).toBe('number');
   });
 });

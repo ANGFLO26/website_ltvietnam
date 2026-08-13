@@ -259,12 +259,22 @@ run('SiteService tren PostgreSQL that', () => {
       expect(ten).not.toContain(`KH khong logo ${tag}`);
     });
 
+    /**
+     * Khang dinh dieu ma ten phep kiem NOI: khong ro ri cot noi bo.
+     *
+     * Ban truoc liet ke cung DU danh sach khoa duoc phep, nen khi `CustomerView`
+     * them `logo_url` — mot truong hop le, khong ro ri gi — phep kiem do len va
+     * o do rat lau. No bao "co gi do doi", chu khong bao "co gi do lo ra".
+     *
+     * Danh sach CAM duoi day so khop CHINH XAC tung ten khoa, khong phai chuoi
+     * con: `logo_id` la khoa hop le va phai khong bi nham voi `id`.
+     */
     it('KHONG lo `id` hay `status` ra ngoai', async () => {
       const xs = await site.customers(100);
       const x = xs.find((y) => y.name === `KH hien ${tag}`)!;
-      expect(Object.keys(x).sort()).toEqual(
-        ['logo_id', 'name', 'short_description', 'website_url'].sort(),
-      );
+      const camLo = ['id', 'status', 'is_public', 'deleted_at', 'created_at', 'updated_at'];
+      const loRa = Object.keys(x).filter((key) => camLo.includes(key));
+      expect(loRa, `cot noi bo bi lo ra ngoai: ${loRa.join(', ')}`).toEqual([]);
     });
 
     it('`limit` bi kep trong khoang 1..100', async () => {
