@@ -11,10 +11,12 @@ import type { PagedResult } from '../../services/taxonomy/interface.js';
 /**
  * NOI DUNG CO BAN DICH — F3.
  *
- * `?locale=vi|en`, mac dinh `en` (ADR-001: tieng Anh o goc, tieng Viet o `/vi`).
+ * `?locale=vi|en`, mac dinh la `DEFAULT_LOCALE` — nay la tieng Viet. Gia tri mac
+ * dinh doc tu `@ltv/contracts` chu khong viet cung o day, nen no khong the lech
+ * voi ngon ngu ma frontend phuc vu o goc.
  *
  * Vi sao locale la THAM SO TRUY VAN chu khong phai tien to duong dan: URL cong
- * khai co tien to (`/vi/tin-tuc/...`) nhung do la URL cua FRONTEND. API phang
+ * khai co tien to (`/en/news/...`) nhung do la URL cua FRONTEND. API phang
  * (ADR-001), va frontend giai locale tu URL cua no roi noi vao day. Nhan them
  * `/api/v1/vi/...` se tao hai cach viet cho cung mot endpoint, va Luat 16 se
  * phai khai bao ca hai.

@@ -1,4 +1,10 @@
-import type { HreflangAlternateView, Locale, RobotsDirective, SeoDetailView } from '@ltv/contracts';
+import {
+  localePrefix,
+  type HreflangAlternateView,
+  type Locale,
+  type RobotsDirective,
+  type SeoDetailView,
+} from '@ltv/contracts';
 
 export type TranslatedRouteKind = 'page' | 'service' | 'project' | 'post';
 
@@ -14,7 +20,16 @@ export function absoluteUrl(siteUrl: string, path: string): string {
 }
 
 const segment = (value: string): string => encodeURIComponent(value);
-const prefix = (locale: Locale): string => (locale === 'vi' ? '/vi' : '');
+
+/**
+ * Tien to ngon ngu lay tu `@ltv/contracts`, KHONG tu suy ra o day.
+ *
+ * Ban truoc viet `locale === 'vi' ? '/vi' : ''` ngay tai day, va do la mot ban
+ * sao thu hai cua quy tac dinh tuyen. Khi ngon ngu goc doi tu Anh sang Viet,
+ * ban sao nay van phat `/vi` trong khi frontend da phat `/en` — canonical va
+ * sitemap se tro vao nhung URL khong ton tai, va khong co gi bao loi.
+ */
+const prefix = (locale: Locale): string => localePrefix(locale);
 
 /** Route frontend chinh thuc cua bon nhom co ban dich (ADR-001/014). */
 export function translatedPath(

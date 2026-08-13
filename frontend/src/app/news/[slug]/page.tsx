@@ -6,9 +6,9 @@ export function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  return postDetailMetadata('en', params);
+  return postDetailMetadata('vi', params);
 }
 
 export default function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  return renderPostDetail('en', params);
+  return renderPostDetail('vi', params);
 }

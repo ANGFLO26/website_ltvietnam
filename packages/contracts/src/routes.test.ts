@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  LOCALES,
   ROUTES,
   buildReservedPaths,
   isReservedPath,
+  legacyLocaleRedirect,
+  localeFromPath,
+  localePrefix,
   localizedPath,
   routeProgress,
 } from './routes.js';
@@ -21,9 +25,32 @@ describe('bang route', () => {
     for (const r of ROUTES) expect(r.path.startsWith('/')).toBe(true);
   });
 
-  it('khai bao du 26 route, 15 route co bien the /vi va phase co chu so huu', () => {
+  /**
+   * Tap route CHI-TIENG-VIET phai dung bang catalogue, khong hon khong kem.
+   *
+   * Viet ra tung khoa chu khong dem so: mot con so chi bat duoc "co gi do doi",
+   * con danh sach nay bat duoc DUNG cai gi doi. Neu ai do bo `localized` cua
+   * `/contact` thi phep kiem chi ra dung `contact`, va nguoi doc thay ngay day
+   * la mot trang cong ty bi tut xuong con mot ngon ngu — mot loi, chu khong
+   * phai mot lua chon.
+   */
+  it('chi catalogue la mot ngon ngu; moi trang cong ty deu co ban tieng Anh', () => {
     expect(ROUTES).toHaveLength(26);
-    expect(ROUTES.filter((route) => route.localized)).toHaveLength(15);
+    const vietnameseOnly = ROUTES.filter((route) => !route.localized)
+      .map((route) => route.key)
+      .sort();
+    expect(vietnameseOnly).toEqual([
+      'brands.detail',
+      'brands.list',
+      'products.all',
+      'products.application',
+      'products.category',
+      'products.detail',
+      'products.landing',
+      'products.standard',
+      'resources.detail',
+      'resources.list',
+    ]);
     expect(ROUTES.every((route) => /^W[1-6]$/.test(route.phase))).toBe(true);
   });
 
@@ -95,9 +122,15 @@ describe('tap route bao luu', () => {
       expect(isReservedPath(p, reserved), `${p} phai duoc bao luu`).toBe(true);
   });
 
-  it('bao luu ca bien the /vi cua nhom co ban dich', () => {
-    for (const p of ['/vi/news', '/vi/services', '/vi/projects', '/vi/about', '/vi/contact'])
+  it('bao luu bien the /en cua nhom trang cong ty', () => {
+    for (const p of ['/en/news', '/en/services', '/en/projects', '/en/about', '/en/contact'])
       expect(isReservedPath(p, reserved), `${p} phai duoc bao luu`).toBe(true);
+  });
+
+  /** Catalogue chi mot ngon ngu, nen `/en/products` khong phai route — va khong bi bao luu. */
+  it('KHONG bao luu bien the /en cua catalogue', () => {
+    for (const p of ['/en/products', '/en/products/all', '/en/brands', '/en/resources'])
+      expect(isReservedPath(p, reserved), `${p} khong phai route`).toBe(false);
   });
 
   it('bao luu tien to ky thuat', () => {
@@ -109,7 +142,7 @@ describe('tap route bao luu', () => {
   it('chan slug trung ten route — loi cua v1.2.1', () => {
     expect(isReservedPath('/products', reserved)).toBe(true);
     expect(isReservedPath('/brands', reserved)).toBe(true);
-    expect(isReservedPath('/vi/news', reserved)).toBe(true);
+    expect(isReservedPath('/en/news', reserved)).toBe(true);
   });
 
   it('KHONG bao luu slug binh thuong', () => {
@@ -119,12 +152,69 @@ describe('tap route bao luu', () => {
 });
 
 describe('localizedPath', () => {
-  it('tieng Anh khong co tien to', () => {
-    expect(localizedPath('/news/abc', 'en')).toBe('/news/abc');
-    expect(localizedPath('/', 'en')).toBe('/');
+  it('tieng Viet o goc, khong tien to', () => {
+    expect(localizedPath('/news/abc', 'vi')).toBe('/news/abc');
+    expect(localizedPath('/', 'vi')).toBe('/');
   });
-  it('tieng Viet co tien to /vi', () => {
-    expect(localizedPath('/news/abc', 'vi')).toBe('/vi/news/abc');
-    expect(localizedPath('/', 'vi')).toBe('/vi');
+  it('tieng Anh co tien to /en', () => {
+    expect(localizedPath('/news/abc', 'en')).toBe('/en/news/abc');
+    expect(localizedPath('/', 'en')).toBe('/en');
+  });
+});
+
+describe('localeFromPath', () => {
+  it('la nghich dao cua localizedPath tren moi route va moi ngon ngu', () => {
+    for (const route of ROUTES) {
+      for (const locale of LOCALES) {
+        const path = localizedPath(route.path.replace(/:[a-z_]+/g, 'vi-du'), locale);
+        expect(localeFromPath(path), `${path} phai doc ra ${locale}`).toBe(locale);
+      }
+    }
+  });
+
+  it('khong nham slug bat dau bang ten ngon ngu', () => {
+    expect(localeFromPath('/news/en-example')).toBe('vi');
+    expect(localeFromPath('/entrust-analyzer')).toBe('vi');
+  });
+});
+
+describe('legacyLocaleRedirect — cau truc /vi cu', () => {
+  it('go tien to /vi cho moi duong dan, ke ca slug chua ton tai', () => {
+    expect(legacyLocaleRedirect('/vi')).toBe('/');
+    expect(legacyLocaleRedirect('/vi/')).toBe('/');
+    expect(legacyLocaleRedirect('/vi/services')).toBe('/services');
+    expect(legacyLocaleRedirect('/vi/news/bai-viet-bat-ky')).toBe('/news/bai-viet-bat-ky');
+    expect(legacyLocaleRedirect('/vi/news/category/tin-cong-nghe')).toBe(
+      '/news/category/tin-cong-nghe',
+    );
+  });
+
+  it('KHONG dung vao duong dan chi tinh co bat dau bang chu vi', () => {
+    expect(legacyLocaleRedirect('/vietnam-office')).toBeNull();
+    expect(legacyLocaleRedirect('/products/viscometer')).toBeNull();
+    expect(legacyLocaleRedirect('/')).toBeNull();
+    expect(legacyLocaleRedirect('/services')).toBeNull();
+  });
+
+  /** Moi duong dan cu phai den mot route CO THAT, khong phai mot 404 khac. */
+  it('dich cua moi route cu deu nam trong bang route', () => {
+    const known = new Set<string>(ROUTES.map((route) => route.path));
+    for (const route of ROUTES) {
+      if (!route.localized) continue;
+      const target = legacyLocaleRedirect(`/vi${route.path}`);
+      expect(target, `/vi${route.path} phai chuyen huong`).not.toBeNull();
+      expect(known.has(target ?? ''), `${target} phai la route co that`).toBe(true);
+    }
+  });
+
+  it('van bao luu /vi de khong slug nao chiem duoc', () => {
+    expect(isReservedPath('/vi')).toBe(true);
+  });
+});
+
+describe('localePrefix', () => {
+  it('ngon ngu o goc khong co tien to', () => {
+    expect(localePrefix('vi')).toBe('');
+    expect(localePrefix('en')).toBe('/en');
   });
 });

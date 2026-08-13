@@ -1,7 +1,7 @@
 import { sql } from 'kysely';
 import { BaseDao } from '../base.dao.js';
 import type { KyselyExecutor } from '../connection.js';
-import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
+import { escapeLike, normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
 import type { MediaDao } from './dao.interface.js';
 import type {
   CreateMediaInput,
@@ -310,9 +310,6 @@ export function resetMediaFkCache(): void {
 }
 
 /** `%` va `_` trong chuoi nguoi dung tim la ky tu THUONG, khong phai dai dien. */
-function escapeLike(s: string): string {
-  return s.replace(/[\\%_]/g, (c) => `\\${c}`);
-}
 
 function referenceEntityId(
   row: Record<string, unknown>,

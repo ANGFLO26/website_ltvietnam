@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { policyMetadata, renderPolicyPage } from '@/page-views/policies';
 
 export function generateMetadata(): Promise<Metadata> {
-  return policyMetadata('cookie-policy', 'en');
+  return policyMetadata('cookie-policy', 'vi');
 }
 
 export default function CookiePolicyPage() {
-  return renderPolicyPage('cookie-policy', 'en');
+  return renderPolicyPage('cookie-policy', 'vi');
 }

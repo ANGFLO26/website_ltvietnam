@@ -42,6 +42,7 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
       trTable: 'service_translations',
       parentKey: 'service_id',
       titleColumn: 'name',
+      summaryColumn: 'short_description',
     });
   }
 
@@ -359,8 +360,9 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'parent_id' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
-    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds, search);
   }
 
   async idsByIndustry(industryId: string): Promise<string[]> {

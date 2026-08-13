@@ -10,7 +10,7 @@ import { getDictionary } from '@/lib/i18n';
 import { routePath } from '@/lib/routes';
 import { buildMetadata } from '@/lib/seo';
 
-const dictionary = getDictionary('en');
+const dictionary = getDictionary('vi');
 
 export async function generateMetadata({
   params,
@@ -53,7 +53,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
             },
             { label: brand.name },
           ]}
-          locale="en"
+          locale="vi"
           dictionary={dictionary}
         />
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">

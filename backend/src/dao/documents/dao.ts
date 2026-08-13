@@ -2,7 +2,7 @@ import { sql } from 'kysely';
 import { BaseDao } from '../base.dao.js';
 import { SlugSupport } from '../slugged.dao.js';
 import type { KyselyExecutor } from '../connection.js';
-import { normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
+import { escapeLike, normalizePage, offsetOf, toPaged, type Page, type Paged } from '../helpers.js';
 import type { DocumentDao } from './dao.interface.js';
 import type {
   AppDocument,
@@ -293,6 +293,3 @@ export class KyselyDocumentDao extends BaseDao implements DocumentDao {
   }
 }
 
-function escapeLike(s: string): string {
-  return s.replace(/[\\%_]/g, (c) => `\\${c}`);
-}

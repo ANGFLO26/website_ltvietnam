@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
-import type { Locale } from '@ltv/contracts';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '@ltv/contracts';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { TopBar } from '@/components/layout/TopBar';
@@ -37,6 +37,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   );
 }
 
+/**
+ * Ngon ngu do middleware gan vao header, mac dinh la ngon ngu goc.
+ *
+ * Doi chieu voi `LOCALES` chu khong so bang mot chuoi viet cung: ban truoc viet
+ * `=== 'vi' ? 'vi' : 'en'`, nghia la MOI gia tri la khong nhan ra deu roi ve
+ * tieng Anh. Sau khi tieng Viet ve goc, cai mac dinh do lam trang tieng Viet
+ * hien bang tu dien tieng Anh khi header vang mat — mot loi khong the thay qua
+ * bien dich, chi thay qua mot trang hien sai ngon ngu.
+ */
 function requestLocale(requestHeaders: Headers): Locale {
-  return requestHeaders.get('x-ltv-locale') === 'vi' ? 'vi' : 'en';
+  const raw = requestHeaders.get('x-ltv-locale');
+  return LOCALES.find((locale) => locale === raw) ?? DEFAULT_LOCALE;
 }

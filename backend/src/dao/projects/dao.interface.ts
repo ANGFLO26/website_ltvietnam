@@ -77,5 +77,6 @@ export interface ProjectDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'project_type' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
 }

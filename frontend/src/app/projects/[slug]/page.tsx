@@ -6,9 +6,9 @@ export function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  return projectDetailMetadata('en', params);
+  return projectDetailMetadata('vi', params);
 }
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  return renderProjectDetail('en', params);
+  return renderProjectDetail('vi', params);
 }

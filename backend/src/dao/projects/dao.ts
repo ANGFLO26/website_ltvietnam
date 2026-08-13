@@ -38,6 +38,7 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
       trTable: 'project_translations',
       parentKey: 'project_id',
       titleColumn: 'title',
+      summaryColumn: 'short_description',
     });
   }
 
@@ -418,7 +419,8 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'project_type' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
-    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds, search);
   }
 }

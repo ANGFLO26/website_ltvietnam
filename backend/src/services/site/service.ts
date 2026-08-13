@@ -356,36 +356,56 @@ export class SiteServiceImpl implements SiteService {
   }
 
   // ══════════════════════════ tim kiem ══════════════════════════
-  async search(q: string, _locale: Locale, page?: PageArg): Promise<PagedResult<SearchHitView>> {
+  async search(q: string, locale: Locale, page?: PageArg): Promise<PagedResult<SearchHitView>> {
     const p = trang(page);
+
     /**
-     * Dung lai `ProductQueryService.list({ search })`, khong viet truy van moi.
+     * San pham dung lai `ProductQueryService.list({ search })`, khong viet truy
+     * van moi: duong do da co ADR-011 (san pham ngung kinh doanh VAN nam trong
+     * ket qua, kem co), da khong nhan `status`, va da co bai kiem dem so truy van.
      *
-     * Duong do da co ADR-011 (san pham ngung kinh doanh VAN nam trong ket qua, kem
-     * co), da khong nhan `status`, va da co bai kiem dem so truy van. Mot truy van
-     * tim kiem rieng se phai lap lai ca ba dieu do.
-     *
-     * `locale` chua duoc dung, va toi noi ro thay vi de nguoi doc tu suy: san pham
-     * KHONG co bang dich (ADR-014) — ten may, model, ten hang giu nguyen o ca hai
-     * ngon ngu. Tham so nay co mat vi P1 se mo rong tim kiem sang service/project/
-     * post, va ba nhom do CO ban dich. Bo no bay gio nghia la luc do phai doi chu
-     * ky va moi noi goi.
+     * San pham KHONG phu thuoc `locale` (ADR-014): ten may, model va ten hang
+     * giu nguyen. Ba nhom noi dung thi CO ban dich, nen chung nhan `locale`.
      */
-    const r = await this.products.list({ search: q }, 'default', p);
+    const window = p.page * p.pageSize;
+    const [products, content] = await Promise.all([
+      this.products.list({ search: q }, 'default', { page: 1, pageSize: window }),
+      this.content.searchContent(locale, q, window),
+    ]);
+
+    const productHits: SearchHitView[] = products.items.map((x) => ({
+      type: 'product' as const,
+      slug: x.slug,
+      title: x.name,
+      /**
+       * `model` truoc `short_description`: nguoi tim "OptiDist" can biet ngay
+       * day la model nao, va mo ta ngan cua nhieu san pham gan giong nhau.
+       */
+      subtitle: x.model ?? x.short_description,
+    }));
+
+    /**
+     * GHEP roi CAT, thay vi phan trang tren tung nguon.
+     *
+     * Bon nguon co tong rieng, nen khong co mot `OFFSET` nao dung cho ca bon.
+     * Cach lam o day la lay dung cua so `page * pageSize` dau tien tu moi nguon
+     * roi cat lay trang can — voi cung mot thu tu uu tien, ket qua on dinh giua
+     * cac trang va khong ban ghi nao xuat hien hai lan.
+     *
+     * GIOI HAN CO THAT: chi phi tang theo so trang, nen `TRAN_TRANG` chan lai o
+     * 100. Tim kiem tren website nay khong di sau — nguoi khong tim thay o trang
+     * dau se doi tu khoa chu khong lat den trang muoi. Neu ngay nao do can di
+     * sau hon thi phai chuyen sang mot truy van UNION o tang DAO, va do la mot
+     * viec khac han chu khong phai noi them vao day.
+     */
+    const all = [...productHits, ...content.items];
+    const start = (p.page - 1) * p.pageSize;
+
     return {
-      items: r.items.map((x) => ({
-        type: 'product' as const,
-        slug: x.slug,
-        title: x.name,
-        /**
-         * `model` truoc `short_description`: nguoi tim "OptiDist" can biet ngay
-         * day la model nao, va mo ta ngan cua nhieu san pham gan giong nhau.
-         */
-        subtitle: x.model ?? x.short_description,
-      })),
-      page: r.page,
-      pageSize: r.pageSize,
-      totalItems: r.totalItems,
+      items: all.slice(start, start + p.pageSize),
+      page: p.page,
+      pageSize: p.pageSize,
+      totalItems: products.totalItems + content.total,
     };
   }
 }

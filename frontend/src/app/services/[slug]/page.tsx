@@ -6,9 +6,9 @@ export function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  return serviceDetailMetadata('en', params);
+  return serviceDetailMetadata('vi', params);
 }
 
 export default function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  return renderServiceDetail('en', params);
+  return renderServiceDetail('vi', params);
 }

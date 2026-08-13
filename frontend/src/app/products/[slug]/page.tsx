@@ -20,7 +20,7 @@ import { routePath } from '@/lib/routes';
 import { buildMetadata } from '@/lib/seo';
 import { buildBreadcrumbStructuredData, buildProductStructuredData } from '@/lib/structured-data';
 
-const dictionary = getDictionary('en');
+const dictionary = getDictionary('vi');
 
 export async function generateMetadata({
   params,
@@ -148,7 +148,7 @@ function ProductDetail({ product }: { product: ProductDetailView }) {
             <div className="mt-7 hidden flex-wrap items-center gap-3 lg:flex">
               <InquiryLauncher
                 className="inline-flex rounded-lg bg-blue-800 px-6 py-3 font-bold text-white no-underline hover:bg-blue-900"
-                locale="en"
+                locale="vi"
                 dictionary={dictionary}
                 captcha={captcha}
                 label={dictionary.products.requestQuote}
@@ -297,7 +297,7 @@ function ProductDetail({ product }: { product: ProductDetailView }) {
         </Link>
         <InquiryLauncher
           className="block rounded-lg bg-blue-800 px-3 py-3 text-center text-sm font-bold text-white no-underline"
-          locale="en"
+          locale="vi"
           dictionary={dictionary}
           captcha={captcha}
           label={dictionary.products.requestQuote}

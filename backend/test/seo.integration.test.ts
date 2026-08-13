@@ -70,21 +70,22 @@ run('F6 SEO tren PostgreSQL that', () => {
     await pool.end();
   });
 
-  it('DAO chi tra published, va locale vi khong tron entity mot-ngon-ngu', async () => {
-    const en = await daos.seo.listSitemapSources('en');
-    expect(en.some((x) => x.kind === 'product' && x.slug === s('published'))).toBe(true);
-    expect(en.some((x) => x.kind === 'product' && x.slug === s('draft'))).toBe(false);
-
+  it('DAO chi tra published, va catalogue chi nam o sitemap tieng Viet', async () => {
     const vi = await daos.seo.listSitemapSources('vi');
-    expect(vi.some((x) => ['product', 'brand', 'document'].includes(x.kind))).toBe(false);
+    expect(vi.some((x) => x.kind === 'product' && x.slug === s('published'))).toBe(true);
+    expect(vi.some((x) => x.kind === 'product' && x.slug === s('draft'))).toBe(false);
+
+    // Catalogue chi co mot ngon ngu (xem bang route): khong duoc lo sang ban EN.
+    const en = await daos.seo.listSitemapSources('en');
+    expect(en.some((x) => ['product', 'brand', 'document'].includes(x.kind))).toBe(false);
   });
 
   it('ADR-011 §2b doc dung noi dung JSONB thay vi short_description', async () => {
-    const rows = await daos.seo.listSitemapSources('en');
+    const rows = await daos.seo.listSitemapSources('vi');
     expect(rows.find((x) => x.slug === s('thin'))?.hasEditorialContent).toBe(false);
     expect(rows.find((x) => x.slug === s('editorial'))?.hasEditorialContent).toBe(true);
 
-    const xml = await seo.sitemap('en');
+    const xml = await seo.sitemap('vi');
     expect(xml).not.toContain(`/products/category/${s('thin')}`);
     expect(xml).toContain(`/products/category/${s('editorial')}`);
   });
@@ -96,7 +97,7 @@ run('F6 SEO tren PostgreSQL that', () => {
     );
     const updated = rows[0]!.updated_at.toISOString();
 
-    let xml = await seo.sitemap('en');
+    let xml = await seo.sitemap('vi');
     expect(xml).toContain(`<loc>https://ltv.example/products/${s('published')}</loc>`);
     expect(xml).toContain(`<lastmod>${updated}</lastmod>`);
 
@@ -104,7 +105,7 @@ run('F6 SEO tren PostgreSQL that', () => {
       sourcePath: `/products/${s('published')}`,
       targetPath: '/products/all',
     });
-    xml = await seo.sitemap('en');
+    xml = await seo.sitemap('vi');
     expect(xml).not.toContain(`/products/${s('published')}`);
   });
 

@@ -1,11 +1,11 @@
 import { renderServicesList, servicesListMetadata } from '@/page-views/services';
 
-export const metadata = servicesListMetadata('en');
+export const metadata = servicesListMetadata('vi');
 
 export default function ServicesPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string | readonly string[] }>;
 }) {
-  return renderServicesList('en', searchParams);
+  return renderServicesList('vi', searchParams);
 }

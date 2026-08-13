@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ROUTES, type RouteDef } from '@ltv/contracts';
+import { DEFAULT_LOCALE, LOCALES, ROUTES, type RouteDef } from '@ltv/contracts';
 
 const FRONTEND = resolve(import.meta.dirname, '..');
 const SRC = resolve(FRONTEND, 'src');
@@ -114,14 +114,25 @@ describe('frontend architecture rules', () => {
   });
 });
 
+/**
+ * Doan tien to ngon ngu trong cay `app/` — doc tu contracts, khong viet cung.
+ *
+ * Ban truoc so `rawSegments[0] === 'vi'`. Khi tieng Viet ve goc va tieng Anh
+ * chuyen sang `/en`, phep so do coi `app/en/...` la trang KHONG co tien to va
+ * quy no ve route `/en/...` — mot route khong ton tai — nen phep kiem hai chieu
+ * bao sai o ca hai huong cung luc, va thong bao loi khong chi ra nguyen nhan.
+ */
+const PREFIXED_LOCALES = LOCALES.filter((locale) => locale !== DEFAULT_LOCALE);
+
 function pageDefinition(file: string): { path: string; localized: boolean } {
   const relativePath = relative(APP, file)
     .replaceAll('\\', '/')
     .replace(/\/page\.tsx$/, '');
   const rawSegments = relativePath === 'page.tsx' ? [] : relativePath.split('/');
-  const localized = rawSegments[0] === 'vi';
+  const first = rawSegments[0];
+  const localized = PREFIXED_LOCALES.some((locale) => locale === first);
   const segments = rawSegments
-    .filter((segment) => segment !== 'vi' && !/^\(.+\)$/.test(segment))
+    .filter((segment, index) => !(index === 0 && localized) && !/^\(.+\)$/.test(segment))
     .map((segment) => segment.replace(/^\[([^\]]+)\]$/, ':$1'));
   return { path: segments.length === 0 ? '/' : `/${segments.join('/')}`, localized };
 }

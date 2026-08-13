@@ -16,6 +16,14 @@ import type { PageArg, PagedResult } from '../taxonomy/interface.js';
 
 export const CONTENT_SERVICE = Symbol('CONTENT_SERVICE');
 
+/** Mot ket qua tim kiem thuoc nhom noi dung co ban dich. */
+export interface ContentSearchHit {
+  readonly type: 'service' | 'project' | 'post';
+  readonly slug: string;
+  readonly title: string;
+  readonly subtitle: string | null;
+}
+
 /**
  * DUONG DOC CONG KHAI cua noi dung CO BAN DICH — F3.
  *
@@ -98,6 +106,23 @@ export interface ContentService {
     page?: PageArg,
   ): Promise<PagedResult<DocumentCardView>>;
   findDocument(slug: string): Promise<DocumentDetailView | null>;
+
+  /**
+   * TIM KIEM tren ba nhom co ban dich — dich vu, du an, bai viet.
+   *
+   * La mot phuong thuc RIENG chu khong phai mot bo loc them vao ba ham
+   * `listX`: them `search` vao ba chu ky do se keo no ra toi ba controller
+   * cong khai, ba DTO va man hinh quan tri — trong khi khong endpoint nao
+   * trong so do can tim kiem. `/tim-kiem` la noi goi duy nhat.
+   *
+   * Tra ve `total` cua tung nhom de `SiteService` phan trang duoc tren tap
+   * hop nhat ma khong phai dem lai.
+   */
+  searchContent(
+    locale: Locale,
+    q: string,
+    limit: number,
+  ): Promise<{ readonly items: readonly ContentSearchHit[]; readonly total: number }>;
 
   /** `/industries/:slug/services` — chuyen tu F1 sang day vi can duong dich. */
   servicesOfIndustry(

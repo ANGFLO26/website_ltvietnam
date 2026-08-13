@@ -37,6 +37,7 @@ export class KyselyPostDao extends BaseDao implements PostDao {
       trTable: 'post_translations',
       parentKey: 'post_id',
       titleColumn: 'title',
+      summaryColumn: 'excerpt',
     });
   }
 
@@ -345,7 +346,8 @@ export class KyselyPostDao extends BaseDao implements PostDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'category_id' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
-    return this.tr.listPublicByLocale(locale, page, where, restrictToIds);
+    return this.tr.listPublicByLocale(locale, page, where, restrictToIds, search);
   }
 }

@@ -64,6 +64,21 @@ export function assertSortable<T extends string>(
   throw new Error(`Cot sap xep khong hop le: ${value}`);
 }
 
+/**
+ * Thoat ky tu dai dien cua LIKE/ILIKE trong chuoi tim kiem cua nguoi dung.
+ *
+ * `%` va `_` ma nguoi dung go la KY TU THUONG, khong phai ky tu dai dien: mot
+ * mo ta chua "nong do Oxy 20±0.05%" phai tim duoc bang chinh chuoi do, va mot
+ * truy van chi gom `%` khong duoc phep tra ve toan bo bang.
+ *
+ * O day chu khong o tung DAO: ham nay da ton tai HAI ban giong het nhau trong
+ * `documents/dao.ts` va `media/dao.ts`. Ban thu ba cho tim kiem noi dung se la
+ * ban thu ba co the lech — va lech theo huong noi long thi khong co gi bao.
+ */
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
 export type SortDirection = 'asc' | 'desc';
 
 export function assertDirection(value: string | undefined): SortDirection {

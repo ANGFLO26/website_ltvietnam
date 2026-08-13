@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { aboutMetadata, renderAbout } from '@/page-views/about';
 
 export function generateMetadata(): Promise<Metadata> {
-  return aboutMetadata('en');
+  return aboutMetadata('vi');
 }
 
 export default function AboutPage() {
-  return renderAbout('en');
+  return renderAbout('vi');
 }

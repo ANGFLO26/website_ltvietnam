@@ -94,6 +94,7 @@ export async function renderSearchPage(locale: Locale, searchParams: SearchParam
                   <SearchResultCard
                     key={`${result.type}:${result.slug}`}
                     result={result}
+                    locale={locale}
                     dictionary={dictionary}
                   />
                 ))}

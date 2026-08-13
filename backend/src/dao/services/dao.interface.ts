@@ -77,6 +77,7 @@ export interface ServiceDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'parent_id' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
 
   /**

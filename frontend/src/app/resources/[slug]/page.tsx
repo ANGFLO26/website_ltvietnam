@@ -9,7 +9,7 @@ import { documentDownloadPath } from '@/lib/localized-content';
 import { routePath } from '@/lib/routes';
 import { buildMetadata } from '@/lib/seo';
 
-const dictionary = getDictionary('en');
+const dictionary = getDictionary('vi');
 
 export async function generateMetadata({
   params,
@@ -53,7 +53,7 @@ export default async function ResourceDetailPage({
             },
             { label: document.title },
           ]}
-          locale="en"
+          locale="vi"
           dictionary={dictionary}
         />
         <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">

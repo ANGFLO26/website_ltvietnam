@@ -1,4 +1,4 @@
-import type { Locale } from '@ltv/contracts';
+import { DEFAULT_LOCALE, localePrefix, localizedPath, ROUTES, type Locale } from '@ltv/contracts';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { SitemapSource } from '../../dao/seo/object.js';
 import { absoluteUrl, normalizeSiteUrl, translatedPath } from './metadata.js';
@@ -113,8 +113,10 @@ function sourceToUrl(source: SitemapSource): SitemapUrl | null {
   if (kind === 'brand') return { path: `/brands/${encodeURIComponent(slug)}`, updatedAt };
   if (kind === 'document') return { path: `/resources/${encodeURIComponent(slug)}`, updatedAt };
   if (kind === 'post_category') {
-    const p = locale === 'vi' ? '/vi' : '';
-    return { path: `${p}/news/category/${encodeURIComponent(slug)}`, updatedAt };
+    return {
+      path: `${localePrefix(locale)}/news/category/${encodeURIComponent(slug)}`,
+      updatedAt,
+    };
   }
 
   /** ADR-011 §2b: landing mong khong vao sitemap. */
@@ -131,21 +133,24 @@ function sourceToUrl(source: SitemapSource): SitemapUrl | null {
   return null;
 }
 
+/**
+ * Route tinh cua mot ngon ngu — SINH TU BANG ROUTE, khong viet tay.
+ *
+ * Ban truoc liet ke tay hai mang, va hai mang do da lech that: `/resources` co
+ * trong mang tieng Anh nhung `/about` va `/contact` thi khong, nen hai trang do
+ * chua bao gio vao sitemap. Sinh tu `ROUTES` thi mot route moi tu dong duoc
+ * tinh den, va khong the lech voi cai ma frontend that su phuc vu.
+ *
+ * Loai tru trang chi tiet (`:slug`) — chung den tu `listSitemapSources`, va
+ * loai tru route `noindex` (`/search`, `/request-success`).
+ */
 function staticUrls(locale: Locale): SitemapUrl[] {
-  const paths =
-    locale === 'en'
-      ? [
-          '/',
-          '/products',
-          '/products/all',
-          '/brands',
-          '/services',
-          '/projects',
-          '/news',
-          '/resources',
-        ]
-      : ['/vi/services', '/vi/projects', '/vi/news'];
-  return paths.map((path) => ({ path, updatedAt: null }));
+  return ROUTES.filter(
+    (route) =>
+      !route.path.includes(':') &&
+      route.robots === 'index' &&
+      (route.localized || locale === DEFAULT_LOCALE),
+  ).map((route) => ({ path: localizedPath(route.path, locale), updatedAt: null }));
 }
 
 function xml(lines: readonly string[]): string {

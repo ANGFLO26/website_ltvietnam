@@ -14,18 +14,21 @@ describe('routePath', () => {
     }
   });
 
-  it('builds repeated query keys and Vietnamese variants', () => {
-    expect(
-      routePath('news.detail', {
-        locale: 'vi',
-        params: { slug: 'tin-moi' },
-        query: { brand: ['pac', 'herzog'] },
-      }),
-    ).toBe('/vi/news/tin-moi?brand=pac&brand=herzog');
+  it('builds repeated query keys, tieng Viet o goc va tieng Anh o /en', () => {
+    const query = { brand: ['pac', 'herzog'] };
+    expect(routePath('news.detail', { locale: 'vi', params: { slug: 'tin-moi' }, query })).toBe(
+      '/news/tin-moi?brand=pac&brand=herzog',
+    );
+    expect(routePath('news.detail', { locale: 'en', params: { slug: 'latest' }, query })).toBe(
+      '/en/news/latest?brand=pac&brand=herzog',
+    );
   });
 
   it('rejects unsupported locales and missing parameters', () => {
-    expect(() => routePath('products.landing', { locale: 'vi' })).toThrow();
+    // Catalogue chi co tieng Viet — xin ban tieng Anh phai la loi, khong phai
+    // mot URL `/en/products` tra 404 luc chay.
+    expect(() => routePath('products.landing', { locale: 'en' })).toThrow();
+    expect(() => routePath('products.detail', { locale: 'en', params: { slug: 'x' } })).toThrow();
     expect(() => routePath('products.detail')).toThrow();
   });
 

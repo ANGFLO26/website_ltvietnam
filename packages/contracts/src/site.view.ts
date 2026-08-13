@@ -166,8 +166,15 @@ export interface HomeView {
  * service/project/post/document thi URL cong khai KHONG doi. Neu bay gio bo
  * `type` thi luc do phai them mot tham so moi, va hai cach goi cung ton tai.
  */
+/**
+ * Mot ket qua tim kiem.
+ *
+ * `type` quyet dinh frontend dung route nao de dung URL — nen no la union chu
+ * khong phai `string`: them mot loai noi dung ma quen bo sung route se la loi
+ * bien dich o `SearchResultCard`, khong phai mot the <a> tro vao 404.
+ */
 export interface SearchHitView {
-  readonly type: 'product';
+  readonly type: 'product' | 'service' | 'project' | 'post';
   readonly slug: string;
   readonly title: string;
   readonly subtitle: string | null;

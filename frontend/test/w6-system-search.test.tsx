@@ -58,7 +58,7 @@ describe('W6 search', () => {
     );
     expect(screen.getByRole('link', { name: dictionary.common.nextPage })).toHaveAttribute(
       'href',
-      '/search?q=OptiDist&page=2',
+      '/en/search?q=OptiDist&page=2',
     );
   });
 
@@ -80,13 +80,13 @@ describe('W6 search', () => {
     );
     expect(screen.getByRole('link', { name: viDictionary.search.contactAction })).toHaveAttribute(
       'href',
-      '/vi/contact',
+      '/contact',
     );
   });
 
   it('keeps both language variants of search out of the index', () => {
     expect(searchMetadata('en').robots).toMatchObject({ index: false, follow: true });
-    expect(searchMetadata('vi').alternates?.canonical).toBe('http://localhost:3000/vi/search');
+    expect(searchMetadata('vi').alternates?.canonical).toBe('http://localhost:3000/search');
   });
 });
 
@@ -100,8 +100,8 @@ describe('W6 policy and consent pages', () => {
     expect(getPageMock).toHaveBeenCalledWith('privacy-policy', 'en');
     expect(metadata.alternates?.canonical).toBe('http://localhost:3000/privacy-policy');
     expect(metadata.alternates?.languages).toEqual({
-      en: 'http://localhost:3000/privacy-policy',
-      vi: 'http://localhost:3000/vi/privacy-policy',
+      en: 'http://localhost:3000/en/privacy-policy',
+      vi: 'http://localhost:3000/privacy-policy',
     });
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByText('Policy body')).toBeInTheDocument();
@@ -146,7 +146,7 @@ const policyPage: PageDetailView = {
   canonical: '/privacy-policy',
   robots: 'index,follow',
   hreflang_alternates: [
-    { locale: 'en', slug: 'privacy-policy', url: '/privacy-policy' },
-    { locale: 'vi', slug: 'privacy-policy-vi', url: '/vi/privacy-policy' },
+    { locale: 'en', slug: 'privacy-policy', url: '/en/privacy-policy' },
+    { locale: 'vi', slug: 'privacy-policy-vi', url: '/privacy-policy' },
   ],
 };

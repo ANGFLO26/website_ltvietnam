@@ -1,9 +1,15 @@
-import type { HreflangAlternateView, Locale } from '@ltv/contracts';
+import { localeFromPath, type HreflangAlternateView, type Locale } from '@ltv/contracts';
 import { routePath, type RouteKey } from './routes';
 
-export function localeFromPath(path: string): Locale {
-  return path === '/vi' || path.startsWith('/vi/') ? 'vi' : 'en';
-}
+/**
+ * Doc ngon ngu tu duong dan.
+ *
+ * Xuat lai tu `@ltv/contracts` chu khong cai dat lai. Ban truoc o day viet
+ * `path.startsWith('/vi/')` — mot ban sao cua quy tac dinh tuyen — nen khi ngon
+ * ngu goc doi, middleware van gan `x-ltv-locale: en` cho moi trang tieng Viet
+ * va toan bo giao dien se hien sai ngon ngu ma khong co loi bien dich nao.
+ */
+export { localeFromPath };
 
 export function localizedRouteAlternates(
   key: RouteKey,

@@ -1,4 +1,4 @@
-import type { HreflangAlternateView, Locale } from '@ltv/contracts';
+import { DEFAULT_LOCALE, type HreflangAlternateView, type Locale } from '@ltv/contracts';
 import type { Metadata } from 'next';
 import { getServerConfig } from '@/config';
 import { getRoute, routePath, type RouteKey } from './routes';
@@ -27,7 +27,7 @@ export function buildMetadata(key: RouteKey, input: MetadataInput): Metadata {
     throw new Error(`Conditional route ${key} requires indexable`);
   }
 
-  const locale = input.locale ?? 'en';
+  const locale = input.locale ?? DEFAULT_LOCALE;
   const routeIndex =
     route.robots === 'index' || (route.robots === 'conditional' && input.indexable === true);
   // Trang co query loc la bien the noindex cua mot route indexable. Dau vao

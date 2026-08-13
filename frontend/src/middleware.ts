@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import type { ResolveResponse } from '@ltv/contracts';
+import { legacyLocaleRedirect, type ResolveResponse } from '@ltv/contracts';
 import { getServerConfig } from './config';
 import { decodeDataEnvelope } from './lib/api/envelope';
 import { localeFromPath } from './lib/localized-content';
@@ -31,6 +31,27 @@ export const config = {
 export async function middleware(req: NextRequest): Promise<NextResponse> {
   const path = req.nextUrl.pathname;
   const started = Date.now();
+
+  /**
+   * Cau truc `/vi` cu -> goc. Chay TRUOC resolver, va co chu y.
+   *
+   * Day la mot quy tac TIEN TO chu khong phai ban ghi trong bang `redirects`:
+   * `/vi/news/{slug}` co bao nhieu bai viet thi co bay nhieu URL, nen liet ke
+   * tung dong la mot viec khong bao gio xong va se thieu ngay bai viet tiep
+   * theo. Mot quy tac phu het moi slug, ke ca slug chua ton tai.
+   *
+   * Dat truoc loi goi resolver vi no la ham thuan tuy tren duong dan: khong can
+   * database, va mot URL cu khong phai tra gia bang mot vong goi mang — dac
+   * biet quan trong khi backend dang su co, luc do nhanh fail-safe duoi tra 503.
+   */
+  const legacyTarget = legacyLocaleRedirect(path);
+  if (legacyTarget !== null) {
+    const target = new URL(legacyTarget, req.url);
+    target.search = req.nextUrl.search;
+    const res = NextResponse.redirect(target, 301);
+    res.headers.set('x-resolver', 'legacy-locale');
+    return res;
+  }
 
   let rule: ResolveResponse;
   let timer: ReturnType<typeof setTimeout> | undefined;

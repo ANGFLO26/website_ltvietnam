@@ -7,7 +7,7 @@ import { getDictionary } from '@/lib/i18n';
 import { routePath } from '@/lib/routes';
 import { buildMetadata } from '@/lib/seo';
 
-const dictionary = getDictionary('en');
+const dictionary = getDictionary('vi');
 
 export const metadata = buildMetadata('products.landing', {
   title: dictionary.products.catalogueTitle,

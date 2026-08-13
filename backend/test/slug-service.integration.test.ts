@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type pg from 'pg';
 import { createTestPool } from '@ltv/testing';
-import { ROUTES, buildReservedPaths } from '@ltv/contracts';
+import { ROUTES, buildReservedPaths, localePrefix } from '@ltv/contracts';
 import { createKysely } from '../src/dao/connection.js';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
 import { SlugServiceImpl } from '../src/services/shared/slug.service.js';
@@ -29,8 +29,11 @@ describe('ADR-002 muc 8C — tap route bao luu doi chieu voi bang route', () => 
       const first = route.path.split('/').filter(Boolean)[0];
       if (!first || first.startsWith(':')) continue;
       if (!reserved.has(`/${first}`)) missing.push(`/${first} (route ${route.key})`);
-      if (route.localized && !reserved.has(`/vi/${first}`)) {
-        missing.push(`/vi/${first} (route ${route.key})`);
+      // Tien to lay tu contracts: viet cung `/vi` o day thi khi ngon ngu goc
+      // doi, phep kiem doi mot duong dan khong con ton tai va bao sai hang loat.
+      const prefix = localePrefix('en');
+      if (route.localized && !reserved.has(`${prefix}/${first}`)) {
+        missing.push(`${prefix}/${first} (route ${route.key})`);
       }
     }
     expect(missing, `Doan route thieu trong tap bao luu:\n${missing.join('\n')}`).toEqual([]);
@@ -90,10 +93,10 @@ run('SlugService — kiem ba nguon tren PostgreSQL that', () => {
   });
 
   it('nhom co ban dich mang tien to locale, nhom mot ngon ngu thi khong', () => {
-    expect(slugs.publicPath('service', 'hieu-chuan', 'en')).toBe('/services/hieu-chuan');
-    expect(slugs.publicPath('service', 'hieu-chuan', 'vi')).toBe('/vi/services/hieu-chuan');
-    // San pham khong co ban dich (ADR-014) — khong co bien the `/vi`
-    expect(slugs.publicPath('product', 'optidist', 'vi')).toBe('/products/optidist');
+    expect(slugs.publicPath('service', 'hieu-chuan', 'vi')).toBe('/services/hieu-chuan');
+    expect(slugs.publicPath('service', 'hieu-chuan', 'en')).toBe('/en/services/hieu-chuan');
+    // Catalogue chi co tieng Viet — khong co bien the `/en`, ke ca khi duoc hoi.
+    expect(slugs.publicPath('product', 'optidist', 'en')).toBe('/products/optidist');
   });
 
   it('nhan dien duong dan dong chi khi noi dung dang published', async () => {

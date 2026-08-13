@@ -28,7 +28,7 @@ const source = (
   kind: SitemapSource['kind'],
   slug: string,
   editorial = true,
-  locale: Locale = 'en',
+  locale: Locale = 'vi',
 ): SitemapSource => ({
   kind,
   locale,
@@ -39,21 +39,21 @@ const source = (
 });
 
 describe('SEO metadata ADR-011', () => {
-  it('route co ban dich dung prefix /vi va URL tuyet doi', () => {
-    expect(translatedPath('post', 'en', 'tin-moi')).toBe('/news/tin-moi');
-    expect(translatedPath('post', 'vi', 'tin-moi-vi')).toBe('/vi/news/tin-moi-vi');
-    expect(translatedPath('page', 'vi', 'slug-khong-dung', 'privacy_policy')).toBe(
-      '/vi/privacy-policy',
+  it('tieng Viet o goc, tieng Anh o /en, URL tuyet doi', () => {
+    expect(translatedPath('post', 'vi', 'tin-moi')).toBe('/news/tin-moi');
+    expect(translatedPath('post', 'en', 'latest-news')).toBe('/en/news/latest-news');
+    expect(translatedPath('page', 'en', 'slug-khong-dung', 'privacy_policy')).toBe(
+      '/en/privacy-policy',
     );
 
     const seo = translatedDetailSeo('https://ltv.example/', 'service', 'vi', 'bao-tri', [
       { locale: 'en', slug: 'maintenance' },
       { locale: 'vi', slug: 'bao-tri' },
     ]);
-    expect(seo.canonical).toBe('https://ltv.example/vi/services/bao-tri');
+    expect(seo.canonical).toBe('https://ltv.example/services/bao-tri');
     expect(seo.hreflang_alternates.map((x) => x.url)).toEqual([
-      'https://ltv.example/services/maintenance',
-      'https://ltv.example/vi/services/bao-tri',
+      'https://ltv.example/en/services/maintenance',
+      'https://ltv.example/services/bao-tri',
     ]);
   });
 });
@@ -62,7 +62,7 @@ describe('sitemap F6', () => {
   it('chi dua landing co noi dung, loai filter va URL redirect', async () => {
     const seo = service(
       {
-        en: [
+        vi: [
           source('product_category', 'co-noi-dung', true),
           source('product_category', 'mong', false),
           source('product', 'song'),
@@ -71,26 +71,46 @@ describe('sitemap F6', () => {
       },
       ['/products/da-doi-slug'],
     );
-    const xml = await seo.sitemap('en');
+    const xml = await seo.sitemap('vi');
 
     expect(xml).toContain('<loc>https://ltv.example/products/category/co-noi-dung</loc>');
     expect(xml).not.toContain('/products/category/mong');
     expect(xml).toContain('<loc>https://ltv.example/products/song</loc>');
     expect(xml).not.toContain('/products/da-doi-slug');
     expect(xml).not.toContain('?brand=');
-    expect(xml).not.toContain('<loc>https://ltv.example/contact</loc>');
     expect(xml).toContain(`<lastmod>${at.toISOString()}</lastmod>`);
   });
 
-  it('sitemap locale khong tron URL mot-ngon-ngu vao ban vi', async () => {
-    const seo = service({
-      vi: [source('post', 'tin-viet', true, 'vi')],
-    });
-    const xml = await seo.sitemap('vi');
-    expect(xml).toContain('/vi/news/tin-viet');
-    expect(xml).not.toContain('/products/');
-    expect(xml).not.toContain('/brands/');
-    expect(xml).not.toContain('/resources/');
+  /**
+   * `/about` va `/contact` PHAI co trong sitemap.
+   *
+   * Truoc day `staticUrls` la hai mang viet tay, va ca hai trang nay bi bo sot —
+   * mot trang lien he khong duoc lap chi muc la mat mot duong khach tim den.
+   * Nay danh sach sinh tu bang route nen khong the sot; phep kiem giu dieu do.
+   */
+  it('sinh du route tinh tu bang route, ke ca about va contact', async () => {
+    const xml = await service().sitemap('vi');
+    for (const path of ['/', '/products', '/products/all', '/brands', '/resources', '/about'])
+      expect(xml, `${path} phai co trong sitemap`).toContain(
+        `<loc>https://ltv.example${path}</loc>`,
+      );
+    expect(xml).toContain('<loc>https://ltv.example/contact</loc>');
+  });
+
+  it('sitemap tieng Anh KHONG chua catalogue — catalogue chi mot ngon ngu', async () => {
+    const seo = service({ en: [source('post', 'latest-news', true, 'en')] });
+    const xml = await seo.sitemap('en');
+    expect(xml).toContain('/en/news/latest-news');
+    expect(xml).toContain('<loc>https://ltv.example/en/services</loc>');
+    expect(xml).not.toContain('/products');
+    expect(xml).not.toContain('/brands');
+    expect(xml).not.toContain('/resources');
+  });
+
+  it('route noindex khong vao sitemap', async () => {
+    const xml = await service().sitemap('vi');
+    expect(xml).not.toContain('/search');
+    expect(xml).not.toContain('/request-success');
   });
 
   it('sitemap index tro toi dung hai locale', () => {

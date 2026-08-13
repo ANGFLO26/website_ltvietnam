@@ -3,7 +3,17 @@ import { BaseDao } from '../base.dao.js';
 import type { SeoDao } from './dao.interface.js';
 import { toSitemapSource } from './mapper.js';
 import type { SitemapSource, SitemapSourceRow } from './object.js';
-import type { Locale } from '@ltv/contracts';
+import { DEFAULT_LOCALE, type Locale } from '@ltv/contracts';
+
+/**
+ * Ngon ngu duy nhat cua catalogue.
+ *
+ * San pham, hang, tai lieu va taxonomy khong co bang dich, nen chung xuat hien
+ * o DUNG MOT sitemap. Truoc dot dao ngon ngu do la `'en'` viet cung o 12 cho
+ * trong truy van duoi; nay no bam theo `DEFAULT_LOCALE`, nen doi ngon ngu goc
+ * khong con lam catalogue bien mat khoi sitemap ma khong ai nhan ra.
+ */
+const CATALOGUE_LOCALE: Locale = DEFAULT_LOCALE;
 
 /**
  * Doc sitemap bang MOT truy van UNION thay vi lap qua cac DAO phan trang.
@@ -25,34 +35,34 @@ export class KyselySeoDao extends BaseDao implements SeoDao {
           AND pt.status = 'published' AND pt.locale = ${locale}
 
         UNION ALL
-        SELECT 'product', 'en', p.slug, NULL, p.updated_at, TRUE
+        SELECT 'product', ${CATALOGUE_LOCALE}, p.slug, NULL, p.updated_at, TRUE
         FROM ltv.products p
-        WHERE ${locale} = 'en' AND p.status = 'published' AND p.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND p.status = 'published' AND p.deleted_at IS NULL
 
         UNION ALL
-        SELECT 'brand', 'en', b.slug, NULL, b.updated_at, TRUE
+        SELECT 'brand', ${CATALOGUE_LOCALE}, b.slug, NULL, b.updated_at, TRUE
         FROM ltv.brands b
-        WHERE ${locale} = 'en' AND b.status = 'published' AND b.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND b.status = 'published' AND b.deleted_at IS NULL
 
         UNION ALL
-        SELECT 'product_category', 'en', c.slug, NULL, c.updated_at,
+        SELECT 'product_category', ${CATALOGUE_LOCALE}, c.slug, NULL, c.updated_at,
                CASE WHEN jsonb_typeof(c.description) = 'array'
                     THEN jsonb_array_length(c.description) > 0 ELSE FALSE END
         FROM ltv.product_categories c
-        WHERE ${locale} = 'en' AND c.status = 'published' AND c.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND c.status = 'published' AND c.deleted_at IS NULL
 
         UNION ALL
-        SELECT 'standard', 'en', s.slug, NULL, s.updated_at,
+        SELECT 'standard', ${CATALOGUE_LOCALE}, s.slug, NULL, s.updated_at,
                COALESCE(length(btrim(s.description)) > 0, FALSE)
         FROM ltv.standards s
-        WHERE ${locale} = 'en' AND s.status = 'published' AND s.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND s.status = 'published' AND s.deleted_at IS NULL
 
         UNION ALL
-        SELECT 'application', 'en', a.slug, NULL, a.updated_at,
+        SELECT 'application', ${CATALOGUE_LOCALE}, a.slug, NULL, a.updated_at,
                CASE WHEN jsonb_typeof(a.description) = 'array'
                     THEN jsonb_array_length(a.description) > 0 ELSE FALSE END
         FROM ltv.applications a
-        WHERE ${locale} = 'en' AND a.status = 'published' AND a.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND a.status = 'published' AND a.deleted_at IS NULL
 
         UNION ALL
         SELECT 'service', st.locale, st.slug, NULL,
@@ -84,9 +94,9 @@ export class KyselySeoDao extends BaseDao implements SeoDao {
         WHERE pc.status = 'published' AND pc.deleted_at IS NULL
 
         UNION ALL
-        SELECT 'document', 'en', d.slug, NULL, d.updated_at, TRUE
+        SELECT 'document', ${CATALOGUE_LOCALE}, d.slug, NULL, d.updated_at, TRUE
         FROM ltv.documents d
-        WHERE ${locale} = 'en' AND d.status = 'published' AND d.deleted_at IS NULL
+        WHERE ${locale} = ${CATALOGUE_LOCALE} AND d.status = 'published' AND d.deleted_at IS NULL
       ) AS sources
       ORDER BY kind, slug
     `.execute(this.db);

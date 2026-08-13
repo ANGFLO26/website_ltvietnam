@@ -62,5 +62,6 @@ export interface PostDao {
     page: { readonly limit: number; readonly offset: number },
     where?: Readonly<Partial<Record<'category_id' | 'is_featured', string | boolean | null>>>,
     restrictToIds?: readonly string[],
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }>;
 }

@@ -16,7 +16,7 @@ import { chiCo } from '../../shared/omit-undefined.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { PublicTranslationRow } from '../../dao/translation.support.js';
 import type { PageArg, PagedResult } from '../taxonomy/interface.js';
-import type { ContentService } from './interface.js';
+import type { ContentSearchHit, ContentService } from './interface.js';
 import { detailSeo, translatedDetailSeo } from '../seo/metadata.js';
 
 export type ContentDaos = DaoScope<
@@ -555,6 +555,47 @@ export class ContentServiceImpl implements ContentService {
           },
         ]),
     );
+  }
+
+  /**
+   * Tim kiem ba nhom noi dung theo locale.
+   *
+   * Ba truy van SONG SONG chu khong tuan tu: chung doc lap nhau, va `/tim-kiem`
+   * la trang nguoi dung dang ngoi doi ket qua.
+   *
+   * Thu tu ghep — dich vu, du an, bai viet — la co y va on dinh: nguoi tim mot
+   * tu khoa ky thuat thuong can nang luc cung cap truoc, tin tuc sau cung.
+   */
+  async searchContent(
+    locale: Locale,
+    q: string,
+    limit: number,
+  ): Promise<{ items: readonly ContentSearchHit[]; total: number }> {
+    const tuKhoa = q.trim();
+    if (tuKhoa === '') return { items: [], total: 0 };
+
+    const page = { limit: Math.min(TRAN_TRANG, Math.max(1, Math.trunc(limit))), offset: 0 };
+    const [services, projects, posts] = await Promise.all([
+      this.daos.services.listPublicByLocale(locale, page, undefined, undefined, tuKhoa),
+      this.daos.projects.listPublicByLocale(locale, page, undefined, undefined, tuKhoa),
+      this.daos.posts.listPublicByLocale(locale, page, undefined, undefined, tuKhoa),
+    ]);
+
+    const hit = (type: ContentSearchHit['type']) => (row: PublicTranslationRow) => ({
+      type,
+      slug: row.slug,
+      title: row.title,
+      subtitle: row.summary,
+    });
+
+    return {
+      items: [
+        ...services.rows.map(hit('service')),
+        ...projects.rows.map(hit('project')),
+        ...posts.rows.map(hit('post')),
+      ],
+      total: services.total + projects.total + posts.total,
+    };
   }
 
   private async postCategoryMap(ids: readonly string[]) {

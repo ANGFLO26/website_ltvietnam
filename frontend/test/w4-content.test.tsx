@@ -15,19 +15,21 @@ import { buildMetadata } from '@/lib/seo';
 const dictionary = getDictionary('en');
 
 describe('W4 locale routing', () => {
-  it('detects Vietnamese only at the dedicated path prefix', () => {
-    expect(localeFromPath('/vi/news')).toBe('vi');
-    expect(localeFromPath('/vi')).toBe('vi');
-    expect(localeFromPath('/news/vi-example')).toBe('en');
+  it('detects English only at the dedicated path prefix', () => {
+    expect(localeFromPath('/en/news')).toBe('en');
+    expect(localeFromPath('/en')).toBe('en');
+    // Tieng Viet o goc, nen mot slug bat dau bang 'en' KHONG phai tien to ngon ngu.
+    expect(localeFromPath('/news/en-example')).toBe('vi');
+    expect(localeFromPath('/products/entech-analyzer')).toBe('vi');
   });
 
   it('builds list and category alternates from the route manifest', () => {
     expect(localizedRouteAlternates('services.list').map((item) => item.url)).toEqual([
+      '/en/services',
       '/services',
-      '/vi/services',
     ]);
     expect(localizedRouteAlternates('news.category', { slug: 'technical-articles' })[1]?.url).toBe(
-      '/vi/news/category/technical-articles',
+      '/news/category/technical-articles',
     );
   });
 
@@ -39,7 +41,7 @@ describe('W4 locale routing', () => {
           {
             locale: 'vi',
             slug: 'bai-viet-vi',
-            url: '/vi/news/bai-viet-vi',
+            url: '/news/bai-viet-vi',
           },
         ]}
         fallbacks={detailLanguageFallbacks('news.list', 'en')}
@@ -48,7 +50,7 @@ describe('W4 locale routing', () => {
     );
     expect(screen.getByRole('link', { name: 'VI' })).toHaveAttribute(
       'href',
-      '/vi/news/bai-viet-vi',
+      '/news/bai-viet-vi',
     );
 
     rerender(
@@ -58,7 +60,7 @@ describe('W4 locale routing', () => {
         dictionary={dictionary}
       />,
     );
-    expect(screen.getByRole('link', { name: 'VI' })).toHaveAttribute('href', '/vi/news');
+    expect(screen.getByRole('link', { name: 'VI' })).toHaveAttribute('href', '/news');
   });
 
   it('turns relative hreflang routes into absolute metadata URLs', () => {
@@ -67,8 +69,8 @@ describe('W4 locale routing', () => {
       hreflangAlternates: localizedRouteAlternates('services.list'),
     });
     expect(metadata.alternates?.languages).toEqual({
-      en: 'http://localhost:3000/services',
-      vi: 'http://localhost:3000/vi/services',
+      en: 'http://localhost:3000/en/services',
+      vi: 'http://localhost:3000/services',
     });
   });
 });

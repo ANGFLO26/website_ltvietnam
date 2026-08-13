@@ -6,7 +6,7 @@ import { getStandard, getTaxonomyProducts } from '@/lib/api/taxonomy';
 import { getDictionary } from '@/lib/i18n';
 import { buildMetadata } from '@/lib/seo';
 
-const dictionary = getDictionary('en');
+const dictionary = getDictionary('vi');
 
 export async function generateMetadata({
   params,

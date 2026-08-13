@@ -6,7 +6,7 @@ export function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  return newsCategoryMetadata('en', params);
+  return newsCategoryMetadata('vi', params);
 }
 
 export default function NewsCategoryPage({
@@ -16,5 +16,5 @@ export default function NewsCategoryPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string | readonly string[] }>;
 }) {
-  return renderNewsCategory('en', params, searchParams);
+  return renderNewsCategory('vi', params, searchParams);
 }

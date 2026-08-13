@@ -1,5 +1,6 @@
 import { sql } from 'kysely';
 import { SlugSupport } from './slugged.dao.js';
+import { escapeLike } from './helpers.js';
 import type { KyselyExecutor } from './connection.js';
 
 /**
@@ -66,6 +67,15 @@ export interface PublicTranslationRow {
   readonly slug: string;
   readonly title: string;
   readonly publishedAt: Date | null;
+  /**
+   * Van ban tom tat cua ban dich — `null` khi nhom khong khai bao `summaryColumn`
+   * (pages) hoac ban ghi de trong.
+   *
+   * Lay san trong cung cau truy van thay vi de noi goi hoi them: `/tim-kiem`
+   * can mot dong mo ta duoi moi ket qua, va mot vong hoi rieng cho tung dong la
+   * dung cai N+1 ma `listPublicByLocale` ra doi de tranh.
+   */
+  readonly summary: string | null;
 }
 
 /** Mot muc `<link rel="alternate" hreflang="...">`. */
@@ -91,6 +101,14 @@ export interface TranslationConfig {
   readonly parentKey: string;
   /** `services` dung `name`, ba bang con lai dung `title`. */
   readonly titleColumn: 'name' | 'title';
+  /**
+   * Cot van ban ngan de tim kiem cung tieu de.
+   *
+   * `posts` dung `excerpt`, `services`/`projects` dung `short_description`.
+   * `pages` khong co cot nao tuong duong nen khong khai bao — va hau qua la
+   * trang tinh khong tim kiem duoc theo noi dung, chi theo tieu de.
+   */
+  readonly summaryColumn?: 'short_description' | 'excerpt';
 }
 
 /**
@@ -112,6 +130,7 @@ export class TranslationSupport<TCol extends string = never> {
   private readonly trTable: TranslationTableName;
   private readonly parentKey: string;
   private readonly titleColumn: 'name' | 'title';
+  private readonly summaryColumn: 'short_description' | 'excerpt' | undefined;
   /** Slug cua nhom nay phan pham vi theo locale — `UNIQUE (locale, slug)`. */
   private readonly slugs: SlugSupport;
 
@@ -123,6 +142,7 @@ export class TranslationSupport<TCol extends string = never> {
     this.trTable = cfg.trTable;
     this.parentKey = cfg.parentKey;
     this.titleColumn = cfg.titleColumn;
+    this.summaryColumn = cfg.summaryColumn;
     this.slugs = new SlugSupport(db, cfg.trTable, true);
   }
 
@@ -235,6 +255,18 @@ export class TranslationSupport<TCol extends string = never> {
      * tiem loi (bo cai `return`) va bai kiem KHONG do — vi khong co gi de do.
      */
     restrictToIds?: readonly string[],
+    /**
+     * Chuoi tim kiem — khop tieu de VA cot tom tat cua BAN DICH dang doc.
+     *
+     * Tim tren bang dich chu khong phai bang cha la diem chinh: nguoi dung go
+     * tieng Viet thi phai khop van ban tieng Viet, va tieu de chi ton tai o bang
+     * dich. Truoc day `/tim-kiem` chi tra ve san pham, nen go "hieu chuan" hay
+     * ten mot du an deu ra rong du noi dung do co tren site.
+     *
+     * `%` va `_` cua nguoi dung duoc thoat — chung la ky tu thuong, khong phai
+     * ky tu dai dien.
+     */
+    search?: string,
   ): Promise<{ rows: PublicTranslationRow[]; total: number }> {
     if (restrictToIds !== undefined && restrictToIds.length === 0) {
       return { rows: [], total: 0 };
@@ -293,14 +325,36 @@ export class TranslationSupport<TCol extends string = never> {
     const gioiHan =
       restrictToIds === undefined ? sql`` : sql`AND p.id = ANY(${sql.val(restrictToIds)}::uuid[])`;
 
+    const tuKhoa = search?.trim() ?? '';
+    const timKiem =
+      tuKhoa === ''
+        ? sql``
+        : (() => {
+            const needle = `%${escapeLike(tuKhoa)}%`;
+            const title = sql`${sql.ref(`t.${this.titleColumn}`)} ILIKE ${needle}`;
+            // Khong co cot tom tat (pages) thi chi khop tieu de — khong bia ra
+            // mot ten cot, vi go sai ten cot la loi luc CHAY chu khong phai
+            // luc bien dich.
+            return this.summaryColumn === undefined
+              ? sql`AND (${title})`
+              : sql`AND (${title} OR ${sql.ref(`t.${this.summaryColumn}`)} ILIKE ${needle})`;
+          })();
+
+    const tomTat =
+      this.summaryColumn === undefined
+        ? sql`NULL::text AS summary`
+        : sql`${sql.ref(`t.${this.summaryColumn}`)}::text AS summary`;
+
     const r = await sql<{
       id: string;
       slug: string;
       title: string;
+      summary: string | null;
       published_at: Date | null;
       total: string;
     }>`
       SELECT p.id, t.slug, ${sql.ref(`t.${this.titleColumn}`)} AS title,
+             ${tomTat},
              t.published_at,
              count(*) OVER () AS total
       FROM ${sql.table(`ltv.${this.trTable}`)} t
@@ -312,6 +366,7 @@ export class TranslationSupport<TCol extends string = never> {
         AND p.deleted_at IS NULL
         ${them}
         ${gioiHan}
+        ${timKiem}
       ORDER BY t.published_at DESC NULLS LAST, p.id ASC
       LIMIT ${page.limit} OFFSET ${page.offset}
     `.execute(this.db);
@@ -341,6 +396,7 @@ export class TranslationSupport<TCol extends string = never> {
         entityId: x.id,
         slug: x.slug,
         title: x.title,
+        summary: x.summary,
         publishedAt: x.published_at,
       })),
       total: Number(r.rows[0]?.total ?? 0),

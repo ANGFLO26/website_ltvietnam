@@ -104,14 +104,14 @@ describe('W5 inquiry form', () => {
         ),
       );
     });
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/request-success'));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/en/request-success'));
   });
 
   it('creates UUID request identifiers and keeps the success page out of the index', () => {
     expect(createInquiryRequestId()).toBe(requestId);
     expect(requestSuccessMetadata('vi').robots).toMatchObject({ index: false, follow: true });
     expect(requestSuccessMetadata('vi').alternates?.canonical).toBe(
-      'http://localhost:3000/vi/request-success',
+      'http://localhost:3000/request-success',
     );
   });
 });
