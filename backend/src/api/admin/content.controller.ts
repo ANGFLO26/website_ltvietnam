@@ -18,6 +18,7 @@ import { SlugPipe } from '../../shared/http/slug.pipe.js';
 import { UuidPipe } from '../../shared/http/uuid.pipe.js';
 import {
   ADMIN_CONTENT_SERVICE,
+  type AdminContentFilter,
   type AdminContentKind,
   type AdminContentService,
 } from '../../services/admin-content/interface.js';
@@ -182,7 +183,10 @@ export class AdminContentController {
   @Get('admin/post-categories') async listPostCategories(@Query() q: unknown) {
     const d = parseDto(contentListSchema, q);
     return adminPage(
-      await this.content.listPostCategories(filter(d), { page: d.page, pageSize: d.page_size }),
+      await this.content.listPostCategories(postCategoryFilter(d), {
+        page: d.page,
+        pageSize: d.page_size,
+      }),
     );
   }
   @Post('admin/post-categories') async createPostCategory(@Body() b: unknown) {
@@ -274,13 +278,25 @@ function write(v: Record<string, unknown>) {
 function camel(k: string) {
   return k.replace(/_([a-z])/g, (_, x: string) => x.toUpperCase());
 }
-function filter(d: Record<string, unknown>) {
-  const r = { ...d };
-  const featured = r.featured;
-  delete r.page;
-  delete r.page_size;
-  delete r.featured;
-  return { ...write(r), ...(featured !== undefined && { isFeatured: featured }) };
+function filter(d: z.output<typeof contentListSchema>): AdminContentFilter {
+  return {
+    ...(d.status !== undefined && { status: d.status }),
+    ...(d.translation_status !== undefined && { translationStatus: d.translation_status }),
+    ...(d.locale !== undefined && { locale: d.locale }),
+    ...(d.q !== undefined && { search: d.q }),
+    ...(d.featured !== undefined && { isFeatured: d.featured }),
+    ...(d.project_type !== undefined && { projectType: d.project_type }),
+    ...(d.category_id !== undefined && { categoryId: d.category_id }),
+    ...(d.parent_id !== undefined && { parentId: d.parent_id }),
+    ...(d.include_deleted && { includeDeleted: true }),
+  };
+}
+function postCategoryFilter(d: z.output<typeof contentListSchema>): Record<string, unknown> {
+  return {
+    ...(d.status !== undefined && { status: d.status }),
+    ...(d.parent_id !== undefined && { parentId: d.parent_id }),
+    ...(d.include_deleted && { includeDeleted: true }),
+  };
 }
 function view(v: unknown) {
   return toAdminView(v);

@@ -1,4 +1,4 @@
-import type { Locale } from '@ltv/contracts';
+import type { AdminPublishEntity, Locale } from '@ltv/contracts';
 
 export const PUBLISH_SERVICE = Symbol('PUBLISH_SERVICE');
 
@@ -9,14 +9,7 @@ export const PUBLISH_SERVICE = Symbol('PUBLISH_SERVICE');
  * chung mac dinh `published` va la du kien tham chieu, khong phai noi dung
  * bien tap. Bat soan thao "xuat ban" tung tieu chuan la viec vo ich.
  */
-export type PublishableEntity =
-  | 'product'
-  | 'brand'
-  | 'document' // mot ngon ngu
-  | 'service'
-  | 'project'
-  | 'post'
-  | 'page'; // co ban dich
+export type PublishableEntity = AdminPublishEntity;
 
 /**
  * Mot dieu kien chua dat.

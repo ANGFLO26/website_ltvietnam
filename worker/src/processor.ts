@@ -19,7 +19,7 @@ export class OutboxProcessor {
       | 'WORKER_PROCESSING_TIMEOUT_MS'
       | 'WORKER_MAX_ATTEMPTS'
       | 'SMTP_FROM'
-      | 'NEXT_PUBLIC_SITE_URL'
+      | 'ADMIN_SITE_URL'
     >,
     private readonly log: WorkerLog,
     private readonly now: () => Date = () => new Date(),
@@ -65,7 +65,7 @@ export class OutboxProcessor {
       if (typeof token !== 'string' || token.length === 0 || token.length > 4096) {
         throw new Error('password_reset_payload_invalid');
       }
-      const resetUrl = new URL('/admin/reset-password', this.cfg.NEXT_PUBLIC_SITE_URL);
+      const resetUrl = new URL('/reset-password', this.cfg.ADMIN_SITE_URL);
       resetUrl.searchParams.set('token', token);
       return {
         jobId: job.id,

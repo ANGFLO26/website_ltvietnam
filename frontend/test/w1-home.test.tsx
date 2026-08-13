@@ -16,6 +16,7 @@ describe('W1 navigation', () => {
   it('renders menu labels from API data and keeps null URL as text', () => {
     const heading: MenuItemView = {
       label: 'Database-only heading',
+      label_i18n_key: null,
       url: null,
       open_new_tab: false,
       children: [],
@@ -26,7 +27,13 @@ describe('W1 navigation', () => {
 
     const header = navigation('header', [
       heading,
-      { label: 'Dynamic DB link', url: '/dynamic-from-db', open_new_tab: false, children: [] },
+      {
+        label: 'Dynamic DB link',
+        label_i18n_key: null,
+        url: '/dynamic-from-db',
+        open_new_tab: false,
+        children: [],
+      },
     ]);
     rerender(<Header header={header} mobile={navigation('mobile')} dictionary={dictionary} />);
     expect(screen.getByRole('link', { name: 'Dynamic DB link' })).toHaveAttribute(
@@ -45,6 +52,7 @@ describe('W1 navigation', () => {
             data: navigation('header', [
               {
                 label: 'Header API fallback',
+                label_i18n_key: null,
                 url: '/from-header',
                 open_new_tab: false,
                 children: [],
@@ -65,6 +73,28 @@ describe('W1 navigation', () => {
     expect(shell.mobile.menus[0]?.items[0]?.label).toBe('Header API fallback');
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
+
+  it('uses label_i18n_key for Vietnamese and falls back to the database label', () => {
+    const translated: MenuItemView = {
+      label: 'Products',
+      label_i18n_key: 'nav.products',
+      url: '/products',
+      open_new_tab: false,
+      children: [],
+    };
+    const { rerender } = render(
+      <MenuItemLink item={translated} dictionary={getDictionary('vi')} />,
+    );
+    expect(screen.getByRole('link', { name: 'Sản phẩm' })).toBeInTheDocument();
+
+    rerender(
+      <MenuItemLink
+        item={{ ...translated, label_i18n_key: 'nav.unknown' }}
+        dictionary={getDictionary('vi')}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Products' })).toBeInTheDocument();
+  });
 });
 
 describe('W1 homepage sections', () => {
@@ -80,6 +110,34 @@ describe('W1 homepage sections', () => {
     );
     expect(sections).toEqual(['customers', 'company_intro', 'contact_call_to_action']);
     expect(container.querySelector('[data-section="featured_products"]')).toBeNull();
+  });
+
+  it('renders the first active banner as the managed homepage hero', () => {
+    const home: HomeView = {
+      ...homeData([{ section_type: 'hero', display_order: 0, settings: {} }]),
+      banners: [
+        {
+          title: 'Managed hero title',
+          subtitle: 'Managed hero subtitle',
+          image_id: '11111111-1111-4111-8111-111111111111',
+          mobile_image_id: null,
+          image_url: '/media/public-media/hero.webp',
+          mobile_image_url: null,
+          image_alt: 'Factory equipment',
+          button_label: 'Explore now',
+          url: '/products',
+          open_new_tab: false,
+        },
+      ],
+    };
+    const { container } = render(<HomeSections home={home} offices={[]} dictionary={dictionary} />);
+    expect(screen.getByRole('heading', { level: 1, name: 'Managed hero title' })).toBeVisible();
+    expect(screen.getByText('Managed hero subtitle')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Explore now' })).toHaveAttribute('href', '/products');
+    expect(container.querySelector('img')).toHaveAttribute(
+      'src',
+      expect.stringContaining('hero.webp'),
+    );
   });
 });
 

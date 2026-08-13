@@ -32,6 +32,8 @@ import type {
  */
 export interface MenuItemView {
   readonly label: string;
+  /** Khoa dich frontend; label la fallback khi khoa la hoac khong ton tai. */
+  readonly label_i18n_key: string | null;
   /** Duong dan da giai (`/products/optidist`) hoac URL ngoai. `null` = muc tieu de. */
   readonly url: string | null;
   readonly open_new_tab: boolean;
@@ -94,6 +96,9 @@ export interface BannerView {
   readonly subtitle: string | null;
   readonly image_id: string;
   readonly mobile_image_id: string | null;
+  /** URL da giai cua media cong khai; null thi frontend dung hero fallback. */
+  readonly image_url: string | null;
+  readonly mobile_image_url: string | null;
   readonly image_alt: string | null;
   readonly button_label: string | null;
   /** Da giai — cung ly do voi `MenuItemView.url`. */
@@ -105,6 +110,8 @@ export interface CustomerView {
   readonly name: string;
   readonly short_description: string | null;
   readonly logo_id: string;
+  /** URL public da duoc backend xac minh cung ban ghi media. */
+  readonly logo_url: string;
   readonly website_url: string | null;
 }
 

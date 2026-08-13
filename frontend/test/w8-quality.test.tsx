@@ -27,7 +27,15 @@ const navigation: NavigationView = {
       code: 'mobile',
       name: 'Mobile',
       location: 'mobile',
-      items: [{ label: 'Products', url: '/products', open_new_tab: false, children: [] }],
+      items: [
+        {
+          label: 'Products',
+          label_i18n_key: 'nav.products',
+          url: '/products',
+          open_new_tab: false,
+          children: [],
+        },
+      ],
     },
   ],
   product_mega_menu: null,

@@ -11,6 +11,7 @@ import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { SpecificationTable } from '@/components/product/SpecificationTable';
 import { StandardList } from '@/components/product/StandardList';
 import { StructuredData } from '@/components/seo/StructuredData';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { getPublicCaptchaConfig } from '@/config';
 import { isApiNotFound } from '@/lib/api/errors';
 import { getProduct } from '@/lib/api/products';
@@ -210,12 +211,39 @@ function ProductDetail({ product }: { product: ProductDetailView }) {
               blocks={product.accessories_options}
               media={product.media}
             />
-            <div id="specifications" className="scroll-mt-32">
-              <SpecificationTable specifications={product.specifications} dictionary={dictionary} />
-            </div>
-            <div id="standards" className="scroll-mt-32">
-              <StandardList standards={product.standards} dictionary={dictionary} />
-            </div>
+            {/*
+              Hai muc nay THU GON MAC DINH — xem `CollapsibleSection`.
+              Chung la phan "tra cuu sau": mot may that co the co 40+ dong thong
+              so va 25+ tieu chuan, do het ra thi phan gioi thieu va tinh nang o
+              tren bi day qua xa tam mat.
+            */}
+            {product.specifications.length === 0 ? null : (
+              <CollapsibleSection
+                id="specifications"
+                title={dictionary.products.specificationsTitle}
+                hint={dictionary.products.specificationsHint.replace(
+                  '{count}',
+                  String(product.specifications.length),
+                )}
+              >
+                <SpecificationTable
+                  specifications={product.specifications}
+                  dictionary={dictionary}
+                />
+              </CollapsibleSection>
+            )}
+            {product.standards.length === 0 ? null : (
+              <CollapsibleSection
+                id="standards"
+                title={dictionary.products.standardsTitle}
+                hint={dictionary.products.standardsHint.replace(
+                  '{count}',
+                  String(product.standards.length),
+                )}
+              >
+                <StandardList standards={product.standards} dictionary={dictionary} />
+              </CollapsibleSection>
+            )}
           </div>
 
           <aside className="space-y-8 lg:border-l lg:border-slate-200 lg:pl-8">

@@ -1,4 +1,4 @@
-import { anyBlockSchema, faqSchema } from '@ltv/contracts';
+import { anyBlockSchema, faqSchema, validateContentField } from '@ltv/contracts';
 import { z } from 'zod';
 import { queryBooleanSchema } from './parse.js';
 const uuid = z.string().uuid(),
@@ -6,11 +6,27 @@ const uuid = z.string().uuid(),
   nt = (n: number) => txt(n).nullable(),
   nu = uuid.nullable();
 const slug = txt(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  blocks = z.array(anyBlockSchema).max(200),
+  blocks = (field: string) =>
+    z
+      .array(anyBlockSchema)
+      .max(200)
+      .superRefine((value, ctx) => {
+        try {
+          validateContentField(field, value);
+        } catch (error) {
+          ctx.addIssue({
+            code: 'custom',
+            message: error instanceof Error ? error.message : 'Noi dung khong hop le',
+          });
+        }
+      }),
   ids = z.array(uuid).max(500);
 export const contentListSchema = z
   .object({
     status: z.enum(['draft', 'published', 'hidden', 'archived']).optional(),
+    translation_status: z.enum(['draft', 'published', 'hidden']).optional(),
+    locale: z.enum(['vi', 'en']).optional(),
+    q: z.string().trim().min(1).max(200).optional(),
     featured: queryBooleanSchema.optional(),
     include_deleted: queryBooleanSchema.default(false),
     project_type: z
@@ -121,11 +137,11 @@ export const serviceTranslationSchema = translationPatch({
   name: txt(255),
   slug,
   short_description: nt(2000).optional(),
-  overview: blocks.optional(),
-  customer_problems: blocks.optional(),
-  scope_of_work: blocks.optional(),
-  process: blocks.optional(),
-  benefits: blocks.optional(),
+  overview: blocks('service_translations.overview').optional(),
+  customer_problems: blocks('service_translations.customer_problems').optional(),
+  scope_of_work: blocks('service_translations.scope_of_work').optional(),
+  process: blocks('service_translations.process').optional(),
+  benefits: blocks('service_translations.benefits').optional(),
   faq: faqSchema.optional(),
   ...seo,
 });
@@ -133,9 +149,9 @@ export const projectTranslationSchema = translationPatch({
   title: txt(255),
   slug,
   short_description: nt(2000).optional(),
-  scope_of_work: blocks.optional(),
-  implementation: blocks.optional(),
-  result: blocks.optional(),
+  scope_of_work: blocks('project_translations.scope_of_work').optional(),
+  implementation: blocks('project_translations.implementation').optional(),
+  result: blocks('project_translations.result').optional(),
   customer_display_name: nt(500).optional(),
   ...seo,
 });
@@ -143,14 +159,14 @@ export const postTranslationSchema = translationPatch({
   title: txt(255),
   slug,
   excerpt: nt(2000).optional(),
-  content: blocks.optional(),
+  content: blocks('post_translations.content').optional(),
   ...seo,
 });
 export const pageTranslationSchema = translationPatch({
   title: txt(255),
   slug,
   summary: nt(2000).optional(),
-  content: blocks.optional(),
+  content: blocks('page_translations.content').optional(),
   ...seo,
 });
 const pcShape = {

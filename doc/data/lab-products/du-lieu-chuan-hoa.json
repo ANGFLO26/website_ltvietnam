@@ -1,0 +1,4577 @@
+{
+  "version": 1,
+  "brands_moi": [
+    {
+      "slug": "phase-technology",
+      "name": "Phase Technology",
+      "code": "PT",
+      "country": "CA"
+    }
+  ],
+  "categories_moi": [
+    {
+      "slug": "volatility",
+      "name": "Volatility",
+      "parent": "physical-properties"
+    },
+    {
+      "slug": "spectroscopy",
+      "name": "Spectroscopy",
+      "parent": "petroleum-testing"
+    },
+    {
+      "slug": "thermal-oxidation-stability",
+      "name": "Thermal Oxidation Stability",
+      "parent": "petroleum-testing"
+    },
+    {
+      "slug": "lab-accessories",
+      "name": "Laboratory Accessories",
+      "parent": null
+    }
+  ],
+  "standards": [
+    {
+      "organization": "ASTM",
+      "code": "D1078",
+      "slug": "astm-d1078"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D1160",
+      "slug": "astm-d1160"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D1655",
+      "slug": "astm-d1655"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D189",
+      "slug": "astm-d189"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D2386",
+      "slug": "astm-d2386"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D2500",
+      "slug": "astm-d2500"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D2699",
+      "slug": "astm-d2699"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D2700",
+      "slug": "astm-d2700"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D2880",
+      "slug": "astm-d2880"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D323",
+      "slug": "astm-d323"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D3241",
+      "slug": "astm-d3241"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D3278",
+      "slug": "astm-d3278"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D3699",
+      "slug": "astm-d3699"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D3828",
+      "slug": "astm-d3828"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D396",
+      "slug": "astm-d396"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4052",
+      "slug": "astm-d4052"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4350",
+      "slug": "astm-d4350"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D445",
+      "slug": "astm-d445"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D446",
+      "slug": "astm-d446"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4530",
+      "slug": "astm-d4530"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4737",
+      "slug": "astm-d4737"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4737A",
+      "slug": "astm-d4737a"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4814",
+      "slug": "astm-d4814"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D4953",
+      "slug": "astm-d4953"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5191",
+      "slug": "astm-d5191"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D524",
+      "slug": "astm-d524"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D56",
+      "slug": "astm-d56"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5771",
+      "slug": "astm-d5771"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5772",
+      "slug": "astm-d5772"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5773",
+      "slug": "astm-d5773"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5800",
+      "slug": "astm-d5800"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5845",
+      "slug": "astm-d5845"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5853",
+      "slug": "astm-d5853"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5949",
+      "slug": "astm-d5949"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5950",
+      "slug": "astm-d5950"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D5972",
+      "slug": "astm-d5972"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D613",
+      "slug": "astm-d613"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6277",
+      "slug": "astm-d6277"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6371",
+      "slug": "astm-d6371"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6378",
+      "slug": "astm-d6378"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6660",
+      "slug": "astm-d6660"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6751",
+      "slug": "astm-d6751"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6839",
+      "slug": "astm-d6839"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D6892",
+      "slug": "astm-d6892"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7153",
+      "slug": "astm-d7153"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7236",
+      "slug": "astm-d7236"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7345",
+      "slug": "astm-d7345"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7346",
+      "slug": "astm-d7346"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7371",
+      "slug": "astm-d7371"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7467",
+      "slug": "astm-d7467"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7566",
+      "slug": "astm-d7566"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7668",
+      "slug": "astm-d7668"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7689",
+      "slug": "astm-d7689"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7777",
+      "slug": "astm-d7777"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D7945",
+      "slug": "astm-d7945"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D8147",
+      "slug": "astm-d8147"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D8340",
+      "slug": "astm-d8340"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D8420",
+      "slug": "astm-d8420"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D850",
+      "slug": "astm-d850"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D86",
+      "slug": "astm-d86"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D92",
+      "slug": "astm-d92"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D93",
+      "slug": "astm-d93"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D97",
+      "slug": "astm-d97"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D975",
+      "slug": "astm-d975"
+    },
+    {
+      "organization": "ASTM",
+      "code": "D976",
+      "slug": "astm-d976"
+    },
+    {
+      "organization": "CEC",
+      "code": "L-40-93",
+      "slug": "cec-l-40-93"
+    },
+    {
+      "organization": "DEF STAN",
+      "code": "91-091",
+      "slug": "def-stan-91-091"
+    },
+    {
+      "organization": "DIN",
+      "code": "51581",
+      "slug": "din-51581"
+    },
+    {
+      "organization": "DIN",
+      "code": "51751",
+      "slug": "din-51751"
+    },
+    {
+      "organization": "EN",
+      "code": "116",
+      "slug": "en-116"
+    },
+    {
+      "organization": "EN",
+      "code": "12916",
+      "slug": "en-12916"
+    },
+    {
+      "organization": "EN",
+      "code": "13016",
+      "slug": "en-13016"
+    },
+    {
+      "organization": "EN",
+      "code": "13016/1",
+      "slug": "en-13016-1"
+    },
+    {
+      "organization": "EN",
+      "code": "16329",
+      "slug": "en-16329"
+    },
+    {
+      "organization": "EN",
+      "code": "17306",
+      "slug": "en-17306"
+    },
+    {
+      "organization": "EN",
+      "code": "228",
+      "slug": "en-228"
+    },
+    {
+      "organization": "EN",
+      "code": "3104",
+      "slug": "en-3104"
+    },
+    {
+      "organization": "EN",
+      "code": "590",
+      "slug": "en-590"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "10370",
+      "slug": "en-iso-10370"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "13736",
+      "slug": "en-iso-13736"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "22854",
+      "slug": "en-iso-22854"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "2592",
+      "slug": "en-iso-2592"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "2719",
+      "slug": "en-iso-2719"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "3104",
+      "slug": "en-iso-3104"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "3405",
+      "slug": "en-iso-3405"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "4264",
+      "slug": "en-iso-4264"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "5163",
+      "slug": "en-iso-5163"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "5164",
+      "slug": "en-iso-5164"
+    },
+    {
+      "organization": "EN ISO",
+      "code": "5165",
+      "slug": "en-iso-5165"
+    },
+    {
+      "organization": "GB/T",
+      "code": "21929",
+      "slug": "gb-t-21929"
+    },
+    {
+      "organization": "GB/T",
+      "code": "265",
+      "slug": "gb-t-265"
+    },
+    {
+      "organization": "GB/T",
+      "code": "27847",
+      "slug": "gb-t-27847"
+    },
+    {
+      "organization": "GB/T",
+      "code": "3536",
+      "slug": "gb-t-3536"
+    },
+    {
+      "organization": "GB/T",
+      "code": "5208",
+      "slug": "gb-t-5208"
+    },
+    {
+      "organization": "GOST",
+      "code": "2177",
+      "slug": "gost-2177"
+    },
+    {
+      "organization": "GOST",
+      "code": "33",
+      "slug": "gost-33"
+    },
+    {
+      "organization": "IP",
+      "code": "123",
+      "slug": "ip-123"
+    },
+    {
+      "organization": "IP",
+      "code": "15",
+      "slug": "ip-15"
+    },
+    {
+      "organization": "IP",
+      "code": "16",
+      "slug": "ip-16"
+    },
+    {
+      "organization": "IP",
+      "code": "170",
+      "slug": "ip-170"
+    },
+    {
+      "organization": "IP",
+      "code": "195",
+      "slug": "ip-195"
+    },
+    {
+      "organization": "IP",
+      "code": "219",
+      "slug": "ip-219"
+    },
+    {
+      "organization": "IP",
+      "code": "309",
+      "slug": "ip-309"
+    },
+    {
+      "organization": "IP",
+      "code": "34",
+      "slug": "ip-34"
+    },
+    {
+      "organization": "IP",
+      "code": "36",
+      "slug": "ip-36"
+    },
+    {
+      "organization": "IP",
+      "code": "394",
+      "slug": "ip-394"
+    },
+    {
+      "organization": "IP",
+      "code": "421",
+      "slug": "ip-421"
+    },
+    {
+      "organization": "IP",
+      "code": "444",
+      "slug": "ip-444"
+    },
+    {
+      "organization": "IP",
+      "code": "446",
+      "slug": "ip-446"
+    },
+    {
+      "organization": "IP",
+      "code": "481",
+      "slug": "ip-481"
+    },
+    {
+      "organization": "IP",
+      "code": "523",
+      "slug": "ip-523"
+    },
+    {
+      "organization": "IP",
+      "code": "524",
+      "slug": "ip-524"
+    },
+    {
+      "organization": "IP",
+      "code": "529",
+      "slug": "ip-529"
+    },
+    {
+      "organization": "IP",
+      "code": "534",
+      "slug": "ip-534"
+    },
+    {
+      "organization": "IP",
+      "code": "596",
+      "slug": "ip-596"
+    },
+    {
+      "organization": "IP",
+      "code": "71",
+      "slug": "ip-71"
+    },
+    {
+      "organization": "IS",
+      "code": "1460:2017",
+      "slug": "is-1460-2017"
+    },
+    {
+      "organization": "IS",
+      "code": "1571:2018",
+      "slug": "is-1571-2018"
+    },
+    {
+      "organization": "ISO",
+      "code": "15212",
+      "slug": "iso-15212"
+    },
+    {
+      "organization": "ISO",
+      "code": "18335",
+      "slug": "iso-18335"
+    },
+    {
+      "organization": "ISO",
+      "code": "22995",
+      "slug": "iso-22995"
+    },
+    {
+      "organization": "ISO",
+      "code": "23877-1",
+      "slug": "iso-23877-1"
+    },
+    {
+      "organization": "ISO",
+      "code": "2592",
+      "slug": "iso-2592"
+    },
+    {
+      "organization": "ISO",
+      "code": "2719",
+      "slug": "iso-2719"
+    },
+    {
+      "organization": "ISO",
+      "code": "3013",
+      "slug": "iso-3013"
+    },
+    {
+      "organization": "ISO",
+      "code": "3015",
+      "slug": "iso-3015"
+    },
+    {
+      "organization": "ISO",
+      "code": "3016",
+      "slug": "iso-3016"
+    },
+    {
+      "organization": "ISO",
+      "code": "3104",
+      "slug": "iso-3104"
+    },
+    {
+      "organization": "ISO",
+      "code": "3105",
+      "slug": "iso-3105"
+    },
+    {
+      "organization": "ISO",
+      "code": "3405",
+      "slug": "iso-3405"
+    },
+    {
+      "organization": "ISO",
+      "code": "3679",
+      "slug": "iso-3679"
+    },
+    {
+      "organization": "ISO",
+      "code": "3680",
+      "slug": "iso-3680"
+    },
+    {
+      "organization": "ISO",
+      "code": "918",
+      "slug": "iso-918"
+    },
+    {
+      "organization": "JIS",
+      "code": "K2254",
+      "slug": "jis-k2254"
+    },
+    {
+      "organization": "JIS",
+      "code": "K2265",
+      "slug": "jis-k2265"
+    },
+    {
+      "organization": "JIS",
+      "code": "K2269",
+      "slug": "jis-k2269"
+    },
+    {
+      "organization": "JIS",
+      "code": "K2276",
+      "slug": "jis-k2276"
+    },
+    {
+      "organization": "JIS",
+      "code": "K2288",
+      "slug": "jis-k2288"
+    },
+    {
+      "organization": "NF",
+      "code": "M07-002",
+      "slug": "nf-m07-002"
+    },
+    {
+      "organization": "SAE",
+      "code": "J300",
+      "slug": "sae-j300"
+    }
+  ],
+  "products": [
+    {
+      "file": "herzog_hvm472.md",
+      "name": "Herzog Multi-Range Viscometer",
+      "model": "HVM 472",
+      "slug": "herzog-hvm-472-multi-range-viscometer",
+      "brand": "herzog",
+      "product_type": "equipment",
+      "short_description": "Automated Multi-Range Capillary Viscometer đo độ nhớt động học (kinematic viscosity) tự động, liên tục, theo ASTM D445, với 2 bể nhiệt độc lập cho phép đo song song 2 mẫu ở 2 nhiệt độ khác nhau (phù hợp xác định Viscosity Index).",
+      "seo_title": "Herzog Multi-Range Viscometer | HERZOG | LT Vietnam",
+      "seo_description": "Automated Multi-Range Capillary Viscometer đo độ nhớt động học (kinematic viscosity) tự động, liên tục, theo ASTM D445, với 2 bể nhiệt độc lập cho phép đo song song 2 mẫu ở 2 nhiệt độ khác nhau (phù hợp xác định Viscosity Index).",
+      "categories": [
+        "viscometers",
+        "physical-properties"
+      ],
+      "applications": [
+        "lubricant-analysis",
+        "diesel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "Herzog HVM 472 là thiết bị đo độ nhớt động học (kinematic viscosity) tự động dạng capillary (mao quản thủy tinh), thiết kế dạng stand-alone (không cần PC ngoài để vận hành), xác định tự động độ nhớt trong khoảng 0.5 đến 5000 mm²/s, đáp ứng hoặc vượt yêu cầu của ASTM D445. Thiết bị có 2 bể (bath) độc lập, mỗi bể trang bị 1 capillary multi-range (quan sát được từ góc 180°) cùng hệ thống kiểm soát nhiệt độ vi xử lý và định thời nhiệt (thermal timing). Độ chính xác/đồng đều nhiệt độ bể được đo với độ phân giải mạch điều khiển 0.001°C, vượt yêu cầu ASTM D445. Bể có 3 heater để giảm thời gian ổn định khi tăng nhiệt độ, tự động bù giãn nở nhiệt của silicone oil từ 20° đến 150°C, có bảo vệ quá nhiệt và mức chất lỏng thấp.",
+        "Vận hành: người dùng đổ mẫu vào beaker (20ml thủy tinh hoặc nhựa), đặt vào vị trí nạp; hệ thống tự động phát hiện beaker, yêu cầu nhập sample ID, mô tả (tùy chọn) và thông số test. Mẫu được đưa vào capillary bằng vacuum đến mức phù hợp, đo, sau đó trả mẫu về beaker, hiển thị và lưu kết quả, rồi tự động vệ sinh/sấy khô. Mỗi bể có auto sampler 26 vị trí riêng để vận hành tự động không cần giám sát liên tục; khay chứa mẫu đã đo có sức chứa 10 beaker, cho phép nạp thêm mẫu mới liên tục vượt quá 26 mẫu ban đầu."
+      ],
+      "features": [
+        "2 bể nhiệt độc lập (dual-bath), mỗi bể có auto sampler riêng 26 vị trí — cho phép đo liên tục, không cần giám sát 7-8 giờ",
+        "Đo đồng thời 2 mẫu ở 2 nhiệt độ khác nhau — lý tưởng cho xác định Viscosity Index (VI)",
+        "Capillary multi-range: chuẩn 100-fold (12 gradings, thời gian chảy điển hình 60-400s); tùy chọn Fast Run 20-fold (10 gradings, thời gian chảy điển hình 25-100s)",
+        "Phát hiện điểm meniscus bằng cảm biến nhiệt điện trở NTC (Thermal NTC), áp dụng cho mẫu trong suốt lẫn mẫu đục/carbon cao/nhũ tương ổn định (dark samples); cảm biến NTC tự động hiệu chuẩn, không cần đào tạo riêng",
+        "Hệ thống vệ sinh (cleaning) tự động 2 dung môi (dual solvent), lập trình được chu kỳ; low solvent usage; tùy chọn mở rộng lên 4 dung môi; gravity intake/discharge (không cần bơm chân không ngoài); phớt Kalrez® tương thích dung môi mạnh (kể cả acetone, toluene)",
+        "Tùy chọn preheating mẫu (station gia nhiệt trước) cho mẫu có pour point cao (bunker oil, bitum, sáp) đến 70°C tại 100°C bath, tránh nghẹt hệ thống",
+        "Vận hành stand-alone hoặc kết nối mạng nhiều máy qua CAN-BUS với phần mềm PAC IRIS",
+        "Không tiếp xúc trực tiếp giữa operator và mẫu/dung môi (no direct contact from operators); double cover glass wall cách nhiệt",
+        "Kết nối hệ thống thông gió giảm phát thải VOC",
+        "Hiệu chuẩn nhà máy sẵn ở 40°C và 100°C, sẵn sàng xác định VI ngay; tối đa 10 điểm nhiệt độ hiệu chuẩn mỗi bể",
+        "Cảm biến NIR meniscus bổ sung ngăn mẫu tràn vào hệ thống van"
+      ],
+      "applications_text": [
+        "Đo độ nhớt của các sản phẩm dầu mỏ và phi dầu mỏ dùng làm chất bôi trơn (lubricants) — độ nhớt đúng ảnh hưởng đến hoạt động chính xác của thiết bị sử dụng dầu bôi trơn",
+        "Đánh giá độ nhớt nhiên liệu dầu mỏ (petroleum fuels) phục vụ ước tính điều kiện tồn trữ, xử lý và vận hành tối ưu",
+        "chỉ có mô tả tổng quát nêu trên"
+      ],
+      "principle": [
+        "Đo độ nhớt động học (Kinematic Viscosity) bằng phương pháp mao quản thủy tinh (Glass Capillary), sử dụng ống mao quản Atlantic Multirange hoặc Fast Run-Type. Mẫu được hút vào capillary, thời gian chảy (flow time) qua mao quản được đo bằng cảm biến nhiệt điện trở NTC (Thermal NTC meniscus detection/timing) đặt tại các mốc trên ống, từ đó tính ra độ nhớt động học dựa trên hằng số hiệu chuẩn của capillary. Ống capillary bằng thủy tinh giãn nở nhiệt thấp (DURAN®) cho phép hiệu chuẩn ở một nhiệt độ duy nhất."
+      ],
+      "sample_types": [
+        "Chất lỏng trong suốt và đục/tối màu (transparent and opaque liquids) — cảm biến NTC áp dụng cho gần như mọi loại mẫu trong ngành dầu khí, từ trong đến tối màu, kể cả mẫu carbon cao hoặc nhũ tương ổn định",
+        "Sản phẩm có pour point cao cần preheating (tùy chọn): bunker oil, bitum, sáp (waxes) — preheat đến 70°C tại bath 100°C",
+        "Mẫu rất nhớt (very viscous products); hỗ trợ qua tùy chọn preheating riêng từng mẫu lên đến 120°C / 110°C"
+      ],
+      "operating_conditions": [
+        "Điện áp: 100V ±10%, 115V ±10%, 230 VAC ±10%, chọn bằng jumper/clamping",
+        "Tần số: 50–60 Hz",
+        "Công suất: 1350 W",
+        "Kích thước (W x D x H): 49 x 75 x 126 cm (19.3 x 29.5 x 49.6 inch)",
+        "Trọng lượng: 80 kg (199 lbs) không kèm bath liquid",
+        "Nhiệt độ vận hành: tối đa 10–35°C; khuyến nghị 15–25°C",
+        "Độ ẩm: 80% relative humidity tại 35°C",
+        "Nhiệt độ bảo quản: -15 đến +55°C",
+        "Bath media: Silicone oil, 2 x 5 lít",
+        "Cần làm mát ngoài (external cooling qua cuộn cooling built-in) khi vận hành ở 20–40°C; trên 40°C đến 150°C hoạt động không cần cooling ngoài (ở nhiệt độ môi trường 25°C)"
+      ],
+      "accessories_options": [
+        "Preheating station (1 bên trái hoặc cả 2 bể trái/phải) — tùy chọn khi đặt hàng",
+        "Cooling Control System (Option) — tự động điều tiết van cách ly giữa cuộn cooling built-in và nguồn coolant ngoài",
+        "External Cooler (102159/102373) — dải nhiệt -25°C đến +85°C",
+        "Low sample volume Option (beaker nhựa hoặc thủy tinh)",
+        "3rd/4th cleaning solvents Option (đặt cùng lúc mua máy)",
+        "2-Channel Digital Thermometer (độ chính xác 0.015°C), có/không kèm hiệu chuẩn DAKKS",
+        "Temperature Sensor -50°C đến +200°C cho HVM 472, có/không kèm hiệu chuẩn DAKKS",
+        "Top Plate có lỗ cho Reference Thermometer",
+        "Slop container 6 lít, Slop sensor, Ex-protection level sensor (ATEX certified)",
+        "HVM472-Fast Run Tray (5ml hoặc 20ml glass/plastic beaker, 20 vị trí, có filling support)",
+        "PAC IRIS Software Kit (Software IRIS Workstation, HVM 472 Module License, USB-CAN-Adapter, CAN-BUS cable/terminator) — cho phép kết nối tối đa 4 máy HVM 472, tính năng: Viscosity Index, Energy/Gravity Correction, Dynamic Viscosity, Bath Temperature Graphics, tính toán theo ASTM D341, Relative Viscosity/K-value theo ISO 1628-2",
+        "Ticket Printer (built-in stand-alone hoặc external DotMatrix 76mm)",
+        "Multi-Range Capillary các dải đo (Part No. 04726-000-01 đến -13, dải 0.5–50 đến 100–10000 mm²/s) và Fast Run Capillary (04727-000-01 đến -10, dải 0.5–10 đến 30–600 mm²/s)",
+        "CRM (Certified Reference Material) độ nhớt Polyalphaolefin, 500ml, nhiều mã part number theo dải nhiệt độ/độ nhớt (dùng cho hiệu chuẩn)",
+        "Bộ phụ kiện tiêu chuẩn đi kèm máy: silicone oil 12L, dây nguồn 230V/115V, bộ cờ lê lục giác, hole wrench, hose kit, bộ 130 beaker thủy tinh 20ml, cáp kết nối 9 pin, hướng dẫn sử dụng tiếng Anh"
+      ],
+      "specifications": [
+        {
+          "group_key": "General",
+          "label": "Ordering Information",
+          "value": "HVM472 Automated Multi-Range Capillary Viscometer, cấu hình Stand-Alone 2 bể, auto sampler tích hợp, hệ vệ sinh dual solvent tự động",
+          "unit": null
+        },
+        {
+          "group_key": "General",
+          "label": "Standard Test Methods",
+          "value": "ASTM D445, IP 71 (section 1), ISO 3104, ISO 3105",
+          "unit": null
+        },
+        {
+          "group_key": "General",
+          "label": "Patents and Certifications",
+          "value": "EC Conformity",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Analytical principle",
+          "value": "Kinematic Viscosity by Glass Capillary (Atlantic Multirange hoặc Fast Run-Type)",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample Volume",
+          "value": "Standard 18; Fast Run 4",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample Preheating",
+          "value": "Tùy chọn, cho mẫu Pour Point đến 70 (tại bath 100°C); dải cài đặt 40–110",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample Induction",
+          "value": "Auto sampler tích hợp 26 vị trí/bể, tự hút mẫu trực tiếp từ vial, không cần bơm chân không ngoài",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Cycle Time and Throughput",
+          "value": "25–35 (bao gồm cleaning), 2 test chạy đồng thời",
+          "unit": "phút/test"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Capillaries",
+          "value": "Multi-range 100-fold (flow time 60–400s, 12 gradings); Fast Run 20-fold (flow time 25–100s)",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Meniscus Detection/Timing",
+          "value": "By Thermistor (NTC)",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Bath Temperature Stability",
+          "value": "±0.01 (test T ≤100°C); ±0.03 (test T >100°C)",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Bath Temperature Resolution",
+          "value": "0.001",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Bath Media",
+          "value": "Silicone oil, 2 x 5",
+          "unit": "lít"
+        },
+        {
+          "group_key": "Application Range",
+          "label": "Viscosity Range (Standard Atlantic)",
+          "value": "0.5–5000 tại 40°C; 0.5–2000 tại 100°C",
+          "unit": "mm²/s"
+        },
+        {
+          "group_key": "Application Range",
+          "label": "Viscosity Range (Fast Run)",
+          "value": "0.5–600 tại 40/100°C",
+          "unit": "mm²/s"
+        },
+        {
+          "group_key": "Application Range",
+          "label": "Temperature range",
+          "value": "20–150 (user programmable)",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Data Management",
+          "label": "Documentation (stand-alone)",
+          "value": "Lưu local tối đa 400 kết quả (FIFO)",
+          "unit": null
+        },
+        {
+          "group_key": "Utilities",
+          "label": "Voltage",
+          "value": "100V±10%, 115V±10%, 230VAC±10%",
+          "unit": null
+        },
+        {
+          "group_key": "Utilities",
+          "label": "Frequency",
+          "value": "50–60",
+          "unit": "Hz"
+        },
+        {
+          "group_key": "Utilities",
+          "label": "Power",
+          "value": "1350",
+          "unit": "W"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Operating temperature",
+          "value": "max 10–35; khuyến nghị 15–25",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Humidity",
+          "value": "80% tại 35°C",
+          "unit": "%RH"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Storage temperature",
+          "value": "-15 đến +55",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Physical",
+          "label": "Dimensions (W x D x H)",
+          "value": "49 x 75 x 126",
+          "unit": "cm"
+        },
+        {
+          "group_key": "Physical",
+          "label": "Weight",
+          "value": "80 (không kèm bath liquid)",
+          "unit": "kg"
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d445",
+          "compliance_type": "compliance",
+          "note": "Standard test method chính"
+        },
+        {
+          "slug": "ip-71",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "iso-3104",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "en-iso-3104",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "iso-3105",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d446",
+          "compliance_type": "reference",
+          "note": null
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Herzog Lab\\HVM 472 - Multirange Viscometer\\Marketing Materials\\HVM472-System Image (HR).jpg"
+    },
+    {
+      "file": "herzog_hvp972.md",
+      "name": "Herzog Automated Vapor Pressure Analyzer",
+      "model": "HVP 972",
+      "slug": "herzog-hvp-972-vapor-pressure-analyzer",
+      "brand": "herzog",
+      "product_type": "equipment",
+      "short_description": "Thiết bị đo áp suất hơi (vapor pressure) tự động, gọn nhẹ, tự chứa (self-contained portable), cho kết quả nhanh và chính xác đến 1000 kPa trong dải nhiệt độ 0–100°C, báo cáo đồng thời Ptot, Pabs, DVPE, RVPE hoặc ASVP trong một lần chạy.",
+      "seo_title": "Herzog Automated Vapor Pressure Analyzer | HERZOG | LT Vietnam",
+      "seo_description": "Thiết bị đo áp suất hơi (vapor pressure) tự động, gọn nhẹ, tự chứa (self-contained portable), cho kết quả nhanh và chính xác đến 1000 kPa trong dải nhiệt độ 0–100°C, báo cáo đồng thời Ptot, Pabs, DVPE, RVPE hoặc ASVP trong một lần chạy.",
+      "categories": [
+        "vapor-pressure",
+        "physical-properties"
+      ],
+      "applications": [
+        "gasoline",
+        "crude-oil-assay"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "petrochemical"
+      ],
+      "overview": [
+        "Herzog HVP972 là thiết bị phân tích hiện đại, thiết kế để xác định chính xác áp suất hơi (vapor pressure) của xăng ô tô và xăng máy bay (automotive and aviation gasoline), nhiên liệu tuốc-bin (turbine fuels), các sản phẩm dầu mỏ chưng cất nhẹ khác (light distillate petroleum products), dầu thô (crude oil), dung môi hydrocarbon và các hợp chất hóa học. Thiết bị cho kết quả nhanh, chính xác trong dải áp suất đến 1000 kPa (145 psi), dải nhiệt độ rộng từ 0 đến 100°C (32 đến 212°F). Thiết bị báo cáo Ptot, Pabs, DVPE, RVPE hoặc ASVP tùy theo chương trình đo và phương pháp thử được chọn: ASTM D5191, ASTM D6378, EN 13016, IP 394, IP 481.",
+        "Áp suất hơi là đặc tính quan trọng nhất của xăng liên quan đến khả năng khởi động lạnh (cold-start) và khả năng lái xe khi khởi động (warm-up driveability). Độ bay hơi của xăng (gasoline volatility) không chỉ ảnh hưởng đến khả năng vận hành xe mà còn ảnh hưởng đến phát thải VOC (bay hơi và khí thải). Nhiều cơ quan chính phủ giới hạn độ bay hơi của xăng và các hydrocarbon khác để kiểm soát chất lượng không khí. Do đó, áp suất hơi là một tính chất vật lý rất quan trọng của chất lỏng dễ bay hơi phục vụ vận chuyển và tồn trữ.",
+        "Vận hành đơn giản: kết nối mẫu vào cổng nạp (inlet port), chọn phương pháp đo và nhấn phím \"Start\". Bàn phím chống dung môi (solvent-proof), màn hình LCD lớn dễ đọc và menu trực quan tạo giao diện thân thiện với người dùng. Ngay sau khi kết thúc test, HVP972 cung cấp báo cáo test chi tiết trên màn hình, lưu dữ liệu vào database nội bộ, và theo lập trình sẵn hoặc theo yêu cầu, in và/hoặc xuất dữ liệu ra LIMS."
+      ],
+      "features": [
+        "Chu trình đo hoàn toàn tự động: rửa cell (rinsing), lấy mẫu (sampling), đo, xả (draining), báo cáo kết quả",
+        "Không cần thiết bị phụ trợ bên ngoài, sẵn sàng sử dụng ngay",
+        "Báo cáo đồng thời trong một lần chạy: Ptot, Pabs, DVPE, RVPE hoặc ASVP",
+        "Tính linh hoạt (versatility): dải đo rộng, tỉ lệ vapor-liquid (VL ratio) thay đổi được (0.5 đến 4)",
+        "Tính năng QC và hiệu chuẩn tinh vi: theo dõi lịch sử hiệu chuẩn, kết quả và quality-check",
+        "Truy xuất nguồn gốc kết quả đầy đủ với database tích hợp",
+        "Thiết kế nhỏ gọn, di động (portable, compact and lightweight design)",
+        "Bộ nhớ 50 chương trình đo độc lập (chuẩn hoặc tùy chỉnh), mỗi chương trình gồm đầy đủ tham số: nhiệt độ nạp, nhiệt độ test (tối đa 10 điểm nhiệt độ tùy chọn cho cùng 1 lần chạy), thời gian ổn định nhiệt cho mỗi lần giãn nở, sai số áp suất cho phép, đơn vị nhiệt độ/áp suất, chi tiết quy trình vệ sinh, 4 công thức tương quan (correlation formulas) để báo cáo Ptot, Pabs, ASTM DVPE, EPA DVPE, CARB RVPE, ASVP",
+        "Chương trình đo đặc biệt: Temperature scan (áp suất hơi theo nhiệt độ 0–100°C) và Vapour-liquid ratio scan (áp suất hơi theo tỉ lệ VL 0.5–4)",
+        "Kết nối đa thiết bị qua CAN-BUS (tối đa 5 unit) chia sẻ printer/LIMS gateway; kết nối phần mềm HLIS HVP_Eco (backup/restore cấu hình, lịch sử hiệu chuẩn)",
+        "Vận hành stand-alone hoặc kết nối mạng qua PAC IRIS Software",
+        "Tự động chuyển đổi điện áp (auto-switching) 100-240V; tùy chọn adapter chạy từ ắc quy xe 12VDC"
+      ],
+      "applications_text": [
+        "Volatility (độ bay hơi nói chung)",
+        "Gasoline (xăng ô tô và xăng máy bay)",
+        "Hydrocarbon-Oxygenates Mixtures (hỗn hợp hydrocarbon-oxygenate)",
+        "Solvents (dung môi)",
+        "Chemicals (hóa chất)",
+        "Turbine Fuels (nhiên liệu tuốc-bin)",
+        "Crude Oil (dầu thô)"
+      ],
+      "principle": [
+        "Buồng đo (measuring chamber) bằng nhôm mạ nickel, thể tích 5 ml. Mẫu được đưa vào buồng đo qua piston tích hợp (built-in piston), tự động hút mẫu, không cần bơm chân không ngoài; thể tích mẫu cần khoảng 1 ml (thực tế cần khoảng 10 ml mẫu kể cả để rửa/lấy mẫu). Piston di chuyển thay đổi tỉ lệ vapor-liquid theo các bước tăng dần; áp suất được đo và ghi lại ở từng bước. Kết quả áp suất hơi được tính toán và báo cáo theo các công thức tương quan tương ứng với phương pháp thử đã chọn (Ptot, Pabs, DVPE, RVPE, ASVP)."
+      ],
+      "sample_types": [
+        "Xăng ô tô và xăng máy bay (automotive and aviation gasoline)",
+        "Nhiên liệu tuốc-bin (turbine fuels)",
+        "Các sản phẩm dầu mỏ chưng cất nhẹ khác (other light distillate petroleum products)",
+        "Dầu thô (crude oil)",
+        "Dung môi hydrocarbon (hydrocarbon solvents)",
+        "Hợp chất hóa học (chemical compounds)"
+      ],
+      "operating_conditions": [
+        "Điện áp: 100-240V, tự động chuyển đổi (auto-switching); CE compliant; tùy chọn adapter DC từ ắc quy xe 12V",
+        "Tần số: 50-60 Hz",
+        "Công suất: 100 W",
+        "Nhiệt độ vận hành: tối đa 10–35°C; khuyến nghị 15–25°C",
+        "Độ ẩm: 80% relative humidity tại 35°C",
+        "Nhiệt độ bảo quản: -15 đến +55°C",
+        "Kích thước (W x D x H): 33 cm (13\") x 35 cm (13.5\") x 47 cm (18.5\")",
+        "Trọng lượng: 12 kg (26.5 lbs)",
+        "Không cần làm mát ngoài (no external cooling necessary)"
+      ],
+      "accessories_options": [
+        "09724-000-01: Phần mềm PC Windows tùy chọn cho backup/restore cấu hình đơn vị (HLIS HVP_Eco)",
+        "105898: External Printer DotMatrix 80mm, parallel Interface 100-230V",
+        "101-194: Pt100 simulator cho hiệu chuẩn, kèm cáp adapter",
+        "103674: Pressure Calibration Kit for HVP 972",
+        "125-008 / 125-034: Vacuum pump cho hiệu chuẩn (230V / 115V)",
+        "413-277: Carrying case (vali di chuyển)",
+        "603-027: DC Adaptor 12V vehicle battery operation",
+        "626-053: Cable Centronics for printer",
+        "626-072: Connection cable PC to instrument (RS 232), 2.5m",
+        "626-244: 4 wire adapter cable for cell temperature probe calibration",
+        "626-217 / 626-227: CAN bus connection cable (0.8m / 3.0m)",
+        "619-119: CAN bus terminal load resistor",
+        "101-196: Adaptor USB to CAN",
+        "Danh sách phụ tùng thay thế khuyến nghị cho khoảng 2 năm vận hành: sampling tube, slop bottle, O-ring các loại, piston O-ring kit, syringe 10ml, needle, blower dust filter, fuse 2A, lubricating oil, và các board/linh kiện điện tử (power supply, display, CPU, measuring board...)",
+        "Phụ kiện tiêu chuẩn kèm máy (Order No. 09721-000-00): syringe 10ml with luer connector, sampling tube, slop bottle (with hose and holder), cover for luer connector, adapter for vacuum pump (x2), needle for syringe, allen key set, power cord 230V"
+      ],
+      "specifications": [
+        {
+          "group_key": "General",
+          "label": "Standard Test Methods",
+          "value": "ASTM D 5191, D 6378, EN13016, IP 394, IP 481",
+          "unit": null
+        },
+        {
+          "group_key": "General",
+          "label": "Correlates with",
+          "value": "ASTM D 323, ASTM D 4953",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Measuring Chamber",
+          "value": "Nickel plated aluminum, thể tích 5",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample Introduction",
+          "value": "Qua piston tích hợp, tự động hút mẫu, không cần bơm chân không ngoài",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample Volume",
+          "value": "1 (thực tế cần ~10ml mẫu bao gồm rửa/lấy mẫu)",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Test Duration",
+          "value": "Trung bình/dưới 10 phút cho 1 lần chạy chuẩn",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Measuring Programs",
+          "value": "Lưu tối đa 50 chương trình đo chuẩn/tùy chỉnh",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Temperature Range",
+          "value": "0–100 (lập trình được), ổn định 0.1°C",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Pressure Range",
+          "value": "0–1000 kPa (145 psi); độ phân giải 0.1 kPa; độ chính xác 0.2 kPa",
+          "unit": "kPa"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Liquid Vapor Ratio",
+          "value": "0.5 đến 4, thay đổi được",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Cleaning",
+          "value": "Bằng mẫu tiếp theo hoặc bằng dung môi, là 1 phần của chương trình đo",
+          "unit": null
+        },
+        {
+          "group_key": "Traceability",
+          "label": "Operators",
+          "value": "Lưu tối đa 20 tên operator",
+          "unit": null
+        },
+        {
+          "group_key": "Traceability",
+          "label": "QC Samples",
+          "value": "Database tích hợp cho verification fluid, tối đa 5 profile, mỗi profile có target/dung sai cho phép, lưu 50 lần kiểm tra gần nhất",
+          "unit": null
+        },
+        {
+          "group_key": "Calibration & Diagnostics",
+          "label": "-",
+          "value": "Automated calibration routine; bảng bù offset 10 điểm; lịch sử hiệu chuẩn; in báo cáo hiệu chuẩn; tự chẩn đoán liên tục",
+          "unit": null
+        },
+        {
+          "group_key": "Requirements",
+          "label": "Electrical",
+          "value": "100-240V/50-60Hz auto-switching; CE compliant",
+          "unit": null
+        },
+        {
+          "group_key": "Requirements",
+          "label": "Power",
+          "value": "100",
+          "unit": "W"
+        },
+        {
+          "group_key": "Requirements",
+          "label": "Dimensions & Weight",
+          "value": "33 (W) x 35 (D) x 47 (H) cm; 12kg (26.5 lbs)",
+          "unit": "cm/kg"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Operating temperature",
+          "value": "max 10–35; khuyến nghị 15–25",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Humidity",
+          "value": "80% tại 35°C",
+          "unit": "%RH"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Storage temperature",
+          "value": "-15 đến +55",
+          "unit": "°C"
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d5191",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d6378",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "en-13016",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-394",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-481",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d323",
+          "compliance_type": "correlation",
+          "note": null
+        },
+        {
+          "slug": "astm-d4953",
+          "compliance_type": "correlation",
+          "note": null
+        }
+      ],
+      "image_path": null
+    },
+    {
+      "file": "herzog_optidist.md",
+      "name": "Herzog OptiDist",
+      "model": "OptiDist",
+      "slug": "herzog-optidist-atmospheric-distillation-analyzer",
+      "brand": "herzog",
+      "product_type": "equipment",
+      "short_description": "Thiết bị chưng cất khí quyển (atmospheric distillation) tự động hoàn toàn cho các sản phẩm dầu mỏ kể cả biofuels, vận hành \"one button\" nhờ công nghệ heating optimizer độc quyền, cho độ chính xác vượt trội ngay từ lần chạy đầu tiên, tuân thủ ASTM D86 và nhiều tiêu chuẩn liên quan.",
+      "seo_title": "Herzog OptiDist | HERZOG | LT Vietnam",
+      "seo_description": "Thiết bị chưng cất khí quyển (atmospheric distillation) tự động hoàn toàn cho các sản phẩm dầu mỏ kể cả biofuels, vận hành \"one button\" nhờ công nghệ heating optimizer độc quyền, cho độ chính xác vượt trội ngay từ lần chạy đầu tiên, tuân thủ ASTM D86 và nhiều tiêu chuẩn liên quan.",
+      "categories": [
+        "atmospheric-distillation",
+        "distillation"
+      ],
+      "applications": [
+        "gasoline",
+        "diesel",
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "petrochemical"
+      ],
+      "overview": [
+        "OptiDist là giải pháp tối ưu (State-of-the-Art) cho chưng cất khí quyển, kết hợp 80 năm kinh nghiệm của Walter Herzog và ISL trong thiết kế/sản xuất thiết bị chưng cất tự động. Đặc tính bay hơi của hydrocarbon có ảnh hưởng quan trọng đến hiệu năng của chúng; phương pháp chưng cất D86 cho phép mô tả xu hướng bay hơi của nhiên liệu. Chỉ OptiDist mới cho phép vận hành thực sự \"một nút bấm\" (one button): chỉ cần chọn nhóm sôi (boiling group) của mẫu và nhấn nút Start.",
+        "Nguyên lý phân tích: một mẫu 100 mL được chưng cất dưới điều kiện quy định cho nhóm mà mẫu thuộc về. Quá trình chưng cất thực hiện trong thiết bị chưng cất mẻ (batch distillation) ở áp suất khí quyển, điều kiện thiết kế để cung cấp xấp xỉ một đĩa lý thuyết phân đoạn (one theoretical plate fractionation). Các quan sát hệ thống về nhiệt độ và thể tích ngưng tụ được ghi lại tùy theo nhu cầu người dùng; thể tích cặn (residue) và hao hụt (losses) cũng được ghi nhận. Khi kết thúc chưng cất, nhiệt độ hơi quan sát được có thể hiệu chỉnh theo áp suất khí quyển (barometric pressure); dữ liệu được kiểm tra sự phù hợp với yêu cầu quy trình (như tốc độ chưng cất). Test được lặp lại nếu điều kiện quy định không đạt. Kết quả thường được biểu diễn dưới dạng % bay hơi hoặc % thu hồi so với nhiệt độ tương ứng, dạng bảng hoặc đồ thị (đường cong chưng cất).",
+        "OptiDist tự động thiết lập điều kiện chưng cất tối ưu cho Gia nhiệt ban đầu (Initial Heating), Chưng cất (Distillation) và Gia nhiệt cuối (Final Heating) cho mọi loại mẫu nhờ công nghệ heating optimizer độc quyền (patented optimizer), mang lại độ chính xác tốt hơn tới 2 lần so với các mẫu chưng cất thông thường — kể cả với mẫu \"chưa biết\" (unknown samples) ngay từ lần chạy đầu tiên."
+      ],
+      "features": [
+        "Vận hành \"one button\": chọn boiling group của mẫu, nhấn Start — không cần chỉnh tay heater hay chạy thử sơ bộ (preliminary trials)",
+        "Optimizer công nghệ độc quyền: giám sát liên tục và kiểm soát initial heat bằng thuật toán riêng, không cần input từ operator; tối ưu tốc độ chưng cất, tránh dao động tăng/giảm đột ngột",
+        "Fully automated regulation: không cần tham số gia nhiệt riêng theo mẫu; tự động tính residue và loss; gia nhiệt cuối tự động cho 5ml cuối trước khi chưng cất kết thúc",
+        "Tính năng an toàn tích hợp: gia nhiệt tối ưu ngăn quá nhiệt bình chưng cất (flask), kéo dài tuổi thọ flask, phòng cháy; bình chữa cháy tích hợp (built-in fire extinguisher) với 2 cảm biến lửa; blower VOC giảm phát thải hợp chất hữu cơ bay hơi; bảo vệ operator khỏi tiếp xúc hơi mẫu độc hại",
+        "Mistake proof unit: lắp flask 1 tay với auto detection; Intelligent Vapor Probe tự nhớ dữ liệu hiệu chuẩn, không cần chỉnh tay ở cổ flask; tự động phát hiện base plate; heater lift tự định vị",
+        "Màn hình cảm ứng dễ thao tác: bắt đầu test chỉ 3 bước — nhập số mẫu, chọn sản phẩm/nhóm chưng cất, nhấn Start; không cần nhập tham số heater riêng cho từng mẫu",
+        "Receiver chamber chống ăn mòn: đo tự động thể tích nạp mẫu (charge volume) chính xác; cảnh báo tự động khi cần vệ sinh condenser",
+        "Khả năng kết nối mạng (Network capability): stand-alone hoặc mạng PAC IRIS — điều khiển từ xa nhiều máy từ 1 workstation, database tập trung (kết quả, sản phẩm, phương pháp, báo cáo), chia sẻ printer, LIMS tập trung, phân quyền bảo mật nhiều cấp, truy xuất người dùng",
+        "Tiết kiệm chi phí phòng lab đáng kể: thời gian phân tích 35 phút (tiết kiệm 60% so với ~135 phút của thiết bị khác); chỉ cần 100ml mẫu cho 1 lần chưng cất đầy đủ (so với 200-300ml của thiết bị khác); không cần đào tạo operator chuyên sâu"
+      ],
+      "applications_text": [
+        "Chưng cất khí quyển các sản phẩm dầu mỏ (petroleum products) và nhiên liệu sinh học (biofuels)",
+        "Xăng (gasoline groups 0–4 theo ASTM D86)",
+        "Dầu thô (crude oil) — với tùy chọn VOC reduction kit + Crude Oil testing capability (kèm flask 250ml)"
+      ],
+      "principle": [
+        "Xem mô tả nguyên lý phân tích (Analytical principle) trong phần Overview ở trên: chưng cất mẻ 100mL mẫu ở áp suất khí quyển theo điều kiện quy định của nhóm sôi (boiling group), ghi nhận nhiệt độ hơi theo thể tích ngưng tụ, hiệu chỉnh theo áp suất khí quyển, và tính residue/loss. Hệ thống Optimizer kiểm soát gia nhiệt tự động trong suốt quá trình (Initial Heat, Distillation Rate, Final Heat) mà không cần input thủ công."
+      ],
+      "sample_types": [
+        "Xăng theo nhóm sôi (boiling groups) 0, 1, 2, 3, 4 theo ASTM D86",
+        "Sản phẩm dầu mỏ chưng cất theo D1078, D850",
+        "Dầu thô (crude oil) — cần tùy chọn VOC reduction + Crude Oil testing capability, flask 250ml",
+        "Biofuels (nhiên liệu sinh học)"
+      ],
+      "operating_conditions": [
+        "Điện áp: Multi Voltage 100 đến 240V",
+        "Công suất: 1400 W",
+        "Tần số: 50–60 Hz",
+        "Nhiệt độ vận hành: 10–35°C (50–95°F)",
+        "Độ ẩm: tối đa 80% tại 35°C (95°F)",
+        "Nhiệt độ bảo quản: -20°C đến 50°C (-4°F đến 122°F)",
+        "Độ ẩm bảo quản: dưới 95% RH (không ngưng tụ)",
+        "Kích thước (W x D x H): 44 cm x 57 cm x 65 cm (17.3\" x 22.4\" x 25.6\")",
+        "Trọng lượng: 68 kg (150 lb)",
+        "Khoảng cách khuyến nghị giữa các máy: 20 cm (8 inch)",
+        "Hệ làm mát: nạp sẵn từ nhà máy, gas lạnh HFC R134A, CFC-free",
+        "Khí dùng cho fire extinguisher: CO2 hoặc N2, áp suất đầu vào 7 bar (±0.5 bar)/700 kPa"
+      ],
+      "accessories_options": [
+        "OptiDist Dry Point Kit tự động cho flask 125ml (1209-004-007) hoặc kit thủ công D1078 (1209-004-000)",
+        "OptiDist D1078 Kit cho Dry Point tự động với flask 200ml (1209-004-001)",
+        "OptiDist D850 Kit cho Dry Point thủ công (1209-004-002) hoặc tự động (1209-004-003), flask 200ml",
+        "OptiDist ASTM D189, D4530, ISO 10370 Kit cho 10% Distillation Residue với mẫu 200ml (1209-004-005) — chuẩn bị cặn đáy 10% cho Carbon Residue Test nếu dừng chưng cất ở 89 vol.%",
+        "Status Indicator Beacon; đèn tín hiệu trạng thái từ xa: xanh lá (sẵn sàng), vàng (đang chạy), vàng nhấp nháy (cần thao tác), đỏ (lỗi)",
+        "External printer A4 100-230VAC (1200-004-002), cần hỗ trợ PCL5/PCL6",
+        "Ambient Temperature sensor kit (1209-004-006) — đo nhiệt độ phòng, dùng làm nhiệt độ receiver chamber, tránh sai số thể tích do giãn nở nhiệt",
+        "Ethernet Router (1700-000-010/013) liên kết tối đa 7 OptiDist với 1 PC; Ethernet Hub 8 port mở rộng thêm",
+        "Pt100 Probe Simulator Box (1000-004-001/002), Doctor Box chẩn đoán (1001-004-001), Barcode reader (1700-000-004), RS232 Cable cho LIMS (1700-000-006)",
+        "Phần mềm IRIS: Software IRIS Workstation (103633), IRIS Workstation Plus (103160), License Named User/OptiDist (103162/102625), IRIS Remote Viewer License (102632)",
+        "Cấu hình sẵn có tùy chọn: built-in Ticket Printer (0101-004-002/-1); Reduction of VOC emission + Crude Oil testing capability kèm flask 250ml (0101-004-003/-4 và biến thể -1)",
+        "Phụ tùng thay thế đầy đủ: touch screen, display, các board điều khiển (CPU, Control, Heater Control, MMI interface, Fire Detection), cảm biến (fire sensor, light barrier, temperature sensor), heater (flask, receiver chamber, condenser), bơm, van solenoid, cooling compressor, stepper motor, v.v."
+      ],
+      "specifications": [
+        {
+          "group_key": "General",
+          "label": "Ordering Information",
+          "value": "Thiết bị self-contained, cooling system nạp sẵn CFC-free, kèm flask 125ml, receiver 100ml, vapor probe với centering device, heater plate 38 & 50mm, silicone tube, receiver cap, condenser cleaner",
+          "unit": null
+        },
+        {
+          "group_key": "General",
+          "label": "Standard Test Methods",
+          "value": "ASTM D86 (group 0,1,2,3,4), D1078, D850, IP195, IP123, DIN51751, NFM07-002, EN ISO3405, JIS K2254, ISO918; ASTM D189, D524, D4350; EN ISO 10370 (chuẩn bị cặn 10% đáy)",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "User Interface",
+          "value": "Màn hình màu TFT-LCD cảm ứng, chống dung môi",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Heating System",
+          "value": "Optimizer tự động cho initial heat & điều tiết gia nhiệt; low mass, low voltage, self-positioning",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Condenser System",
+          "value": "Dải nhiệt 0–65°C, lập trình hằng số/ramping/profile đặc biệt",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Receiving Chamber",
+          "value": "Dải nhiệt 0–40°C, chống ăn mòn, tương thích receiver cylinder 100ml và 200ml",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Measurements",
+          "label": "Vapor Temperature",
+          "value": "0–450 (32–842°F), Pt100 IEC 751 Class A",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Measurements",
+          "label": "Sample Volume",
+          "value": "Hệ đo quang học, dải 0–103% charge volume, độ phân giải 0.03ml, độ chính xác ±0.1ml",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Measurements",
+          "label": "Ambient Pressure",
+          "value": "Cảm biến tích hợp, dải 70–110 kPa A (500–800 mmHg)",
+          "unit": "kPa"
+        },
+        {
+          "group_key": "Safety",
+          "label": "Fire Extinguisher",
+          "value": "Tích hợp, 2 cảm biến lửa",
+          "unit": null
+        },
+        {
+          "group_key": "Connectivity",
+          "label": "-",
+          "value": "3 USB (printer/barcode/USB stick), RS232C serial, Ethernet RJ45, kết nối PC ngoài với PAC IRIS",
+          "unit": null
+        },
+        {
+          "group_key": "Power Requirements",
+          "label": "Voltage",
+          "value": "100–240",
+          "unit": "V"
+        },
+        {
+          "group_key": "Power Requirements",
+          "label": "Power",
+          "value": "1400",
+          "unit": "W"
+        },
+        {
+          "group_key": "Power Requirements",
+          "label": "Frequency",
+          "value": "50–60",
+          "unit": "Hz"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Operating temperature",
+          "value": "10–35 (50–95°F)",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Humidity",
+          "value": "tối đa 80% tại 35°C",
+          "unit": "%RH"
+        },
+        {
+          "group_key": "Environmental",
+          "label": "Storage temperature",
+          "value": "-20 đến 50",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Physical",
+          "label": "Dimensions (W x D x H)",
+          "value": "44 x 57 x 65",
+          "unit": "cm"
+        },
+        {
+          "group_key": "Physical",
+          "label": "Weight",
+          "value": "68 (150 lb)",
+          "unit": "kg"
+        },
+        {
+          "group_key": "Computer Requirements",
+          "label": "Minimum system",
+          "value": "2GHz processor, 4GB RAM (min), 200GB HDD (min), Windows 10",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d86",
+          "compliance_type": "compliance",
+          "note": "Group 0,1,2,3,4"
+        },
+        {
+          "slug": "en-iso-3405",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "iso-918",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-123",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-195",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "din-51751",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "jis-k2254",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "nf-m07-002",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "gost-2177",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "en-iso-10370",
+          "compliance_type": "specification",
+          "note": "OptiDist có thể chuẩn bị cặn đáy 10% (10% bottom residue) phục vụ test này, không phải là chính test method của OptiDist"
+        },
+        {
+          "slug": "astm-d189",
+          "compliance_type": "reference",
+          "note": null
+        },
+        {
+          "slug": "astm-d524",
+          "compliance_type": "reference",
+          "note": null
+        },
+        {
+          "slug": "astm-d4350",
+          "compliance_type": "reference",
+          "note": null
+        },
+        {
+          "slug": "astm-d4530",
+          "compliance_type": "reference",
+          "note": "Gắn với accessory kit 1209-004-005 (10% Distillation Residue)"
+        },
+        {
+          "slug": "astm-d4737",
+          "compliance_type": "reference",
+          "note": "Dùng cho tính Calculated Cetane Index (tính năng phần mềm, không phải test method chính)"
+        },
+        {
+          "slug": "astm-d976",
+          "compliance_type": "reference",
+          "note": "Dùng cho tính Calculated Cetane Index (tính năng phần mềm, không phải test method chính)"
+        },
+        {
+          "slug": "astm-d4814",
+          "compliance_type": "reference",
+          "note": "Dùng cho tính Drivability Index (tính năng phần mềm)"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Herzog Lab\\OptiDist\\Marketing Materials\\OptiDist-System Image (HR).jpg"
+    },
+    {
+      "file": "herzog_optiflash_merged.md",
+      "name": "OptiFlash",
+      "model": "OptiFlash",
+      "slug": "herzog-optiflash-flash-point-tester",
+      "brand": "herzog",
+      "product_type": "equipment",
+      "short_description": "Dòng máy đo điểm chớp cháy (flash point) tự động của Herzog, dùng chung nền tảng phần cứng/phần mềm nhưng có 5 biến thể ứng với các phương pháp thử chuẩn khác nhau — closed cup (Abel, Tag), open cup (CoC), Pensky-Martens, và mẫu thể tích rất nhỏ (Small Scale).",
+      "seo_title": "OptiFlash | HERZOG | LT Vietnam",
+      "seo_description": "Dòng máy đo điểm chớp cháy (flash point) tự động của Herzog, dùng chung nền tảng phần cứng/phần mềm nhưng có 5 biến thể ứng với các phương pháp thử chuẩn khác nhau — closed cup (Abel, Tag), open cup (CoC), Pensky-Martens, và mẫu thể tích rất nhỏ (Small Scale).",
+      "categories": [
+        "flash-point",
+        "closed-cup",
+        "open-cup"
+      ],
+      "applications": [
+        "diesel",
+        "lubricant-analysis"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "OptiFlash là kết quả của hơn 50 năm kinh nghiệm của Herzog trong đo điểm chớp cháy tự động, dùng chung một nền tảng phần cứng (cánh tay nâng tự động, màn hình cảm ứng 7\", hệ thống chữa cháy tích hợp, QC-chart, chẩn đoán tự động) cho 5 biến thể ứng với các tiêu chuẩn đo khác nhau: - Abel (closed cup, có bộ khuấy tự động) — EN ISO 13736 / IP 170 - Tag (closed cup, không khuấy) — ASTM D56 - Cleveland Open Cup / CoC (open cup, heater plate, đo đến 400°C) — ASTM D92 / ISO 2592 - Pensky-Martens / PM (closed cup, có khuấy, dải đo rộng 30–400°C) — ASTM D93 - Small Scale (tiêm mẫu bằng syringe, chỉ 2–4 ml, tốc độ test rất nhanh) — ASTM D3828/D3278/D7236",
+        "Việc chọn biến thể nào phụ thuộc vào loại mẫu và tiêu chuẩn khách hàng yêu cầu tuân thủ."
+      ],
+      "features": [
+        "Cánh tay nâng tự động (automatic lift-arm), không cần thao tác tay với Pt100/Flash Point Sensor/Ignitor",
+        "Màn hình cảm ứng màu 7\", giao diện đa ngôn ngữ, hiển thị Pass/Fail theo Min/Max người dùng định nghĩa",
+        "Hệ thống chữa cháy tích hợp: cảm biến quang học tốc độ cao, tự động dập lửa khi flash xảy ra ngoài cup",
+        "Chức năng QC tự động với QC-chart theo dõi xu hướng ngay trên máy; giám sát hiệu chuẩn Pt100 và cảm biến áp suất",
+        "Bộ chẩn đoán tự động hỗ trợ bảo trì",
+        "Nguồn đánh lửa lựa chọn: điện thông minh (intelligent electric igniter) hoặc gas tự động có giám sát ngọn lửa",
+        "Kết nối LIMS qua Ethernet/RS232, xuất dữ liệu qua USB, in mạng",
+        "Riêng CoC: có tùy chọn phát hiện quang học (optical) độc quyền ngoài ionization, và rake tự động cho mẫu tạo màng (bitumen)",
+        "Riêng Small Scale: tiêm mẫu bằng syringe, chỉ cần 2-4ml, cho kết quả flash/no-flash trong 3-5 phút"
+      ],
+      "applications_text": [
+        "Sản phẩm dầu mỏ (petroleum products), dầu bôi trơn/dầu bánh răng (CoC)",
+        "Biodiesel (PM, Small Scale)",
+        "Cồn, dung môi, hóa chất (Abel, Tag, Small Scale)",
+        "Bitum có phụ gia/fluxed bitumen (CoC, PM — cần bitumen rake)",
+        "Sơn và vecni (Small Scale)",
+        "Thực phẩm và đồ uống (tất cả biến thể)"
+      ],
+      "principle": [
+        "Bốn biến thể Abel/Tag/PM/Small Scale dùng \"thermal flash point detection\" độc quyền của Herzog — phát hiện điểm chớp cháy qua biến thiên nhiệt khi hơi mẫu bắt lửa. Riêng CoC dùng \"Ionization\" hoặc \"Optical Flash Point Detection\" (quang học, chỉ dùng được với đánh lửa điện). Khác biệt nguyên lý chính giữa các biến thể: - Abel/Tag: cốc kín (closed cup), gia nhiệt 0.2–6°C/phút; Abel có khuấy mẫu tự động 0–300 RPM, Tag không khuấy - CoC: cốc hở (open cup) trên heater plate, gia nhiệt nhanh hơn (0.5–17°C/phút) vì dải đo cao hơn (đến 400°C) - Pensky-Martens: cốc kín có khuấy, heater band, gia nhiệt 0.5–12°C/phút, dải đo rộng nhất (30–400°C) - Small Scale: mẫu tiêm trực tiếp bằng syringe (2 hoặc 4ml) thay vì rót, có bản Peltier cooling cho model Low/Ultra-Low Temp"
+      ],
+      "sample_types": [
+        "Sản phẩm dầu mỏ, dầu bôi trơn, dầu bánh răng, biodiesel, cồn, dung môi, hóa chất, bitum có phụ gia, sơn/vecni, thực phẩm & đồ uống (tùy biến thể, xem bảng so sánh)"
+      ],
+      "operating_conditions": [
+        "Điện áp: 115V hoặc 230VAC ±10% (switchable hoặc auto-switching tùy biến thể); 50–60Hz",
+        "Công suất: 500W (Abel/Tag/Small Scale) hoặc 1100W (CoC/PM — có heater plate/band)",
+        "Kích thước: ~25 x 51 x 56 cm",
+        "Trọng lượng: 25 kg (55 lb) — giống nhau ở cả 5 biến thể",
+        "Nhiệt độ vận hành: tối đa 10–35°C, khuyến nghị 15–25°C; độ ẩm 80% tại 35°C; bảo quản -15 đến +55°C"
+      ],
+      "accessories_options": [
+        "Tùy chọn nguồn đánh lửa: Electric Igniter hoặc Gas Igniter",
+        "Fire extinguishing system (cảm biến quang học siêu nhanh)",
+        "Cooling module / External Cooler cho dải nhiệt độ thấp (Abel/Tag/Small Scale bản Low/Ultra-Low Temp)",
+        "Bitumen Kit / Rake tự động (CoC) cho mẫu tạo màng bề mặt",
+        "Cảm biến nhiệt độ mẫu bằng kim loại",
+        "Máy in USB (thermal ticket hoặc A4), đầu đọc mã vạch",
+        "CRM (chuẩn tham chiếu hiệu chuẩn) riêng cho từng biến thể"
+      ],
+      "specifications": [
+        {
+          "group_key": "Biến thể: OptiFlash Abel",
+          "label": "Standard method chính",
+          "value": "EN ISO 13736, IP 170, GB/T 27847",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Abel",
+          "label": "Dải đo flash point",
+          "value": "+10 đến +120°C (Standard); -30 đến +120°C (Ultra Low Temp)",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Abel",
+          "label": "Công suất",
+          "value": "500W",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Abel",
+          "label": "Đặc điểm riêng",
+          "value": "Có bộ khuấy mẫu tự động 0–300 RPM",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Tag",
+          "label": "Standard method chính",
+          "value": "ASTM D56, GB/T 21929, JIS K2265",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Tag",
+          "label": "Dải đo flash point",
+          "value": "+10 đến +120°C (Standard); -30 đến +120°C (Ultra Low Temp)",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Tag",
+          "label": "Công suất",
+          "value": "500W",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Tag",
+          "label": "Đặc điểm riêng",
+          "value": "Không có bộ khuấy mẫu",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash CoC",
+          "label": "Standard method chính",
+          "value": "ASTM D92, ISO 2592, EN ISO 2592, IP 36, GB/T 3536",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash CoC",
+          "label": "Dải đo flash point",
+          "value": "Nhiệt độ môi trường đến +400°C",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash CoC",
+          "label": "Công suất",
+          "value": "1100W",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash CoC",
+          "label": "Đặc điểm riêng",
+          "value": "Cốc hở, heater plate, có rake cho bitumen, phát hiện optical hoặc ionization",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Pensky-Martens",
+          "label": "Standard method chính",
+          "value": "ASTM D93 (A/B/C), ISO 2719, EN ISO 2719, IP 34, JIS K2265, GB/T261",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Pensky-Martens",
+          "label": "Dải đo flash point",
+          "value": "+30 đến +400°C",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Pensky-Martens",
+          "label": "Công suất",
+          "value": "1100W",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Pensky-Martens",
+          "label": "Đặc điểm riêng",
+          "value": "Dải đo rộng nhất, có bộ khuấy 0–300 RPM",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Small Scale",
+          "label": "Standard method chính",
+          "value": "ASTM D3828, D3278, D7236, ISO 3679, ISO 3680, IP 523/524/534",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Small Scale",
+          "label": "Dải đo flash point",
+          "value": "High Temp: +30 đến +300°C; Low Temp: 0 đến +135°C; Ultra-Low: -30 đến +135°C",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Small Scale",
+          "label": "Công suất",
+          "value": "500W",
+          "unit": null
+        },
+        {
+          "group_key": "Biến thể: OptiFlash Small Scale",
+          "label": "Đặc điểm riêng",
+          "value": "Tiêm mẫu bằng syringe 2–4ml, test nhanh 3–5 phút",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "en-iso-13736",
+          "compliance_type": "compliance",
+          "note": "Abel"
+        },
+        {
+          "slug": "ip-170",
+          "compliance_type": "compliance",
+          "note": "Abel"
+        },
+        {
+          "slug": "gb-t-27847",
+          "compliance_type": "compliance",
+          "note": "Abel"
+        },
+        {
+          "slug": "astm-d56",
+          "compliance_type": "compliance",
+          "note": "Tag"
+        },
+        {
+          "slug": "gb-t-21929",
+          "compliance_type": "compliance",
+          "note": "Tag"
+        },
+        {
+          "slug": "jis-k2265",
+          "compliance_type": "compliance",
+          "note": "Tag"
+        },
+        {
+          "slug": "astm-d92",
+          "compliance_type": "compliance",
+          "note": "CoC"
+        },
+        {
+          "slug": "iso-2592",
+          "compliance_type": "compliance",
+          "note": "CoC"
+        },
+        {
+          "slug": "en-iso-2592",
+          "compliance_type": "compliance",
+          "note": "CoC"
+        },
+        {
+          "slug": "ip-36",
+          "compliance_type": "compliance",
+          "note": "CoC"
+        },
+        {
+          "slug": "gb-t-3536",
+          "compliance_type": "compliance",
+          "note": "CoC"
+        },
+        {
+          "slug": "astm-d93",
+          "compliance_type": "compliance",
+          "note": "Pensky-Martens"
+        },
+        {
+          "slug": "iso-2719",
+          "compliance_type": "compliance",
+          "note": "Pensky-Martens"
+        },
+        {
+          "slug": "en-iso-2719",
+          "compliance_type": "compliance",
+          "note": "Pensky-Martens"
+        },
+        {
+          "slug": "ip-34",
+          "compliance_type": "compliance",
+          "note": "Pensky-Martens"
+        },
+        {
+          "slug": "astm-d3828",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "astm-d3278",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "astm-d7236",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "iso-3679",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "iso-3680",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "ip-523",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "ip-524",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "ip-534",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        },
+        {
+          "slug": "gb-t-5208",
+          "compliance_type": "compliance",
+          "note": "Small Scale"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Herzog Lab\\OptiFlash\\OptiFlash - Abel\\Marketing Material\\abel_frontal.jpg"
+    },
+    {
+      "file": "isl_nck2_5g.md",
+      "name": "Noack Evaporation Loss Tester",
+      "model": "NCK2 5G",
+      "slug": "isl-nck2-5g-noack-volatility-tester",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Thiết bị đo tổn thất bay hơi (evaporation loss) của dầu bôi trơn theo phương pháp Noack, tuân thủ CEC L-40-93, ASTM D5800, IP 421, DIN 51581.",
+      "seo_title": "Noack Evaporation Loss Tester | ISL | LT Vietnam",
+      "seo_description": "Thiết bị đo tổn thất bay hơi (evaporation loss) của dầu bôi trơn theo phương pháp Noack, tuân thủ CEC L-40-93, ASTM D5800, IP 421, DIN 51581.",
+      "categories": [
+        "volatility",
+        "physical-properties"
+      ],
+      "applications": [
+        "lubricant-analysis"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "NCK2 5G là máy phân tích tổn thất bay hơi Noack của ISL (thuộc PAC), cho phép đo lường an toàn, dễ sử dụng và chính xác theo các phương pháp quốc tế CEC, ASTM và IP. Thiết bị đo trực tiếp nhiệt độ mẫu (specimen) thông qua đầu dò, không dùng hợp kim Wood's alloy để gia nhiệt, giúp tăng độ an toàn và độ chính xác phân tích. Test có thể khởi động ở chế độ \"Cold\" hoặc \"Hot\" giúp tăng năng suất làm việc trong phòng thí nghiệm có khối lượng mẫu lớn. Thiết bị tự động theo dõi nhiệt độ và chân không trong suốt quá trình test, hiển thị số liệu thời gian thực và lưu vào bộ nhớ."
+      ],
+      "features": [
+        "Đo trực tiếp nhiệt độ mẫu (specimen), cho kết quả tổn thất bay hơi chính xác theo CEC, ASTM \"Procedure B\" và IP",
+        "Gia nhiệt không dùng Wood's alloy, tăng an toàn vận hành và độ chính xác phân tích",
+        "Test có thể khởi động ở chế độ \"Cold\" hoặc \"Hot\", tăng năng suất, giảm thời gian chết giữa các lần test",
+        "Đầu dò nhiệt độ thông minh (built-in memory chip) tự nhận diện ID, offset và lịch sử hiệu chuẩn khi cắm vào máy",
+        "Tự động kiểm tra rò rỉ chân không trước mỗi lần chạy test (automatic pre-test leak check)",
+        "Thiết kế monoblock, footprint nhỏ gọn, tiết kiệm diện tích bàn thí nghiệm",
+        "Nắp crucible được khắc số serial để truy xuất nguồn gốc khi dùng nhiều crucible trên cùng máy",
+        "Hiệu chuẩn tự động, có thể lập lịch tần suất và khóa máy khi quá hạn hiệu chuẩn (đáp ứng ISO 9000)",
+        "Hỗ trợ tùy chọn gia nhiệt ống dẫn cho các sản phẩm có sáp (waxy products)",
+        "Hiển thị trực quan đường cong nhiệt độ và áp suất theo thời gian thực"
+      ],
+      "applications_text": [
+        "Base stock oil",
+        "Formulated motor oil",
+        "Gear box & transmission oil",
+        "Shock absorber oil",
+        "Automatic transmission fluid",
+        "Hydraulic fluid",
+        "Waxy products"
+      ],
+      "principle": [
+        "Máy tự động tính toán tổn thất bay hơi theo phương pháp Noack: mẫu (khoảng 65g) được cân vào cốc test (test cup), đậy nắp, gắn đầu dò nhiệt độ và đặt vào khối gia nhiệt (heating block) của NCK2 5G. Mẫu được gia nhiệt trong điều kiện chân không kiểm soát trong một khoảng thời gian lập trình được; hơi dầu bay hơi bị hút ra ngoài. Sau khi test kết thúc, bơm chân không và gia nhiệt tự động dừng; cốc mẫu được làm nguội (khoảng 30 phút) rồi cân lại để tính phần trăm khối lượng tổn thất do bay hơi."
+      ],
+      "sample_types": [
+        "Dầu bôi trơn (lubricating oils): base stock, dầu động cơ đã pha chế, dầu hộp số/truyền động, dầu giảm xóc, dầu truyền động tự động, dầu thủy lực, sản phẩm có sáp (waxy products)"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 230-240V hoặc 100-115V, 50-60Hz; công suất 800W",
+        "Kích thước: 450 x 640 x 450 mm (W x D x H) (18 x 25 x 18 inch)",
+        "Trọng lượng: 30 kg (66 lb)",
+        "Nhiệt độ vận hành: 15 đến 35°C (50 đến 104°F)"
+      ],
+      "accessories_options": [
+        "Digital Pressure Calibration Manometer (có bản hiệu chuẩn certified)",
+        "Graphic Printer (bản 230V hoặc 115V, 80 cột)",
+        "Temperature Probe Check Box (hộp kiểm tra/hiệu chuẩn đầu dò nhiệt độ, 0-400°C)",
+        "Tubes & Filter Heating Kit (gia nhiệt ống dẫn, dùng cho sản phẩm có sáp)",
+        "Peclet Type Manometer (áp kế nghiêng cơ học)",
+        "Scale for Direct Connection (cân kết nối trực tiếp, giảm sai số nhập liệu)",
+        "Draught Protection Kit (bộ bảo vệ chống gió lùa)",
+        "ISL ALAN Suite",
+        "CRM Reference Products: Noack Formulated (RL282) và Noack Basestock (RL208) — mẫu chuẩn tham chiếu để kiểm tra/hiệu chuẩn"
+      ],
+      "specifications": [
+        {
+          "group_key": "Test",
+          "label": "Test duration",
+          "value": "Programmable 30 minutes to 4 hours",
+          "unit": null
+        },
+        {
+          "group_key": "Test",
+          "label": "Sample weight",
+          "value": "Approx. 65",
+          "unit": "g"
+        },
+        {
+          "group_key": "Temperature",
+          "label": "Measurement range",
+          "value": "100 to 300",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Temperature",
+          "label": "Resolution",
+          "value": "±0.1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Temperature",
+          "label": "Stability",
+          "value": "±0.5",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Vacuum",
+          "label": "Range",
+          "value": "19 to 21",
+          "unit": "mm H2O"
+        },
+        {
+          "group_key": "Vacuum",
+          "label": "Accuracy",
+          "value": "±0.05",
+          "unit": "mm H2O"
+        },
+        {
+          "group_key": "Vacuum",
+          "label": "Stability",
+          "value": "±0.2",
+          "unit": "mm H2O"
+        },
+        {
+          "group_key": "Calibration",
+          "label": "Probe offset correction table",
+          "value": "5-point",
+          "unit": null
+        },
+        {
+          "group_key": "Data storage",
+          "label": "Internal memory",
+          "value": "10 operator names, 40 product profiles, 10 standard/custom methods, 30 complete test reports",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "cec-l-40-93",
+          "compliance_type": "compliance",
+          "note": "Phương pháp thử tổn thất bay hơi Noack"
+        },
+        {
+          "slug": "astm-d5800",
+          "compliance_type": "compliance",
+          "note": "Phương pháp thử tổn thất bay hơi Noack"
+        },
+        {
+          "slug": "ip-421",
+          "compliance_type": "compliance",
+          "note": "Phương pháp thử tổn thất bay hơi Noack"
+        },
+        {
+          "slug": "din-51581",
+          "compliance_type": "compliance",
+          "note": "Phương pháp thử tổn thất bay hơi Noack"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\NCK2 5G - Noack Volatility\\Marketing Materials\\NCK2 5G-System Image(HR).jpg"
+    },
+    {
+      "file": "isl_opticpp.md",
+      "name": "Automated Cloud and Pour Point Analyzer",
+      "model": "OptiCPP",
+      "slug": "isl-opticpp-cloud-and-pour-point-analyzer",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Thiết bị tự động xác định Cloud Point và Pour Point của sản phẩm dầu mỏ, có hệ thống làm lạnh tích hợp đo được đến -95°C.",
+      "seo_title": "Automated Cloud and Pour Point Analyzer | ISL | LT Vietnam",
+      "seo_description": "Thiết bị tự động xác định Cloud Point và Pour Point của sản phẩm dầu mỏ, có hệ thống làm lạnh tích hợp đo được đến -95°C.",
+      "categories": [
+        "cold-properties"
+      ],
+      "applications": [
+        "diesel",
+        "lubricant-analysis"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "OptiCPP của ISL là máy phân tích Cloud & Pour Point tự động, kết hợp hệ thống làm lạnh tích hợp (built-in cooling) với cơ chế phát hiện quang học chính xác cao. Thiết bị đo pour/cloud point của các sản phẩm dầu mỏ xuống đến -95°C (-139°F), tuân thủ đầy đủ các tiêu chuẩn quốc tế. Công nghệ làm lạnh độc quyền loại bỏ nhu cầu kết nối chất lỏng làm mát bên ngoài, giảm nhiệt, tiếng ồn và bảo trì liên quan. Thiết bị vận hành hoàn toàn tự động không cần giám sát, cho độ lặp lại và tái lập cao, cấu hình linh hoạt theo yêu cầu thử nghiệm riêng của từng phòng thí nghiệm."
+      ],
+      "features": [
+        "Đo Pour Point bằng phương pháp nghiêng mẫu (tilt method), không xoay/ấn/vặn, thay thế quan sát bằng mắt người bằng hệ thống phát hiện quang học",
+        "Đo Cloud Point bằng phương pháp làm lạnh theo bước (stepped cooling) với phát hiện quang học tại đáy cốc mẫu, nơi tinh thể sáp đầu tiên xuất hiện",
+        "Hệ thống làm lạnh Stirling tích hợp sẵn, đo được đến -95°C mà không cần kết nối chất lỏng làm mát ngoài",
+        "Đầu đo (test head) không dây, thiết kế công thái học, dễ thao tác",
+        "Màn hình cảm ứng màu 7 inch, giao diện thân thiện, hỗ trợ nhiều ngôn ngữ",
+        "Vận hành độc lập hoặc kết nối mạng nhiều thiết bị qua phần mềm PAC IRIS",
+        "Hiệu chuẩn tự động theo lịch trình người dùng định nghĩa, có bảng hiệu chỉnh đầu dò",
+        "Tích hợp biểu đồ kiểm soát chất lượng (QC-Chart) để theo dõi xu hướng kết quả",
+        "Đã được kiểm tra độ bền (endurance tested) cho vận hành liên tục dài hạn",
+        "Bảo hành tiêu chuẩn 1 năm"
+      ],
+      "applications_text": [
+        "Lubrication oils (dầu bôi trơn)",
+        "Base stock oils (dầu gốc)",
+        "Distillate fuels (nhiên liệu chưng cất)",
+        "Liquid petroleum products (sản phẩm dầu mỏ dạng lỏng)",
+        "Biodiesel"
+      ],
+      "principle": [
+        "Pour Point được xác định bằng phương pháp nghiêng mẫu (tilt method): mẫu được nghiêng dần và hệ thống quang học trong đầu đo phát hiện thời điểm mẫu ngừng chảy (thay thế quan sát trực quan của con người theo phương pháp thủ công ASTM D97). Cloud Point được xác định bằng phương pháp làm lạnh theo bước (stepped cooling): hệ thống quang học đặt ở đáy cốc mẫu phát hiện sự thay đổi đột ngột của ánh sáng phản xạ khi các tinh thể sáp (hydrocarbon wax) đầu tiên xuất hiện, làm mẫu trở nên đục."
+      ],
+      "sample_types": [
+        "Dầu bôi trơn, dầu gốc (base stock), nhiên liệu chưng cất (distillate fuels, ví dụ diesel), các sản phẩm dầu mỏ dạng lỏng khác, biodiesel"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90-240 VAC ±10%, 50-60Hz; công suất 300W",
+        "Nhiệt độ vận hành: tối đa 10 đến 40°C, khuyến nghị 15 đến 25°C"
+      ],
+      "accessories_options": [
+        "Đầu đo bổ sung: Auto Pour Point Head (Metal Probe / Glass Probe), Auto Cloud Point Head (Metal Probe / Glass Probe)",
+        "Mini Test Jar (đo pour point nhanh, chỉ cần 15ml mẫu)",
+        "USB Color Printer / USB Thermal Ticket Printer",
+        "Barcode Reader (nhập số hiệu mẫu)",
+        "OptiCPP Additional Head Support (giá đỡ đầu đo bổ sung)",
+        "Certified Probe Simulator (bộ mô phỏng đầu dò phục vụ hiệu chuẩn)",
+        "Bộ bảo vệ màn hình (Screen Protection Foil)",
+        "Reference Materials / CRM cho Cloud Point và Pour Point (mẫu chuẩn tham chiếu)",
+        "PAC IRIS Software (phần mềm quản lý mạng nhiều thiết bị, LIMS gateway)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Temperature range",
+          "label": "Sample",
+          "value": "-95 to +51",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Temperature range",
+          "label": "Jacket",
+          "value": "-105 to +55",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Accuracy",
+          "label": "Sample temperature",
+          "value": "±0.1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Accuracy",
+          "label": "Cooling (jacket) temperature",
+          "value": "±0.5",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Test interval",
+          "label": "Pour Point",
+          "value": "Programmable 1 to 5, bước 0.5",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Test interval",
+          "label": "Cloud Point",
+          "value": "Tự động 0.1 hoặc theo phương pháp",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Cooling profile",
+          "label": "Số bước tối đa",
+          "value": "Lên đến 20 bước, tối đa 40 profile",
+          "unit": null
+        },
+        {
+          "group_key": "Probe correction",
+          "label": "Bảng hiệu chỉnh đầu dò",
+          "value": "2 đến 10 điểm",
+          "unit": null
+        },
+        {
+          "group_key": "Memory",
+          "label": "Kết quả lưu trữ",
+          "value": "200 test results, 40 sản phẩm (kèm cooling profile)",
+          "unit": null
+        },
+        {
+          "group_key": "Display",
+          "label": "Màn hình",
+          "value": "7 inch, tỉ lệ 16:9, độ phân giải 800x480",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d5771",
+          "compliance_type": "compliance",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "ip-444",
+          "compliance_type": "compliance",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "en-590",
+          "compliance_type": "compliance",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "iso-22995",
+          "compliance_type": "compliance",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "astm-d2500",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "iso-3015",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "ip-219",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "jis-k2269",
+          "compliance_type": "correlation",
+          "note": "Cloud Point (áp dụng cho cả Cloud và Pour Point)"
+        },
+        {
+          "slug": "astm-d5950",
+          "compliance_type": "compliance",
+          "note": "Pour Point"
+        },
+        {
+          "slug": "iso-23877-1",
+          "compliance_type": "compliance",
+          "note": "Pour Point"
+        },
+        {
+          "slug": "astm-d97",
+          "compliance_type": "correlation",
+          "note": "Pour Point"
+        },
+        {
+          "slug": "iso-3016",
+          "compliance_type": "correlation",
+          "note": "Pour Point"
+        },
+        {
+          "slug": "ip-15",
+          "compliance_type": "correlation",
+          "note": "Pour Point"
+        },
+        {
+          "slug": "astm-d5853",
+          "compliance_type": "reference",
+          "note": null
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\Opti Series\\OptiCPP\\Marketing Materials\\Product Photos\\OptiCPP hi-res.png"
+    },
+    {
+      "file": "isl_optifpp.md",
+      "name": "OptiFPP",
+      "model": "OptiFPP",
+      "slug": "isl-optifpp-cold-filter-plugging-point-analyzer",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Máy phân tích tự động Cold Filter Plugging Point (CFPP) cho nhiên liệu diesel, tích hợp hệ thống làm lạnh Stirling, có thể đo xuống đến -70°C.",
+      "seo_title": "OptiFPP | ISL | LT Vietnam",
+      "seo_description": "Máy phân tích tự động Cold Filter Plugging Point (CFPP) cho nhiên liệu diesel, tích hợp hệ thống làm lạnh Stirling, có thể đo xuống đến -70°C.",
+      "categories": [
+        "cold-properties"
+      ],
+      "applications": [
+        "diesel"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "OptiFPP là thiết bị tự động xác định Cold Filter Plugging Point (CFPP) — chỉ tiêu dự đoán nhiệt độ vận hành thấp nhất mà nhiên liệu diesel còn có thể chảy qua bộ lọc trong hệ thống động cơ. Thiết bị kết hợp hệ thống làm lạnh Stirling tích hợp sẵn (không cần tác nhân làm lạnh ngoài) với cơ chế phát hiện quang học có độ chính xác cao, trong một thân máy compact. Mẫu được hút qua lưới lọc vào pipette dưới điều khiển chân không điện tử theo từng bước 1°C; khi dòng chảy bị chặn do tinh thể paraffin hình thành, giá trị CFPP được ghi nhận và lưu lại. OptiFPP có thể vận hành standalone hoặc kết nối mạng nhiều thiết bị qua phần mềm IRIS của PAC, và có thể lắp thêm đầu đo Cloud Point (OptiCPP) tùy chọn."
+      ],
+      "features": [
+        "Kiểm tra nhiệt độ siêu thấp cho nhiên liệu diesel (xuống đến -70°C)",
+        "Tự động xác định CFPP theo đúng điều kiện EN 116, EN 16329, ASTM D6371, IP 309, JIS K2288",
+        "Hệ thống làm lạnh Stirling tích hợp sẵn — không cần kết nối chất lỏng làm lạnh bên ngoài, giảm nhiệt/tiếng ồn",
+        "Đầu đo (testing head) cable-free, tube-free — dễ lắp đặt, tháo lắp nhanh",
+        "Hỗ trợ lắp thêm đầu đo Cloud Point (OptiCPP) tùy chọn, đo được xuống -95°C",
+        "Trạm vệ sinh (cleaning) tích hợp, tự động, có thể chạy song song khi đầu đo khác đang test",
+        "Vận hành standalone hoặc kết nối mạng nhiều thiết bị qua phần mềm IRIS",
+        "Hiệu chuẩn nhiệt độ tự động với bảng hiệu chỉnh đầu dò (probe correction table)",
+        "Màn hình cảm ứng màu 7 inch, hiển thị đồ thị thời gian thực",
+        "Đã kiểm tra độ bền (endurance tested) cho vận hành dài hạn"
+      ],
+      "applications_text": [
+        "Phòng thí nghiệm chứng nhận của nhà máy lọc dầu (refining certification lab)",
+        "Phòng thí nghiệm độc lập (independent lab)",
+        "Đo tính chất lạnh (cold behavior) của: nhiên liệu FAME và distillate, diesel và biodiesel, nhiên liệu sưởi ấm dân dụng (domestic heating fuels)"
+      ],
+      "principle": [
+        "Nguyên lý phát hiện quang học (optical detection): nguồn phát LED và bộ thu tế bào quang điện (photoelectric cell). Mẫu được làm lạnh trong jacket theo profile bậc thang hoặc tuyến tính; ở mỗi bước 1°C, hệ thống điều chỉnh chân không điện tử (200 mmH2O ± 1 mmH2O) để hút mẫu qua bộ lọc vào pipette 20ml. Khi mẫu ngừng chảy qua bộ lọc trong vòng 60 giây, hoặc không hồi lưu về bình chứa, nhiệt độ đó được ghi nhận là CFPP. Bộ cảm biến quang (optical barrier) phát hiện dòng chảy mà không tiếp xúc trực tiếp với pipette, tránh gây cách nhiệt như phương pháp thủ công."
+      ],
+      "sample_types": [
+        "Nhiên liệu diesel",
+        "Nhiên liệu diesel sinh học/biodiesel (blend FAME)",
+        "Nhiên liệu sưởi ấm dân dụng (domestic heating fuel)",
+        "Nhiên liệu distillate"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90–240 VAC (±10%), tự động thích ứng, 50/60 Hz, 300W, chỉ dùng trong nhà (indoor use only)",
+        "Kích thước: Dài 600mm x Rộng 254mm x Cao 350mm (rộng 300mm nếu có giá đỡ đầu đo thứ hai); kích thước tổng thể cho thông gió: 274 x 700 x 350mm (W x L x H)",
+        "Trọng lượng: 30.2 kg (67 lbs)",
+        "Nhiệt độ vận hành: 10 đến 35°C (50 đến 95°F); nhiệt độ bảo quản: -20 đến 50°C (-4 đến 122°F); độ ẩm 20–85% không ngưng tụ"
+      ],
+      "accessories_options": [
+        "Bộ đầu đo Cloud Point (CP) — có bản đầu dò kim loại (stainless steel) hoặc đầu dò thủy tinh (glass)",
+        "Máy in nhiệt USB / máy in màu USB",
+        "Đầu đọc mã vạch (barcode scanner) USB",
+        "Giá đỡ đầu đo thứ hai (second head holder)",
+        "Bộ kit ống nghiệm/giá đỡ/vòng cách nhiệt riêng cho phương pháp EN 16329",
+        "Bộ kết nối hiệu chuẩn chân không (vacuum calibration connector) / đồng hồ đo áp suất hiệu chuẩn kỹ thuật số",
+        "Bộ hiệu chuẩn nhiệt độ đầu đo (head temperature calibration set)",
+        "Tấm bảo vệ màn hình (screen protection foils)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Temperature Range",
+          "label": "Sample temperature range",
+          "value": "-95 to +51 (-139 to 123)",
+          "unit": "°C (°F)"
+        },
+        {
+          "group_key": "Temperature Range",
+          "label": "Jacket temperature range",
+          "value": "-105 to +55 (-157 to +131)",
+          "unit": "°C (°F)"
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Sample temperature accuracy",
+          "value": "0.1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Cooling temperature accuracy",
+          "value": "0.5",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Sample volume",
+          "value": "~45",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Cooling",
+          "label": "Cooling rate range",
+          "value": "1 to 120",
+          "unit": "°C/h"
+        },
+        {
+          "group_key": "Cooling",
+          "label": "Cooling profile steps",
+          "value": "up to 20",
+          "unit": "steps"
+        },
+        {
+          "group_key": "Test",
+          "label": "Test interval (CFPP)",
+          "value": "automatic 1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Data",
+          "label": "Internal memory",
+          "value": "200 test runs w/ cooling curve",
+          "unit": null
+        },
+        {
+          "group_key": "Data",
+          "label": "Quality Control Database",
+          "value": "up to 30 QC products, 40 points/chart",
+          "unit": null
+        },
+        {
+          "group_key": "Display",
+          "label": "Display",
+          "value": "7\" resistive color touch-screen, 800x480",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "en-116",
+          "compliance_type": "compliance",
+          "note": "CFPP method"
+        },
+        {
+          "slug": "en-16329",
+          "compliance_type": "compliance",
+          "note": "CFPP method"
+        },
+        {
+          "slug": "ip-309",
+          "compliance_type": "compliance",
+          "note": "CFPP method"
+        },
+        {
+          "slug": "astm-d6371",
+          "compliance_type": "compliance",
+          "note": "CFPP method"
+        },
+        {
+          "slug": "jis-k2288",
+          "compliance_type": "compliance",
+          "note": "CFPP method"
+        },
+        {
+          "slug": "astm-d5771",
+          "compliance_type": "compliance",
+          "note": "Cloud Point (yêu cầu đầu đo CP tùy chọn)"
+        },
+        {
+          "slug": "ip-444",
+          "compliance_type": "compliance",
+          "note": "Cloud Point (yêu cầu đầu đo CP tùy chọn)"
+        },
+        {
+          "slug": "en-590",
+          "compliance_type": "compliance",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "iso-3015",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; nguồn không thống nhất"
+        },
+        {
+          "slug": "astm-d2500",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "ip-219",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        },
+        {
+          "slug": "jis-k2269",
+          "compliance_type": "correlation",
+          "note": "Cloud Point"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\Opti Series\\OptiFPP\\Marketing Materials\\OptiFPP left.jpg"
+    },
+    {
+      "file": "isl_optifzp.md",
+      "name": "OptiFZP",
+      "model": "OptiFZP",
+      "slug": "isl-optifzp-freezing-point-analyzer",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Máy phân tích tự động Freezing Point cho nhiên liệu hàng không (jet fuel/aviation fuel), dùng đầu dò quang học có bản quyền, đo được xuống đến -100°C trong dưới 15 phút.",
+      "seo_title": "OptiFZP | ISL | LT Vietnam",
+      "seo_description": "Máy phân tích tự động Freezing Point cho nhiên liệu hàng không (jet fuel/aviation fuel), dùng đầu dò quang học có bản quyền, đo được xuống đến -100°C trong dưới 15 phút.",
+      "categories": [
+        "cold-properties"
+      ],
+      "applications": [
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "OptiFZP là thế hệ máy phân tích Freezing Point tự động mới của ISL|PAC, xác định điểm đông đặc (freezing point) của nhiên liệu hàng không theo đúng định nghĩa tiêu chuẩn quốc tế. Thiết bị dùng cell phát hiện quang học có bản quyền (patented detection cell): laser chiếu qua mẫu qua hai kính lọc phân cực, cảm biến quang theo dõi độ khúc xạ ánh sáng khi tinh thể hình thành lúc làm lạnh và tan lúc gia nhiệt lại. Hệ thống làm lạnh nội bộ mạnh mẽ (built-in, patented) cho phép đo mà không cần bể làm lạnh ngoài. Toàn bộ quy trình tự động: chỉ cần bơm 10ml mẫu, nhấn nút test, kết quả có trong dưới 15 phút, kèm chức năng tự làm sạch (self-cleaning) giữa các lần đo."
+      ],
+      "features": [
+        "Đo Freezing Point xuống đến -100°C (-148°F) mà không cần bể làm lạnh ngoài",
+        "Toàn bộ quy trình phân tích tự động, hoàn tất trong dưới 15 phút",
+        "Cell phát hiện quang học có bản quyền (patented detection cell), độ chính xác và độ nhạy cao với mẫu bị nhiễm bẩn (contaminated samples)",
+        "Tương quan hoàn hảo (perfect correlation) với phương pháp thủ công ASTM D2386 và IP 16",
+        "Tự làm sạch (self-cleaning), không cần thao tác vệ sinh thủ công, giảm downtime giữa các lần đo",
+        "Màn hình cảm ứng màu 7 inch, giao diện thân thiện, vận hành 1-nút bấm",
+        "Kết nối truyền dữ liệu điện tử, LIMS qua nền tảng IRIS, in mạng",
+        "QC-Chart tích hợp để theo dõi xu hướng chất lượng"
+      ],
+      "applications_text": [
+        "Phòng thí nghiệm kiểm định nhiên liệu hàng không (aviation fuel / jet fuel testing labs)"
+      ],
+      "principle": [
+        "Phát hiện quang học có bản quyền: nguồn sáng laser chiếu qua kính lọc phân cực (polarization filter), qua cell chứa mẫu (specimen test cell), qua kính lọc phân cực thứ hai, đến cảm biến quang (optical sensor). Trong quá trình làm lạnh, tinh thể hình thành trong mẫu làm thay đổi độ khúc xạ ánh sáng (tín hiệu opacity và detection); phần mềm phân tích tín hiệu này để xác định chính xác điểm đông đặc theo đúng định nghĩa dành cho nhiên liệu hàng không, kể cả với mẫu neat hoặc bị nhiễm bẩn."
+      ],
+      "sample_types": [
+        "Nhiên liệu hàng không (jet fuel / aviation fuel), mẫu neat hoặc bị nhiễm bẩn (contaminated)"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90–240 VAC (±10%), có thể chuyển đổi (switchable), 50/60 Hz, 300W",
+        "Kích thước: Rộng 25cm (10\") x Sâu 60cm (24\") x Cao 27cm (11\"); kích thước tổng thể cho thông gió: Rộng 45cm (18\") x Sâu 70cm (28\") x Cao 27cm (11\")",
+        "Trọng lượng: 29 kg (64 lbs)",
+        "Nhiệt độ vận hành: tối đa 10–35°C, khuyến nghị 15–25°C; độ ẩm 80% tại 35°C; nhiệt độ bảo quản -15 đến +55°C"
+      ],
+      "accessories_options": [
+        "Bộ đầu đọc mã vạch (barcode reader)",
+        "Máy in nhiệt USB / máy in màu USB",
+        "Đầu dò nhiệt độ có chứng nhận cho tế bào hiệu chuẩn (calibration cell)",
+        "Tấm bảo vệ màn hình (screen protection foils)",
+        "Hộp kiểm tra nhiệt độ (temperature check box), có bản chứng nhận (certified)",
+        "Giấy phép phần mềm IRIS cho OptiFZP"
+      ],
+      "specifications": [
+        {
+          "group_key": "Range",
+          "label": "Measuring range",
+          "value": "Ambient down to -100 (-148)",
+          "unit": "°C (°F)"
+        },
+        {
+          "group_key": "Detection",
+          "label": "Detection method",
+          "value": "Optical, patented",
+          "unit": null
+        },
+        {
+          "group_key": "Cooling",
+          "label": "Cooling system",
+          "value": "Built-in, patented",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Operator time",
+          "value": "0.5",
+          "unit": "min/test"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Test duration",
+          "value": "15",
+          "unit": "min"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Sample volume",
+          "value": "10",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Sample injection",
+          "value": "Disposable 10 or 20ml syringe",
+          "unit": null
+        },
+        {
+          "group_key": "Calibration",
+          "label": "Calibration correction points",
+          "value": "5",
+          "unit": "points"
+        },
+        {
+          "group_key": "Data",
+          "label": "Result documentation",
+          "value": "200 results, 40 products stored",
+          "unit": null
+        },
+        {
+          "group_key": "Data",
+          "label": "Data storage (brochure)",
+          "value": "50 complete test reports locally, unlimited with PC",
+          "unit": null
+        },
+        {
+          "group_key": "Interface",
+          "label": "Display",
+          "value": "7\" color touch-screen, alpha-numeric input, barcode reader",
+          "unit": null
+        },
+        {
+          "group_key": "Interface",
+          "label": "Output ports",
+          "value": "2x USB, 1x Serial, 1x Ethernet",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d7153",
+          "compliance_type": "compliance",
+          "note": "Freezing point, aviation fuel"
+        },
+        {
+          "slug": "ip-529",
+          "compliance_type": "compliance",
+          "note": "Freezing point, aviation fuel"
+        },
+        {
+          "slug": "def-stan-91-091",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d2386",
+          "compliance_type": "correlation",
+          "note": "Phương pháp thủ công tham chiếu"
+        },
+        {
+          "slug": "ip-16",
+          "compliance_type": "correlation",
+          "note": "Phương pháp thủ công tham chiếu"
+        },
+        {
+          "slug": "iso-3013",
+          "compliance_type": "correlation",
+          "note": "-"
+        },
+        {
+          "slug": "jis-k2276",
+          "compliance_type": "correlation",
+          "note": "-"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\Opti Series\\OptiFZP\\Marketing Materials\\OptiFZP LR.jpg"
+    },
+    {
+      "file": "isl_optimpp.md",
+      "name": "Mini Cloud & Pour Point Analyzer",
+      "model": "OptiMPP",
+      "slug": "isl-optimpp-mini-cloud-and-pour-point-analyzer",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Máy phân tích Mini Cloud Point & Pour Point tự động cho sản phẩm dầu mỏ, đo được đến -95°C, chỉ dùng 0.5 ml mẫu, không cần cooler ngoài.",
+      "seo_title": "Mini Cloud & Pour Point Analyzer | ISL | LT Vietnam",
+      "seo_description": "Máy phân tích Mini Cloud Point & Pour Point tự động cho sản phẩm dầu mỏ, đo được đến -95°C, chỉ dùng 0.5 ml mẫu, không cần cooler ngoài.",
+      "categories": [
+        "cold-properties"
+      ],
+      "applications": [
+        "lubricant-analysis",
+        "diesel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "OptiMPP là máy phân tích Cloud Point và Pour Point mini method (mini cloud & pour point analyzer) do ISL (thương hiệu thuộc PAC) phát triển, xác định đồng thời hai điểm này trong một lần chạy test duy nhất, dùng chỉ 0.5 ml mẫu. Máy tích hợp hệ thống làm lạnh (Stirling cooling) đã được cấp bằng sáng chế, cho phép thử nghiệm nhiệt độ cực thấp xuống đến -95°C mà không cần bộ làm lạnh ngoài. Với độ phân giải 0.1°C, thao tác đơn giản (không cần lập trình đặc biệt, không cần biết trước điểm dự kiến), OptiMPP phù hợp cho phòng thí nghiệm hạn chế thời gian phản hồi, lượng mẫu nhỏ, hoặc nhân sự chưa quen thiết bị lab."
+      ],
+      "features": [
+        "Xác định Cloud Point và Pour Point trong một lần test duy nhất",
+        "Độ phân giải cao 0.1°C, đo chính xác và có khả năng lặp lại/tái lập tốt",
+        "Thử nghiệm nhiệt độ cực thấp đến -95°C",
+        "Hệ thống làm lạnh tích hợp (Stirling), đã được cấp bằng sáng chế — không cần cooler ngoài, tiết kiệm năng lượng, không tiếng ồn, không hơi làm lạnh độc hại",
+        "Không cần vệ sinh (cleaning) giữa các lần test — giảm rủi ro nhiễm chéo",
+        "Chỉ dùng 0.5 ml mẫu mỗi lần test",
+        "Bộ đổi mẫu tích hợp 20 vị trí, khởi động một nút bấm (hoặc bản Single-sample cho thao tác thủ công, phù hợp mobile lab)",
+        "Tùy chọn điều khiển qua PC và kết nối mạng nhiều thiết bị",
+        "Hiệu chuẩn tự động, có QC-Chart theo dõi xu hướng"
+      ],
+      "applications_text": [
+        "Lubrication oils (dầu bôi trơn)",
+        "Base stock oils (dầu gốc)",
+        "PAO",
+        "Distillate fuels (nhiên liệu chưng cất)",
+        "Liquid petroleum products",
+        "Biodiesel"
+      ],
+      "principle": [
+        "Cloud Point được xác định bằng phương pháp phát hiện quang học (optical detection): cảm biến quang gắn trong khối làm lạnh, đặt ở đáy ống nghiệm, theo dõi sự thay đổi độ trong suốt của mẫu do tinh thể hydrocarbon (wax) hình thành/tan. Pour Point (No Flow Point) được xác định bằng chênh áp suất (pressure differential): khi làm lạnh, mẫu và khoảng không khí phía trên co lại khiến mẫu chảy vào cell đo; khi độ nhớt quá cao (đạt pour point) mẫu không chảy được nữa và chênh áp được ghi nhận."
+      ],
+      "sample_types": [
+        "Sản phẩm dầu mỏ dạng lỏng nói chung: dầu bôi trơn, dầu gốc, PAO, nhiên liệu chưng cất, sản phẩm dầu mỏ lỏng, biodiesel"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90–240 VAC, 300W, 50/60 Hz (±10%)",
+        "Kích thước: 25 cm (10\") rộng x 60 cm (24\") sâu x 27 cm (11\") cao",
+        "Trọng lượng: 31 kg (68 lbs)",
+        "Nhiệt độ vận hành (ambient): tối đa 10–40°C, khuyến nghị 15–25°C; nhiệt độ bảo quản (storage): -15 đến +55°C; độ ẩm: 80% tại 35°C",
+        "(Riêng dải nhiệt độ đo mẫu — không phải điều kiện môi trường vận hành — xem bảng Specifications bên dưới)"
+      ],
+      "accessories_options": [
+        "Máy in ticket (ticket printer / USB thermal printer)",
+        "Micro pipette hỗ trợ lấy mẫu",
+        "Giá đỡ lọ mẫu (sample vial holder)",
+        "Đầu đọc mã vạch (barcode reader)",
+        "Vật liệu CRM cho hiệu năng cold flow",
+        "Bộ mô phỏng đầu dò nhiệt độ có chứng nhận (certified probe simulator) và hộp kiểm tra nhiệt độ, dùng cho hiệu chuẩn",
+        "Miếng dán bảo vệ màn hình",
+        "Cáp kết nối RS232/Ethernet/USB (kết nối PC, LIMS, máy in)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Detection",
+          "label": "Cloud Point detection",
+          "value": "Optical detection",
+          "unit": null
+        },
+        {
+          "group_key": "Detection",
+          "label": "Pour Point detection",
+          "value": "Pressure differential",
+          "unit": null
+        },
+        {
+          "group_key": "Cooling",
+          "label": "Cooling system",
+          "value": "Internal Stirling cooling, tích hợp sẵn (patented)",
+          "unit": null
+        },
+        {
+          "group_key": "Resolution",
+          "label": "Test interval",
+          "value": "Continuous, 0.1°C resolution",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Measuring range",
+          "label": "Sample temperature range",
+          "value": "-95 đến +51°C",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Accuracy",
+          "label": "Sample temperature accuracy",
+          "value": "0.1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Sample volume",
+          "value": "0.5",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Cycle time",
+          "label": "Thời gian phân tích",
+          "value": "~35 phút cho 1 lần chạy đầy đủ",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Autosampler",
+          "label": "Sức chứa bộ đổi mẫu",
+          "value": "20 vị trí (bản tiêu chuẩn) / 1 vị trí, thao tác thủ công có Locking Arm (bản ML)",
+          "unit": "positions"
+        },
+        {
+          "group_key": "Calibration",
+          "label": "Probe correction table",
+          "value": "Lên đến 20 điểm",
+          "unit": "points"
+        },
+        {
+          "group_key": "Memory",
+          "label": "Lưu trữ kết quả",
+          "value": "Lên đến 200 kết quả (không giới hạn nếu nối PC)",
+          "unit": "results"
+        },
+        {
+          "group_key": "Networking",
+          "label": "Kết nối đa thiết bị (tùy chọn)",
+          "value": "Lên đến 31 thiết bị cold behavior/distillation/flash point",
+          "unit": "instruments"
+        },
+        {
+          "group_key": "Interface",
+          "label": "Màn hình",
+          "value": "Cảm ứng màu 7\" (800x480), tiếng Anh/Đức/Pháp",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d7689",
+          "compliance_type": "compliance",
+          "note": "Standard test method; Cloud Point (mini method)"
+        },
+        {
+          "slug": "astm-d7346",
+          "compliance_type": "compliance",
+          "note": "Standard test method; No Flow/Pour Point (mini method)"
+        },
+        {
+          "slug": "astm-d2500",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; correlated method"
+        },
+        {
+          "slug": "astm-d5771",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; correlated method"
+        },
+        {
+          "slug": "astm-d97",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "astm-d5950",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "astm-d5853",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "astm-d5772",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "astm-d6892",
+          "compliance_type": "correlation",
+          "note": "Correlated method"
+        },
+        {
+          "slug": "iso-3015",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; correlated method"
+        },
+        {
+          "slug": "iso-3016",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "ip-15",
+          "compliance_type": "correlation",
+          "note": "Pour Point; correlated method"
+        },
+        {
+          "slug": "ip-219",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; correlated method"
+        },
+        {
+          "slug": "ip-444",
+          "compliance_type": "correlation",
+          "note": "Cloud Point; correlated method"
+        },
+        {
+          "slug": "jis-k2269",
+          "compliance_type": "correlation",
+          "note": "Cloud Point và Pour Point; correlated method"
+        },
+        {
+          "slug": "astm-d396",
+          "compliance_type": "reference",
+          "note": "Fuel Oil spec; D7346 nêu là alternate test method"
+        },
+        {
+          "slug": "astm-d2880",
+          "compliance_type": "reference",
+          "note": "Gas Turbine Fuel spec; D7346 nêu là alternate test method"
+        },
+        {
+          "slug": "astm-d975",
+          "compliance_type": "reference",
+          "note": "Diesel Fuel spec; D7689 nêu là alternate test method"
+        },
+        {
+          "slug": "astm-d7467",
+          "compliance_type": "reference",
+          "note": "Diesel/Biodiesel Blend (B6–B20) spec; D7689 nêu là alternate test method"
+        },
+        {
+          "slug": "astm-d6751",
+          "compliance_type": "reference",
+          "note": "Biodiesel Fuel Blendstock (B100) spec; D7689 nêu là alternate test method"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\Opti Series\\OptiMPP & OptiMPPML\\Marketing Materials\\OptiMPP LR.jpg"
+    },
+    {
+      "file": "isl_optipmd.md",
+      "name": "Next-Generation Lab Micro Distillation Analyzer",
+      "model": "OptiPMD",
+      "slug": "isl-optipmd-micro-distillation-analyzer",
+      "brand": "isl",
+      "product_type": "equipment",
+      "short_description": "Máy chưng cất vi lượng (micro-distillation) tự động, xác định boiling range của xăng, nhiên liệu phản lực, diesel, kerosene và biodiesel trong dưới 10 phút, chỉ dùng 10 ml mẫu.",
+      "seo_title": "Next-Generation Lab Micro Distillation Analyzer | ISL | LT Vietnam",
+      "seo_description": "Máy chưng cất vi lượng (micro-distillation) tự động, xác định boiling range của xăng, nhiên liệu phản lực, diesel, kerosene và biodiesel trong dưới 10 phút, chỉ dùng 10 ml mẫu.",
+      "categories": [
+        "distillation",
+        "atmospheric-distillation"
+      ],
+      "applications": [
+        "gasoline",
+        "diesel",
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "OptiPMD là thế hệ kế tiếp của ISL PMD 110, là máy phân tích chưng cất vi lượng (micro-distillation) tự động dùng phương pháp vật lý (physical distillation) dưới áp suất khí quyển. Máy xác định boiling range characteristics của xăng (kể cả pha tối đa 20% ethanol), nhiên liệu phản lực, diesel, kerosene và biodiesel (FAME) trong dưới 10 phút, chỉ dùng 10 ml mẫu (5 ml cho B100). OptiPMD tuân thủ ASTM D7345, EN 17306, IP 596 và có tương quan hoàn hảo (perfect correlation) với ASTM D86, D1160 (biodiesel B100), ISO 3405, IP 123, được công nhận thay thế trong ít nhất 10 tiêu chuẩn nhiên liệu ASTM. Thiết bị nhỏ gọn, chắc chắn, phù hợp cả phòng lab cố định lẫn ứng dụng di động/hiện trường."
+      ],
+      "features": [
+        "Chạy chưng cất hoàn chỉnh trong dưới 10 phút, tiết kiệm 25–35 phút so với ASTM D86",
+        "Chỉ dùng 10 ml mẫu (5 ml cho mẫu B100)",
+        "Vận hành một nút bấm (one-button), không cần chỉnh flask hay thiết bị đo trước khi test",
+        "Tự động nhận diện loại mẫu và áp dụng chế độ gia nhiệt/xử lý dữ liệu phù hợp",
+        "Độ chính xác cao, tương quan hoàn hảo với ASTM D86/ISO 3405 và D1160 (cho B100)",
+        "Phát hiện cháy tốc độ cao bằng cảm biến quang (UV) và hệ thống dập lửa tích hợp",
+        "Thiết kế nhỏ gọn, chắc chắn, di động — phù hợp mobile lab và ứng dụng hiện trường",
+        "Ít tiêu hao vật tư tiêu hao, không cần điều hòa/vệ sinh giữa các lần test",
+        "Thông lượng 5–6 test/giờ",
+        "Chức năng QC tự động và QC-Chart theo dõi xu hướng"
+      ],
+      "applications_text": [
+        "Gasoline (kể cả pha ethanol đến E20)",
+        "Jet fuel / nhiên liệu phản lực (kể cả synthetic jet fuels)",
+        "Diesel, Fuel oils, Gas turbine fuel oils",
+        "Kerosene",
+        "Biodiesel (B100 và blend B6–B20)",
+        "Special-purpose test fuels",
+        "Kiểm soát chất lượng dòng chưng cất trong nhà máy lọc dầu, giám sát nhiễm bẩn nhiên liệu tại điểm logistics, pha trộn nhiên liệu, nghiên cứu phụ gia, mobile lab"
+      ],
+      "principle": [
+        "OptiPMD dùng phương pháp chưng cất vật lý (physical distillation) dưới áp suất khí quyển. Máy đo biến thiên nhiệt độ pha hơi và pha lỏng cùng áp suất bên trong flask chưng cất vi lượng — không đo trực tiếp thể tích thu được như phương pháp D86 truyền thống. Phần trăm thể tích bay hơi theo nhiệt độ được phần mềm phân tích tính toán và trình bày dưới dạng báo cáo tương thích D86."
+      ],
+      "sample_types": [
+        "Gasoline (bao gồm pha ethanol đến 20%)",
+        "Jet fuel, Synthetic jet fuel",
+        "Diesel, Fuel oils, Gas turbine fuel oils",
+        "Kerosene",
+        "Biodiesel FAME — B100 và blend B6–B20"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90–240/264 VAC (auto-switching), 300W, 50/60Hz; công suất chờ (standby) < 1W",
+        "Kích thước: 331 x 435 x 397 mm (W x D x H)",
+        "Trọng lượng: 15.5 kg (34.2 lbs)",
+        "Nhiệt độ vận hành: 10–35°C (50–95°F); độ ẩm tương đối đến 85% tại 35°C (không ngưng tụ); nhiệt độ bảo quản: -20 đến 40°C"
+      ],
+      "accessories_options": [
+        "Hệ thống phát hiện & dập lửa tự động (tiêu chuẩn đi kèm máy)",
+        "Máy in nhiệt USB / máy in màu USB",
+        "Bộ điều khiển chân không (vacuum control kit)",
+        "Đầu đọc mã vạch",
+        "Bộ nguồn 12V DC (cấp điện từ ắc quy ô tô, dùng cho hiện trường)",
+        "Khóa cổng USB bảo mật",
+        "Miếng dán bảo vệ màn hình",
+        "Vali đựng phụ kiện mang theo (carry case)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Operation",
+          "label": "Analytical principle",
+          "value": "Physical distillation dưới áp suất khí quyển",
+          "unit": null
+        },
+        {
+          "group_key": "Operation",
+          "label": "Test cycle time",
+          "value": "< 10",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Operation",
+          "label": "Sample volume",
+          "value": "10 (5 cho B100)",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Application range",
+          "label": "Temperature range",
+          "value": "0–400°C",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Accuracy",
+          "label": "Temperature sensitivity",
+          "value": "±0.1",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Heating",
+          "label": "Heating element",
+          "value": "Low mass, tự định vị, điện áp thấp, 125W",
+          "unit": "W"
+        },
+        {
+          "group_key": "Throughput",
+          "label": "Tests per hour",
+          "value": "5–6",
+          "unit": "tests/giờ"
+        },
+        {
+          "group_key": "Time saving",
+          "label": "So với ASTM D86",
+          "value": "25–35",
+          "unit": "phút/lần chưng cất"
+        },
+        {
+          "group_key": "Pressure measurement",
+          "label": "Barometric & in-flask",
+          "value": "Cảm biến áp suất khí quyển tích hợp (tự động hiệu chỉnh) + cảm biến chênh áp trong flask",
+          "unit": null
+        },
+        {
+          "group_key": "Memory",
+          "label": "Bộ nhớ trong",
+          "value": "40 sản phẩm / 80 phương pháp test / 200 kết quả chưng cất",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d7345",
+          "compliance_type": "compliance",
+          "note": "Standard test method; micro-distillation"
+        },
+        {
+          "slug": "en-17306",
+          "compliance_type": "compliance",
+          "note": "Standard test method"
+        },
+        {
+          "slug": "ip-596",
+          "compliance_type": "compliance",
+          "note": "Standard test method"
+        },
+        {
+          "slug": "astm-d86",
+          "compliance_type": "correlation",
+          "note": "Perfect correlation với phương pháp chưng cất truyền thống"
+        },
+        {
+          "slug": "astm-d1160",
+          "compliance_type": "correlation",
+          "note": "Correlation cho biodiesel B100"
+        },
+        {
+          "slug": "iso-3405",
+          "compliance_type": "correlation",
+          "note": "Correlation"
+        },
+        {
+          "slug": "ip-123",
+          "compliance_type": "correlation",
+          "note": "Correlation"
+        },
+        {
+          "slug": "astm-d396",
+          "compliance_type": "reference",
+          "note": "Fuel Oils spec; D7345 là alternative to D86"
+        },
+        {
+          "slug": "astm-d975",
+          "compliance_type": "reference",
+          "note": "Diesel Fuel Oils spec"
+        },
+        {
+          "slug": "astm-d1655",
+          "compliance_type": "reference",
+          "note": "Aviation Turbine Fuels spec"
+        },
+        {
+          "slug": "astm-d2880",
+          "compliance_type": "reference",
+          "note": "Gas Turbine Fuel Oils spec"
+        },
+        {
+          "slug": "astm-d3699",
+          "compliance_type": "reference",
+          "note": "Kerosene spec"
+        },
+        {
+          "slug": "astm-d4814",
+          "compliance_type": "reference",
+          "note": "Automotive Spark-Ignition Engine Fuel spec"
+        },
+        {
+          "slug": "astm-d6751",
+          "compliance_type": "reference",
+          "note": "Biodiesel Fuel Blend Stock (B100) spec"
+        },
+        {
+          "slug": "astm-d7467",
+          "compliance_type": "reference",
+          "note": "Diesel Fuel Oil, Biodiesel Blend (B6–B20) spec"
+        },
+        {
+          "slug": "astm-d7566",
+          "compliance_type": "reference",
+          "note": "Aviation Turbine Fuel Containing Synthesized Hydrocarbons spec"
+        },
+        {
+          "slug": "astm-d8147",
+          "compliance_type": "reference",
+          "note": "Special-Purpose Test Fuels for Aviation Compression-Ignition Engines spec"
+        },
+        {
+          "slug": "def-stan-91-091",
+          "compliance_type": "reference",
+          "note": "Turbine Fuel Jet A-1 spec EU & UK"
+        },
+        {
+          "slug": "is-1460-2017",
+          "compliance_type": "reference",
+          "note": "Fuel specs Ấn Độ (diesel, jet A1)"
+        },
+        {
+          "slug": "is-1571-2018",
+          "compliance_type": "reference",
+          "note": "Fuel specs Ấn Độ (diesel, jet A1)"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\ISL Lab\\Opti Series\\OptiPMD\\Marketing Material\\Images\\OptiPMD LoRes.png"
+    },
+    {
+      "file": "phase_70xe_series.md",
+      "name": "70Xe Series",
+      "model": "70Xe",
+      "slug": "phase-technology-70xe-series-analyzer",
+      "brand": "phase-technology",
+      "product_type": "equipment",
+      "short_description": "Nền tảng phân tích tích hợp đầu tiên trên thế giới cho jet fuel và diesel, hợp nhất tối đa 6 phép đo cold properties, viscosity và density trên một thiết bị duy nhất.",
+      "seo_title": "70Xe Series | PHASE TECHNOLOGY | LT Vietnam",
+      "seo_description": "Nền tảng phân tích tích hợp đầu tiên trên thế giới cho jet fuel và diesel, hợp nhất tối đa 6 phép đo cold properties, viscosity và density trên một thiết bị duy nhất.",
+      "categories": [
+        "cold-properties",
+        "viscometers",
+        "density-meters"
+      ],
+      "applications": [
+        "jet-fuel",
+        "diesel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "70Xe Series là thế hệ analyzer kế tiếp của Phase Technology (PAC), kế thừa nền tảng 70Xi, được thiết kế để hợp nhất các phép đo flow properties và cold properties quan trọng vào một platform tích hợp duy nhất. Nền tảng cho phép test nhanh hơn, độ chính xác cao hơn và tối ưu diện tích phòng thí nghiệm. 70Xe phục vụ từ nhiên liệu truyền thống đến nhiên liệu tái tạo và bền vững thế hệ mới (renewable diesel/HVO, Sustainable Aviation Fuel/SAF). Tùy theo model con, thiết bị có thể đo Freezing Point, Cloud Point, Pour Point, Kinematic Viscosity và Density, với cấu hình linh hoạt từ đơn chức năng đến tổ hợp 6-trong-1, và từ manual pipette đến single-shot injection hoặc autosampler 30 vị trí đầy đủ."
+      ],
+      "features": [
+        "Consolidate up to six critical fuel property tests into one streamlined analyzer platform",
+        "Simultaneous cold properties, viscosity, và density testing trong vài phút (Jet Fuel: FP + KV@-20°C + Density ~15 phút; Diesel: CP + PP + KV@+40°C + Density ~30 phút)",
+        "Automatic sample loading cho kết quả nhất quán và độ lặp lại cao",
+        "Optional 30-position autosampler cho phòng thí nghiệm năng suất cao",
+        "High-precision results tuân thủ đầy đủ ASTM, IP và các tiêu chuẩn toàn cầu; được chấp thuận trong ASTM D1655, D7566 và DEF STAN 91-091",
+        "Referee freezing point method cho testing SAF co-processed (HEFA SAF)",
+        "Eliminate ongoing solvent costs cho vận hành và vệ sinh định kỳ (tự động, không cần dung môi ở các model auto-loading)",
+        "Fully self-contained system, không cần external chiller bath",
+        "Onsite calibration feature giúp bảo trì, hiệu chuẩn dễ dàng hơn",
+        "Compatible với PACe — nền tảng số hóa giám sát phòng lab theo thời gian thực (cảnh báo tức thời, theo dõi throughput)"
+      ],
+      "applications_text": [
+        "Jet fuel testing (freezing point, viscosity, density) theo ASTM D1655, D7566, DEF STAN 91-091",
+        "Diesel và biodiesel testing (cloud point, pour point, viscosity, density)",
+        "Renewable diesel (HVO) và Sustainable Aviation Fuel (SAF), bao gồm co-processed SAF",
+        "Base oils và finished lubricants (cold properties — dòng PSA/PCA/PFA/FCA/FPA/CPA/PPA)",
+        "Marine diesel (dòng MFA)",
+        "Glycol-based engine coolant / antifreeze (dòng GPA-AF, tuân thủ ASTM D6660 — dùng trong đặc tính ASTM D3306, D4985, D6210 và các đặc tính OEM như GM6277M, Ford WSE-M97B44-B)",
+        "Non-petroleum products nói chung (dòng GPA)"
+      ],
+      "principle": [
+        "Cold properties (freezing point, cloud point) được phát hiện bằng công nghệ Diffusive Light Scattering (DLS) được cấp bằng sáng chế, qua hệ thống quang học phát hiện tinh thể hình thành trong mẫu khi làm lạnh. Pour point được phát hiện bằng cách phát một xung khí nén lên bề mặt mẫu, các nhiễu loạn bề mặt được cảm biến quang học ghi nhận. Viscosity được đo dựa trên nguyên lý Hagen-Poiseuille (dòng chảy qua mao quản - capillary flow) với áp suất không đổi (constant pressure with horizontal capillary), dynamic viscosity xác định từ thời gian dòng chảy qua cảm biến quang, kinematic viscosity tính bằng cách chia dynamic viscosity cho density đo được. Density được đo bằng công nghệ oscillating U-tube. Hệ thống làm lạnh dùng Peltier device tích hợp, không cần external cooling bath. Sau mỗi phép đo, phase plot được hiển thị và lưu lại thể hiện hành vi mẫu trong suốt quá trình test."
+      ],
+      "sample_types": [
+        "Jet fuels",
+        "Diesels (bao gồm renewable diesel/HVO, SAF)",
+        "Marine diesels (dòng MFA)",
+        "Base oils, finished lubricants (dòng PSA family)",
+        "Glycol-based engine coolant / antifreeze (dòng GPA-AF)",
+        "Non-petroleum products nói chung (dòng GPA)"
+      ],
+      "operating_conditions": [
+        "Điện áp: 100–240 VAC ±10%, tự chuyển đổi (switchable); tần số 50–60 Hz",
+        "Công suất: 450 W",
+        "Kích thước (W x D x H): Manual Pipette 380 x 600 x 500 mm; Automatic Single Injection 450 x 600 x 500 mm; With 30-position Autosampler 560 x 600 x 500 mm",
+        "Trọng lượng: IFA/JFA/DFA/MFA-70Xe ~48 kg (106 lb); KVD-70Xe ~40 kg (87 lb); PSA/PCA/PFA/FCA/PPA/CPA/FPA/GPA-70Xe (family) ~39 kg (85 lb); Autosampler ~10.5 kg (23 lb)",
+        "Nhiệt độ vận hành: 10°C đến 30°C (50°F–86°F); khuyến nghị 15°C–25°C (59°F–77°F); độ ẩm tương đối < 80% (tại 35°C), không ngưng tụ",
+        "Nhiệt độ bảo quản: -20°C đến 50°C (-4°F–122°F); độ ẩm bảo quản < 95% RH (không ngưng tụ)"
+      ],
+      "accessories_options": [
+        "Optional 30-position Autosampler (cho các model auto-loading)",
+        "Optional Single Shot Injection port (auto loading đơn mẫu)",
+        "Label printer chuyên dụng cho dòng 70Xi/70Xe",
+        "Barcode reader để nhập số hiệu mẫu",
+        "USB Color Printer",
+        "Phase Behavior Analysis Software (nghiên cứu thuật toán tùy chỉnh)",
+        "PACe — nền tảng digital ecosystem giám sát lab từ xa (theo dõi throughput, cảnh báo tức thời qua desktop/tablet/mobile)",
+        "Viscosity Temperature Probe (đã hiệu chuẩn)",
+        "Factory calibration cho viscosity ở các mức nhiệt độ khác nhau",
+        "Add-on functions cho dòng cold properties (PSA family): Engine Coolants/Antifreeze, Pour Point Black Oil, Pour Point Crude Oil, Phase Temperature Control Software (PTCS)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Detection Technology",
+          "label": "Cold Properties",
+          "value": "Patented Diffusive Light Scattering (DLS)",
+          "unit": null
+        },
+        {
+          "group_key": "Detection Technology",
+          "label": "Viscosity",
+          "value": "Patented constant pressure with horizontal capillary",
+          "unit": null
+        },
+        {
+          "group_key": "Detection Technology",
+          "label": "Density",
+          "value": "Oscillating U-tube",
+          "unit": null
+        },
+        {
+          "group_key": "Sample Temperature Range",
+          "label": "Manual / Auto Loading",
+          "value": "-100 đến +70",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample Volume",
+          "label": "Manual Injection",
+          "value": "0.15",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Sample Volume",
+          "label": "Auto Loading",
+          "value": "30 (0.15 mL dùng cho cold properties test)",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Cold Properties + Viscosity + Density",
+          "value": "~15 (thấp nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Viscosity + Density",
+          "value": "~10 (thấp nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Cold Properties (riêng)",
+          "value": "~5 (thấp nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Freezing Point (riêng, dòng PSA/GPA)",
+          "value": "~10 (nhanh nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Cloud Point (riêng)",
+          "value": "~5 (nhanh nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Test Duration",
+          "label": "Pour Point (riêng)",
+          "value": "~20 (nhanh nhất)",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Operator Time",
+          "label": "—",
+          "value": "< 1",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Display",
+          "label": "—",
+          "value": "Full-color, touch-sensitive, 13.3\" high resolution LCD touch screen",
+          "unit": null
+        },
+        {
+          "group_key": "Outputs",
+          "label": "Cổng kết nối",
+          "value": "3x USB-A (peripherals); 1x cổng Autosampler; 1x RJ45 Ethernet; 1x RS-232 (LIMS)",
+          "unit": null
+        },
+        {
+          "group_key": "Model: IFA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point, Cloud Point, Pour Point, Viscosity & Density — all-in-one cho jet fuels và diesels",
+          "unit": null
+        },
+        {
+          "group_key": "Model: IFA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972, D5773, D5949, D7945, D7777",
+          "unit": null
+        },
+        {
+          "group_key": "Model: JFA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point, Viscosity & Density — cho jet fuels",
+          "unit": null
+        },
+        {
+          "group_key": "Model: JFA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972, D7945, D7777",
+          "unit": null
+        },
+        {
+          "group_key": "Model: DFA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Cloud Point, Pour Point, Viscosity & Density — cho diesels",
+          "unit": null
+        },
+        {
+          "group_key": "Model: DFA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5773, D5949, D7945, D7777",
+          "unit": null
+        },
+        {
+          "group_key": "Model: MFA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Cloud Point, Pour Point, Viscosity & Density — cho marine diesels",
+          "unit": null
+        },
+        {
+          "group_key": "Model: MFA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5773, D5949, D7945, D7777",
+          "unit": null
+        },
+        {
+          "group_key": "Model: KVD-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Viscosity & Density — cho jet fuels và diesels",
+          "unit": null
+        },
+        {
+          "group_key": "Model: KVD-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D7945, D7777",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PSA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point, Cloud Point, Pour Point — cold properties tổng hợp cho fuels/base oils/lubricants",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PSA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972, D5773, D5949",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PCA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Cloud Point, Pour Point",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PCA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5773, D5949",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PFA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point, Pour Point",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PFA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972, D5949",
+          "unit": null
+        },
+        {
+          "group_key": "Model: FCA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point, Cloud Point",
+          "unit": null
+        },
+        {
+          "group_key": "Model: FCA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972, D5773",
+          "unit": null
+        },
+        {
+          "group_key": "Model: FPA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing Point (đơn chức năng)",
+          "unit": null
+        },
+        {
+          "group_key": "Model: FPA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5972",
+          "unit": null
+        },
+        {
+          "group_key": "Model: CPA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Cloud Point (đơn chức năng)",
+          "unit": null
+        },
+        {
+          "group_key": "Model: CPA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5773",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PPA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Pour Point (đơn chức năng)",
+          "unit": null
+        },
+        {
+          "group_key": "Model: PPA-70Xe",
+          "label": "Standard method chính",
+          "value": "ASTM D5949",
+          "unit": null
+        },
+        {
+          "group_key": "Model: GPA-70Xe-AF",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "Freezing point analyzer cho glycol-based engine coolant (antifreeze)",
+          "unit": null
+        },
+        {
+          "group_key": "Model: GPA-70Xe-AF",
+          "label": "Standard method chính",
+          "value": "ASTM D6660",
+          "unit": null
+        },
+        {
+          "group_key": "Model: GPA-70Xe",
+          "label": "Chỉ tiêu đo / Tên đầy đủ",
+          "value": "General analyzer cho non-petroleum products",
+          "unit": null
+        },
+        {
+          "group_key": "Model: GPA-70Xe",
+          "label": "Standard method chính",
+          "value": "Không nêu rõ method cụ thể trong tài liệu nguồn",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d5972",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d5773",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d5949",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d7945",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d7777",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d6660",
+          "compliance_type": "compliance",
+          "note": null
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Phase Lab\\70Xe Series\\Marketing Materials\\Images\\70Xe with Autosampler.png"
+    },
+    {
+      "file": "phase_wat70xi.md",
+      "name": "WAT-70Xi",
+      "model": "WAT-70Xi",
+      "slug": "phase-technology-wat-70xi-crude-oil-analyzer",
+      "brand": "phase-technology",
+      "product_type": "equipment",
+      "short_description": "Analyzer tự động hoàn toàn đầu tiên và duy nhất trên thế giới đo Wax Appearance Temperature (WAT, tương đương cloud point) và Wax Disappearance Temperature (WDT) cho crude oil.",
+      "seo_title": "WAT-70Xi | PHASE TECHNOLOGY | LT Vietnam",
+      "seo_description": "Analyzer tự động hoàn toàn đầu tiên và duy nhất trên thế giới đo Wax Appearance Temperature (WAT, tương đương cloud point) và Wax Disappearance Temperature (WDT) cho crude oil.",
+      "categories": [
+        "cold-properties"
+      ],
+      "applications": [
+        "crude-oil-assay"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "WAT-70Xi là analyzer chuyên dụng của Phase Technology dành cho ngành dầu khí thượng nguồn và trung nguồn (upstream & midstream), đo Wax Appearance Temperature (WAT — còn gọi là cloud point, là nhiệt độ mà mẫu crude oil bắt đầu kết tinh sáp rắn khi làm lạnh) và Wax Disappearance Temperature (WDT — nhiệt độ mà các tinh thể sáp cuối cùng tan chảy hoàn toàn khi làm ấm). Trước đây việc xác định WAT/cloud point của crude oil là quy trình thủ công, tốn thời gian và mang tính chủ quan cao. WAT-70Xi được xây dựng trên nền tảng 70Xi series, cho phép test hoàn toàn tự động kể cả với mẫu tối màu, không thấu quang."
+      ],
+      "features": [
+        "Detection of both WAT and WDT trong cùng một lần test — xác định cả tốc độ hình thành và tan chảy sáp",
+        "Faster than any other test method: cho kết quả trong 20–40 phút, so với vài giờ ở các phương pháp khác",
+        "Tests opaque samples: cấu hình quang học nâng cao \"nhìn xuyên\" được mẫu tối màu",
+        "Self cleaning: tự động flush bằng dung môi sau mỗi lần test",
+        "No manual set up: chỉ cần inject mẫu trực tiếp vào analyzer và bắt đầu test",
+        "Superior precision: độ lặp lại (repeatability) công bố trong phần marketing là 1.0°C",
+        "Greater sensitivity: phương pháp tự động, kiểm soát chặt giúp loại bỏ tính chủ quan trong kết quả",
+        "Informative, real-time test results: phase diagram (loop) đầy đủ thể hiện rõ WAT, lượng sáp hình thành tương đối và WDT",
+        "Intuitive, easy-to-use interface: màn hình cảm ứng màu 15 inch độ phân giải cao, có phím \"favorites\" một chạm"
+      ],
+      "applications_text": [
+        "Dự đoán hiện tượng lắng đọng sáp (wax deposition) trong crude oil cho các công ty dầu khí thượng nguồn và trung nguồn",
+        "Xác định liều lượng tối ưu của wax crystal modifiers và/hoặc wax deposition inhibitors trong khai thác dầu (oilfield applications)",
+        "Chỉ báo khả năng không tương thích giữa các loại crude (crude incompatibility) và giám sát biến động chất lượng crude theo thời gian",
+        "Hỗ trợ vận chuyển crude oil qua đường ống, đường sắt, tàu chở dầu và lưu trữ dầu — xác định giới hạn vận hành an toàn (operability limits), tránh tắc nghẽn do tinh thể sáp",
+        "Dự đoán chính xác wax deposition trong đường ống và bồn chứa, phục vụ thiết kế hệ thống đường ống (kể cả subsea) và các phương án wax remediation"
+      ],
+      "principle": [
+        "WAT-70Xi sử dụng công nghệ Diffusive Light Scattering (DLS) được cấp bằng sáng chế, dựa trên kỹ thuật quang học phát tán ánh sáng độc quyền của Phase Technology theo nền tảng ASTM D5773, phát hiện sự thay đổi pha (hình thành/tan tinh thể sáp) với độ nhạy và độ chính xác cao, kể cả với mẫu tối màu, không thấu quang. Hệ thống làm lạnh dùng Peltier device tích hợp."
+      ],
+      "sample_types": [
+        "Crude oil"
+      ],
+      "operating_conditions": [
+        "Điện áp: 90–260 VAC, tần số 47–63 Hz",
+        "Công suất: 350 W",
+        "Kích thước (Unit, L x W x H): 21.5 x 13.25 x 17.5 inch (54.6 x 33.7 x 44.5 cm)",
+        "Trọng lượng (Unit): 53 lbs / 24 kg",
+        "Nhiệt độ phòng vận hành: 10°C đến 30°C (50°F–86°F); không khuyến nghị vận hành ở giá trị biên",
+        "Không cần external cooler bath"
+      ],
+      "accessories_options": [
+        "Label printer (kết nối qua cổng USB-A)",
+        "Barcode scanner (kết nối qua cổng USB-A)",
+        "Bàn phím, chuột (kết nối qua cổng USB-A)",
+        "Kết nối máy tính ngoài / phần mềm chẩn đoán Phase Technology LTB (qua cổng RS-232)",
+        "Kết nối mạng LIMS / LAN qua cổng Ethernet 10/100Base-T (RJ45)",
+        "External solvent tank (bắt buộc để phục vụ chu trình flush tự động của hệ thống làm sạch)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Precision",
+          "label": "Stated Precision (Repeatability)",
+          "value": "1.96",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Temperature Range",
+          "value": "-30 đến 75",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Size",
+          "value": "3.0",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Test",
+          "label": "Duration",
+          "value": "20–40",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Operator",
+          "label": "Required Operator Time",
+          "value": "15",
+          "unit": "giây"
+        },
+        {
+          "group_key": "Detection",
+          "label": "Method",
+          "value": "Patented Diffusive Light Scattering (DLS) technology",
+          "unit": null
+        },
+        {
+          "group_key": "Display",
+          "label": "—",
+          "value": "Full-color, touch-sensitive, 15\" high resolution LCD touch screen",
+          "unit": null
+        },
+        {
+          "group_key": "Memory",
+          "label": "Internal Memory",
+          "value": "lên đến 5000",
+          "unit": "test runs"
+        },
+        {
+          "group_key": "Temperature Measurement",
+          "label": "Đơn vị hiển thị",
+          "value": "°C hoặc °F (người dùng chọn)",
+          "unit": null
+        },
+        {
+          "group_key": "Outputs",
+          "label": "Cổng kết nối",
+          "value": "3x USB-A; 1x USB-B; 3x RS-232 (bao gồm 1 cổng Service riêng); 1x Ethernet RJ45 10/100Base-T",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d8420",
+          "compliance_type": "compliance",
+          "note": "Phương pháp WAT/WDT chính thức của WAT-70Xi"
+        },
+        {
+          "slug": "astm-d5773",
+          "compliance_type": "correlation",
+          "note": "Tương quan với phương pháp cloud point"
+        },
+        {
+          "slug": "ip-446",
+          "compliance_type": "correlation",
+          "note": "Tương quan với phương pháp cloud point"
+        },
+        {
+          "slug": "astm-d2500",
+          "compliance_type": "correlation",
+          "note": "Tương quan với phương pháp cloud point"
+        },
+        {
+          "slug": "ip-219",
+          "compliance_type": "correlation",
+          "note": "Tương quan với phương pháp cloud point"
+        },
+        {
+          "slug": "iso-3015",
+          "compliance_type": "correlation",
+          "note": "Tương quan với phương pháp cloud point"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Phase Lab\\WAT-70Xi\\Marketing Materials\\WAT-70Xi-high-resolution.jpg"
+    },
+    {
+      "file": "phase_optimvd.md",
+      "name": "OptiMVD",
+      "model": "OptiMVD",
+      "slug": "phase-technology-optimvd-viscometer-density-analyzer",
+      "brand": "phase-technology",
+      "product_type": "equipment",
+      "short_description": "Máy đo độ nhớt và tỷ trọng tự động (mini viscometer & density analyzer), kết hợp viscometer mao dẫn áp suất không đổi (constant pressure capillary) và densitometer ống chữ U dao động (oscillating U-tube), dùng cho dầu diesel và dầu bôi trơn.",
+      "seo_title": "OptiMVD | PHASE TECHNOLOGY | LT Vietnam",
+      "seo_description": "Máy đo độ nhớt và tỷ trọng tự động (mini viscometer & density analyzer), kết hợp viscometer mao dẫn áp suất không đổi (constant pressure capillary) và densitometer ống chữ U dao động (oscillating U-tube), dùng cho dầu diesel và dầu bôi trơn.",
+      "categories": [
+        "viscometers",
+        "density-meters"
+      ],
+      "applications": [
+        "diesel",
+        "lubricant-analysis"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "OptiMVD là máy đo độ nhớt động học và tỷ trọng tự động, thực hiện cả hai phép đo trong cùng một lần chạy chỉ với 5 ml mẫu. Máy đo độ nhớt theo ASTM D7945/ISO 18335 (nguyên lý Hagen-Poiseuille, dòng chảy qua ống mao dẫn nằm ngang có cảm biến quang học) và đo tỷ trọng theo ASTM D7777 (ống chữ U dao động). Có 3 cấu hình: Single Injection Port, 1x24 vị trí carousel, hoặc 2x24 vị trí carousel, với phiên bản đơn hoặc kép viscometer/density meter để tăng thông lượng. Tính năng Smart Sample Ordering độc quyền tự động tối ưu thứ tự thử nghiệm, giảm 20-50% thời gian. Đã được chấp thuận trong SAE J300 cho đo độ nhớt dầu động cơ."
+      ],
+      "features": [
+        "Tự động làm sạch hoàn toàn (fully automatic self-cleaning), tự động gia nhiệt và sấy khô",
+        "Đo đồng thời độ nhớt động học và tỷ trọng trong một lần chạy, chỉ cần 5 ml mẫu, nhanh nhất khoảng 10 phút/mẫu (model dual)",
+        "Tính năng độc quyền Smart Sample Ordering, giảm 20-50% (hoặc hơn) tổng thời gian thử nghiệm cho carousel đầy",
+        "Có phiên bản đơn hoặc kép viscometer/density meter, carousel đơn hoặc kép (tối đa 48 mẫu/lần) để tăng thông lượng",
+        "Hỗ trợ đo cùng lọ mẫu ở 2 nhiệt độ khác nhau, phục vụ tính Viscosity Index tự động (phiên bản dual)",
+        "Màn hình cảm ứng màu 13.3 inch trực quan, hỗ trợ danh sách \"Favorites\" và ưu tiên mẫu bất kỳ thứ tự nạp",
+        "Đã được chấp thuận trong tiêu chuẩn SAE J300 cho đo độ nhớt dầu động cơ",
+        "Dải đo rộng: độ nhớt 1–2.000 mm²/sec (@40°C), tỷ trọng 0,5–2 g/cm³",
+        "Tự động hiệu chuẩn nhiệt độ mẫu, có chức năng QC tự động (QC-sample handling và QC-charting)"
+      ],
+      "applications_text": [
+        "Refineries (nhà máy lọc dầu)",
+        "Pipelines & Terminals (đường ống & kho cảng)",
+        "Contract Laboratories (phòng thí nghiệm dịch vụ)",
+        "Mobile Labs (phòng thí nghiệm di động)",
+        "Chemical Plants (nhà máy hóa chất)"
+      ],
+      "principle": [
+        "Độ nhớt động học (dynamic viscosity) được xác định từ thời gian dòng chảy của mẫu qua ống mao dẫn dưới áp suất không đổi của khí nén (constant pressure capillary, nguyên lý Hagen-Poiseuille — ASTM D7945/ISO 18335); các cảm biến quang học đo thời gian di chuyển dọc ống. Tỷ trọng được xác định bằng tần số dao động của densitometer ống chữ U (oscillating U-tube — ASTM D7777). Độ nhớt động học (kinematic viscosity) được tính bằng cách chia độ nhớt động lực (dynamic viscosity) cho tỷ trọng (v = η/ρ)."
+      ],
+      "sample_types": [
+        "Dầu diesel (diesel fuels)",
+        "Dầu bôi trơn (lubricants/lubricating oils)"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 100–240 VAC ±10% (chuyển đổi được), 50–60 Hz, 450 W, 5–2,4 A",
+        "Kích thước: 35,6 cm (14\") rộng x 49,5 cm (18,75\") sâu x 47,6 cm (18,75\") cao",
+        "Trọng lượng: 43 kg (95 lb) cho model đầy đủ (full load)",
+        "Nhiệt độ vận hành: +10°C đến +30°C (khuyến nghị +15°C đến +25°C); độ ẩm 10–80% (không ngưng tụ); nhiệt độ mẫu đo được: +15°C đến +100°C"
+      ],
+      "accessories_options": [
+        "Label Printer (máy in nhãn)",
+        "Barcode Scanner (máy quét mã vạch)",
+        "USB Color Printer (máy in màu USB)",
+        "Hiệu chuẩn độ nhớt tại các nhiệt độ khác ngoài 40°C/100°C tiêu chuẩn (20°C, 25°C, 50°C, 80°C, 100°F, 210°F, hoặc nhiệt độ khác theo yêu cầu — hiệu chuẩn tại nhà máy)",
+        "Bộ chuẩn hiệu chuẩn độ nhớt (Calibration Standard Kit) tại nhiều mức nhiệt độ, thực hiện tại chỗ (user site)",
+        "Vật liệu chuẩn tham chiếu CRM độ nhớt (Certified Reference Material) nhiều dải giá trị"
+      ],
+      "specifications": [
+        {
+          "group_key": "Viscosity",
+          "label": "Range",
+          "value": "1 – 2.000 @ 40°C; 1 – 100 @ 100°C",
+          "unit": "mm²/sec"
+        },
+        {
+          "group_key": "Viscosity",
+          "label": "Repeatability",
+          "value": "< 0,75 (D7945)",
+          "unit": "%"
+        },
+        {
+          "group_key": "Viscosity",
+          "label": "Reproducibility",
+          "value": "< 1,38 (D7945)",
+          "unit": "%"
+        },
+        {
+          "group_key": "Density",
+          "label": "Range",
+          "value": "0,5 – 2",
+          "unit": "g/cm³"
+        },
+        {
+          "group_key": "Density",
+          "label": "Repeatability",
+          "value": "< 0,0017 (ASTM D7777)",
+          "unit": "g/cm³"
+        },
+        {
+          "group_key": "Density",
+          "label": "Reproducibility",
+          "value": "< 0,0024 (ASTM D7777)",
+          "unit": "g/cm³"
+        },
+        {
+          "group_key": "Temperature",
+          "label": "Repeatability",
+          "value": "± 0,005",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Sample",
+          "label": "Thể tích mẫu/lần test",
+          "value": "5",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Test Time",
+          "label": "Chu kỳ nhanh nhất (model dual)",
+          "value": "~10",
+          "unit": "phút/mẫu"
+        },
+        {
+          "group_key": "Result Documentation",
+          "label": "Số kết quả lưu trữ",
+          "value": "5.000",
+          "unit": "test runs"
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d7945",
+          "compliance_type": "compliance",
+          "note": "Phương pháp đo độ nhớt chính (Hagen-Poiseuille capillary)"
+        },
+        {
+          "slug": "iso-18335",
+          "compliance_type": "compliance",
+          "note": "Phương pháp đo độ nhớt chính (tương đương D7945)"
+        },
+        {
+          "slug": "astm-d7777",
+          "compliance_type": "compliance",
+          "note": "Phương pháp đo tỷ trọng chính"
+        },
+        {
+          "slug": "sae-j300",
+          "compliance_type": "compliance",
+          "note": "Được chấp thuận (approved) cho đo độ nhớt dầu động cơ"
+        },
+        {
+          "slug": "astm-d445",
+          "compliance_type": "correlation",
+          "note": "Độ nhớt động học (kinematic viscosity), phương pháp mao dẫn thủ công truyền thống"
+        },
+        {
+          "slug": "iso-3104",
+          "compliance_type": "correlation",
+          "note": "Tương đương ASTM D445"
+        },
+        {
+          "slug": "ip-71",
+          "compliance_type": "correlation",
+          "note": "Tương đương ASTM D445"
+        },
+        {
+          "slug": "gost-33",
+          "compliance_type": "correlation",
+          "note": "Tương đương ASTM D445"
+        },
+        {
+          "slug": "gb-t-265",
+          "compliance_type": "correlation",
+          "note": "Tương đương ASTM D445"
+        },
+        {
+          "slug": "astm-d4052",
+          "compliance_type": "correlation",
+          "note": "đo tỷ trọng bằng oscillating U-tube"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\Phase Lab\\OptiMVD\\Marketing Materials\\Social Media and Email Graphics\\OptiMVD SS-D (1080 x 1080 px).jpg"
+    },
+    {
+      "file": "pac_optidist2.md",
+      "name": "OptiDist 2",
+      "model": "OptiDist 2",
+      "slug": "pac-optidist-2-atmospheric-distillation-analyzer",
+      "brand": "pac",
+      "product_type": "equipment",
+      "short_description": "Máy chưng cất khí quyển (atmospheric distillation) tự động hoàn toàn, thế hệ kế tiếp của OptiDist, xác định đặc tính bay hơi của nhiên liệu và sản phẩm dầu mỏ theo ASTM D86.",
+      "seo_title": "OptiDist 2 | PAC | LT Vietnam",
+      "seo_description": "Máy chưng cất khí quyển (atmospheric distillation) tự động hoàn toàn, thế hệ kế tiếp của OptiDist, xác định đặc tính bay hơi của nhiên liệu và sản phẩm dầu mỏ theo ASTM D86.",
+      "categories": [
+        "atmospheric-distillation",
+        "distillation"
+      ],
+      "applications": [
+        "gasoline",
+        "diesel",
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "petrochemical"
+      ],
+      "overview": [
+        "OptiDist 2 là thế hệ mới của dòng máy chưng cất khí quyển OptiDist — được tái thiết kế toàn diện để nâng cao độ chính xác, độ tin cậy và trải nghiệm vận hành so với bản gốc. Trung tâm của thiết kế mới là hệ thống làm mát thermosiphon trạng thái rắn (patent-pending), không có bộ phận chuyển động, kết hợp với dual optimizer cấp bằng sáng chế để kiểm soát nhiệt độ gia nhiệt ban đầu theo thời gian thực. Máy vận hành theo kiểu \"one button\": người dùng chỉ cần chọn nhóm sôi (boiling group) của mẫu và nhấn Start. Thiết kế module hóa (modular chassis) giúp bảo trì, sửa chữa nhanh và tương thích ngược với bình cầu (flask), ống đong, cảm biến PT100 của OptiDist đời cũ, giúp bảo toàn khoản đầu tư của khách hàng."
+      ],
+      "features": [
+        "Dual optimizer cấp bằng sáng chế, kiểm soát nhiệt độ thích ứng theo thời gian thực (theo dõi cả nhiệt độ chất lỏng và hơi), cho kết quả nhất quán và lặp lại",
+        "Hệ thống làm mát thermosiphon trạng thái rắn (patent-pending), không có bộ phận chuyển động, độ tin cậy dài hạn, không cần booster heater",
+        "Vận hành hoàn toàn tự động kiểu \"one button\" — chỉ chọn boiling group và nhấn Start",
+        "Nâng/hạ heater và đóng/mở cửa khoang gia nhiệt tự động, đồng bộ với nhau, giảm hao mòn và tăng an toàn",
+        "Thiết kế khung module hóa (modular chassis), truy cập nhanh để bảo trì và sửa chữa tại hiện trường",
+        "Hệ thống phát hiện và dập lửa tự động (tương thích khí CO2 hoặc N2), có hệ thống hút VOC tích hợp sẵn (built-in, không cần add-on)",
+        "Nhận diện tự động tấm gia nhiệt (heater plate) qua mã QR, phát hiện tự động nguy cơ vỡ bình cầu (flask)",
+        "Màn hình cảm ứng điện dung 10,4 inch, đèn trạng thái (status light) hiển thị rõ từ xa",
+        "Tương thích ngược với bình cầu (flask), ống đong, cảm biến PT100 của OptiDist đời cũ",
+        "Sẵn sàng kết nối mạng, tương thích nền tảng IRIS và PACe để giám sát phòng thí nghiệm từ xa"
+      ],
+      "applications_text": [
+        "Xác định đặc tính bay hơi (evaporating/distillation characteristics) của xăng, dầu diesel, nhiên liệu phản lực, dung môi và các sản phẩm dầu mỏ khác theo ASTM D86",
+        "Hỗ trợ thử nghiệm dầu thô (crude oil testing) nhờ khả năng điều khiển condenser động (dynamic condenser control)"
+      ],
+      "principle": [
+        "Một mẫu 100 mL được chưng cất trong điều kiện quy định theo nhóm sôi (boiling group) của mẫu, thực hiện trong thiết bị chưng cất mẻ (batch distillation) ở áp suất khí quyển, thiết kế để đạt xấp xỉ một đĩa lý thuyết (theoretical plate) phân đoạn. Nhiệt độ hơi và thể tích ngưng tụ được ghi nhận hệ thống trong suốt quá trình; thể tích cặn và hao hụt cũng được ghi lại. Kết quả thường biểu diễn dưới dạng % bay hơi hoặc % thu hồi theo nhiệt độ tương ứng (bảng hoặc đồ thị đường cong chưng cất)."
+      ],
+      "sample_types": [
+        "Xăng, dầu diesel, nhiên liệu phản lực và các sản phẩm dầu mỏ khác (nhóm sôi 1–4 theo ASTM D86)",
+        "Dầu thô (crude oil) — hỗ trợ qua điều khiển condenser động"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 100–240 VAC (dual voltage), 50–60 Hz, 1.600 W",
+        "Kích thước: 390 mm (rộng) x 570 mm (sâu) x 720 mm (cao); có giá đỡ cáp đầu dò (cable probe support) dài thêm 880 mm",
+        "Trọng lượng: 50 kg (110 lb)",
+        "Nhiệt độ vận hành: 10°C đến 35°C (50 đến 95°F); độ ẩm tương đối tối đa 80% ở 35°C"
+      ],
+      "accessories_options": [
+        "Bộ Dry Point tự động (cho bình cầu 125 ml, 200 ml — theo ASTM D86/D1078/D850)",
+        "Bộ mô phỏng đầu dò/Pt100 (Probe/Pt100 Simulator) dùng để kiểm tra hiệu chuẩn",
+        "Máy in màu USB / máy in nhiệt USB & Ethernet",
+        "Máy quét mã vạch (Barcode Scanner)",
+        "Dụng cụ hiệu chuẩn thể tích (Gauge for volume calibration)",
+        "Bình cầu (flask) 125 ml bằng thạch anh (Quartz) — tùy chọn thay thế",
+        "Tấm bảo vệ màn hình (Screen Protection)",
+        "Phần mềm nền tảng số PACe (Digital Ecosystem) — thuê bao theo năm",
+        "Phần mềm IRIS Workstation (kết nối PC, giám sát nhiều máy)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Distillation",
+          "label": "Tốc độ chưng cất",
+          "value": "2 – 10, lập trình được",
+          "unit": "mL/phút"
+        },
+        {
+          "group_key": "Vapor Temperature",
+          "label": "Dải đo",
+          "value": "0 – 450 (32 – 840)",
+          "unit": "°C (°F)"
+        },
+        {
+          "group_key": "Vapor Temperature",
+          "label": "Độ chính xác cảm biến",
+          "value": "Class A IEC 751 Pt100",
+          "unit": null
+        },
+        {
+          "group_key": "Sample Volume",
+          "label": "Dải đo",
+          "value": "0 – 103% thể tích nạp",
+          "unit": "%"
+        },
+        {
+          "group_key": "Sample Volume",
+          "label": "Độ phân giải",
+          "value": "0,03",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Sample Volume",
+          "label": "Độ chính xác",
+          "value": "± 0,1",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Ambient Pressure",
+          "label": "Dải đo",
+          "value": "70 – 110 (525 – 825)",
+          "unit": "kPa (mmHg)"
+        },
+        {
+          "group_key": "Condenser",
+          "label": "Dải nhiệt độ",
+          "value": "0 – 60",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Condenser",
+          "label": "Độ chính xác",
+          "value": "± 0,5 tại 25°C",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Receiver Chamber",
+          "label": "Dải nhiệt độ",
+          "value": "10 – 60",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Receiver Chamber",
+          "label": "Độ chính xác",
+          "value": "± 0,5 tại 25°C",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Receiver Chamber",
+          "label": "Ống đong tiêu chuẩn",
+          "value": "100",
+          "unit": "mL"
+        },
+        {
+          "group_key": "Result Database",
+          "label": "Số kết quả lưu trữ",
+          "value": "5.000",
+          "unit": "test runs"
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d86",
+          "compliance_type": "compliance",
+          "note": "Phương pháp chưng cất khí quyển chính"
+        },
+        {
+          "slug": "astm-d1078",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d850",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d524",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d4530",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-123",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "ip-195",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "iso-918",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "gost-2177",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "en-iso-3405",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "din-51751",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "jis-k2254",
+          "compliance_type": "compliance",
+          "note": null
+        },
+        {
+          "slug": "astm-d4737",
+          "compliance_type": "reference",
+          "note": "Dùng để tính Calculated Cetane Index"
+        },
+        {
+          "slug": "astm-d976",
+          "compliance_type": "reference",
+          "note": "Dùng để tính Calculated Cetane Index"
+        },
+        {
+          "slug": "astm-d4814",
+          "compliance_type": "reference",
+          "note": "Dùng để tính Drivability Index"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\PAC Lab\\OptiDist 2\\Marketing Materials\\Images\\OptiDist 2 - Front Full View.png"
+    },
+    {
+      "file": "pac_optifuel.md",
+      "name": "OptiFuel",
+      "model": "OptiFuel",
+      "slug": "pac-optifuel-ftir-fuel-analyzer",
+      "brand": "pac",
+      "product_type": "equipment",
+      "short_description": "Máy phân tích nhiên liệu FTIR (Fourier Transform InfraRed) đo đồng thời nhiều thông số hóa lý của gasoline, diesel và jet fuel, tích hợp đo density bằng oscillating U-tube.",
+      "seo_title": "OptiFuel | PAC | LT Vietnam",
+      "seo_description": "Máy phân tích nhiên liệu FTIR (Fourier Transform InfraRed) đo đồng thời nhiều thông số hóa lý của gasoline, diesel và jet fuel, tích hợp đo density bằng oscillating U-tube.",
+      "categories": [
+        "spectroscopy",
+        "physical-properties"
+      ],
+      "applications": [
+        "gasoline",
+        "diesel",
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "OptiFuel là máy quang phổ FTIR (Fourier Transform InfraRed) thế hệ mới của PAC, kết hợp năng lực của các dòng GS PPA, TD PPA và QuickSpec trước đây vào một thiết bị duy nhất. Máy tính nhúng và phần mềm áp dụng thuật toán toán học lên phổ IR thu được, kết hợp với phép đo density bằng u-tube tích hợp sẵn, để dự đoán các thuộc tính nhiên liệu dựa trên các model hiệu chuẩn (calibration models) xây dựng sẵn từ hàng trăm mẫu nhiên liệu thực tế toàn cầu. Thiết kế ruggedized, phù hợp cho phòng thí nghiệm di động (mobile lab), refinery, pipeline, terminal."
+      ],
+      "features": [
+        "Đo đồng thời nhiều thuộc tính (nhiều tham số) chỉ với một lần đo, thời gian đo 30 giây",
+        "Full-range, laser-referenced Michelson Interferometer — bảo hành optics 10 năm, light source 5 năm, hệ thống 1 năm",
+        "Gương và beam splitter ZnSe kháng ẩm, kháng rung; sample cell không có bộ phận chuyển động",
+        "Density module dạng oscillating tube tích hợp sẵn (đo trực tiếp, theo ASTM D1250-04), không cần density meter rời",
+        "Tự động nhận diện loại nhiên liệu (auto detection of fuel type)",
+        "Cập nhật calibration model tại chỗ chỉ với một nút bấm (regional samples); nhân bản (clone) calibration nhanh giữa các máy, kể cả từ xa",
+        "Thiết kế ruggedized, đã kiểm tra shock/vibration/drop theo tiêu chuẩn IEC, hướng đến ứng dụng mobile lab",
+        "Kết nối LIMS, máy in mạng, và nhân bản qua USB dễ dàng",
+        "Correlation tốt với nhiều tiêu chuẩn ASTM, EN, ISO"
+      ],
+      "applications_text": [
+        "Refinery (nhà máy lọc dầu) — kiểm soát chất lượng nhiên liệu",
+        "Pipeline và terminal — kiểm tra nhanh tại hiện trường",
+        "Mobile lab (phòng thí nghiệm di động, xe lưu động)"
+      ],
+      "principle": [
+        "OptiFuel sử dụng quang phổ FTIR (Fourier Transform InfraRed) với Michelson interferometer kiểm soát nhiệt độ, tham chiếu laser, để thu phổ hấp thụ hồng ngoại của mẫu nhiên liệu (dải quét 550–4000 cm⁻¹). Phần mềm áp dụng các model hiệu chuẩn (calibration models) — xây dựng từ dữ liệu mẫu thực tế toàn cầu (phân tích bởi SGS) — lên phổ thu được để tính toán các thuộc tính hóa lý của nhiên liệu. Một module đo density dạng oscillating U-tube tích hợp cho kết quả density trực tiếp, không qua correlation."
+      ],
+      "sample_types": [
+        "Gasoline (xăng)",
+        "Diesel (bao gồm biodiesel/FAME)",
+        "Jet Fuel (nhiên liệu phản lực)"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 110V–230V, 50/60 Hz, 60 W (có tùy chọn pin 24V, kết nối được với nguồn 12V)",
+        "Kích thước: 8.5\" x 14\" x 16\" (W x H x D) — 22 x 36 x 41 cm",
+        "Trọng lượng: 32 lbs (14.5 kg)"
+      ],
+      "accessories_options": [
+        "Mobile Accessory Package: Anti-vibration Platform, pin Lithium-ion hiệu suất cao kèm bộ nguồn, Vehicle Adapter (bộ chuyển đổi nguồn xe hơi)",
+        "Pelican Case (vali vận chuyển bảo vệ)",
+        "Cáp Ethernet cho kết nối LIMS",
+        "USB flash drive dùng để nhân bản (clone) calibration"
+      ],
+      "specifications": [
+        {
+          "group_key": "Spectrometer",
+          "label": "Spectrometer Type",
+          "value": "FTIR Michelson Interferometer",
+          "unit": null
+        },
+        {
+          "group_key": "Spectrometer",
+          "label": "Scan Range",
+          "value": "550 - 4000",
+          "unit": "cm⁻¹"
+        },
+        {
+          "group_key": "Spectrometer",
+          "label": "Spectral Resolution (max.)",
+          "value": "2",
+          "unit": "cm⁻¹"
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Measurement Time",
+          "value": "30",
+          "unit": "seconds"
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Sample Volume",
+          "value": "20-30 / 30",
+          "unit": "ml"
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Sample Introduction",
+          "value": "From air pressure / From sample container (Tech Offer)",
+          "unit": null
+        },
+        {
+          "group_key": "Measurement",
+          "label": "Units of Measurement",
+          "value": "%m, %v",
+          "unit": null
+        },
+        {
+          "group_key": "Density",
+          "label": "Density Measurement Range",
+          "value": "0.6 - 1.2",
+          "unit": "g/cm³"
+        },
+        {
+          "group_key": "Density",
+          "label": "Density Measurement Method",
+          "value": "Oscillating tube (per ASTM D1250-04 algorithm, tại 15°C)",
+          "unit": null
+        },
+        {
+          "group_key": "System",
+          "label": "Calibration Model",
+          "value": "Factory calibrated, matrix hàng trăm mẫu nhiên liệu toàn cầu (phân tích bởi SGS)",
+          "unit": null
+        },
+        {
+          "group_key": "System",
+          "label": "Instrument Memory",
+          "value": "100,000",
+          "unit": "test results"
+        },
+        {
+          "group_key": "System",
+          "label": "Display",
+          "value": "7\" color touch screen",
+          "unit": null
+        },
+        {
+          "group_key": "System",
+          "label": "Interface",
+          "value": "3x USB, 1x Ethernet",
+          "unit": null
+        },
+        {
+          "group_key": "System",
+          "label": "Cleaning Solvent",
+          "value": "≥99.9% Toluene hoặc >99% Hexane",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d8340",
+          "compliance_type": "compliance",
+          "note": "Gasoline certification (mới bổ sung)"
+        },
+        {
+          "slug": "astm-d6277",
+          "compliance_type": "compliance",
+          "note": "Benzene trong gasoline"
+        },
+        {
+          "slug": "astm-d5845",
+          "compliance_type": "compliance",
+          "note": "Oxygenates trong gasoline (MTBE, ETBE, TAME, DIPE, Ethanol, Methanol, t-Butanol)"
+        },
+        {
+          "slug": "astm-d7371",
+          "compliance_type": "compliance",
+          "note": "FAME trong diesel"
+        },
+        {
+          "slug": "astm-d7777",
+          "compliance_type": "compliance",
+          "note": "Density (Direct)"
+        },
+        {
+          "slug": "iso-15212",
+          "compliance_type": "compliance",
+          "note": "-"
+        },
+        {
+          "slug": "astm-d2699",
+          "compliance_type": "correlation",
+          "note": "RON"
+        },
+        {
+          "slug": "astm-d2700",
+          "compliance_type": "correlation",
+          "note": "MON"
+        },
+        {
+          "slug": "astm-d5191",
+          "compliance_type": "correlation",
+          "note": "DVPE"
+        },
+        {
+          "slug": "astm-d86",
+          "compliance_type": "correlation",
+          "note": "Distillation points (gasoline, diesel)"
+        },
+        {
+          "slug": "astm-d6839",
+          "compliance_type": "correlation",
+          "note": "Hydrocarbons (aromatics, olefins, benzene plus)"
+        },
+        {
+          "slug": "astm-d613",
+          "compliance_type": "correlation",
+          "note": "Cetane Number"
+        },
+        {
+          "slug": "astm-d4737a",
+          "compliance_type": "correlation",
+          "note": "Cetane Index"
+        },
+        {
+          "slug": "astm-d445",
+          "compliance_type": "correlation",
+          "note": "Viscosity"
+        },
+        {
+          "slug": "en-iso-5164",
+          "compliance_type": "correlation",
+          "note": "RON"
+        },
+        {
+          "slug": "en-iso-5163",
+          "compliance_type": "correlation",
+          "note": "MON"
+        },
+        {
+          "slug": "en-13016-1",
+          "compliance_type": "correlation",
+          "note": "DVPE"
+        },
+        {
+          "slug": "en-iso-3405",
+          "compliance_type": "correlation",
+          "note": "Distillation points"
+        },
+        {
+          "slug": "en-iso-22854",
+          "compliance_type": "correlation",
+          "note": "Hydrocarbons"
+        },
+        {
+          "slug": "en-iso-5165",
+          "compliance_type": "correlation",
+          "note": "Cetane Number"
+        },
+        {
+          "slug": "en-iso-4264",
+          "compliance_type": "correlation",
+          "note": "Cetane Index"
+        },
+        {
+          "slug": "en-3104",
+          "compliance_type": "correlation",
+          "note": "Viscosity"
+        },
+        {
+          "slug": "en-12916",
+          "compliance_type": "correlation",
+          "note": "Aromatics (diesel)"
+        },
+        {
+          "slug": "astm-d975",
+          "compliance_type": "specification",
+          "note": "Correlation results cho specification diesel"
+        },
+        {
+          "slug": "astm-d4814",
+          "compliance_type": "specification",
+          "note": "Correlation results cho specification gasoline"
+        },
+        {
+          "slug": "en-228",
+          "compliance_type": "specification",
+          "note": "Correlation results cho specification gasoline"
+        },
+        {
+          "slug": "en-590",
+          "compliance_type": "specification",
+          "note": "Correlation results cho specification diesel"
+        }
+      ],
+      "image_path": null
+    },
+    {
+      "file": "pac_optireader.md",
+      "name": "OptiReader",
+      "model": "OptiReader",
+      "slug": "pac-optireader-jftot-heater-tube-scanner",
+      "brand": "pac",
+      "product_type": "equipment",
+      "short_description": "Máy scan ellipsometric tự động đọc kết quả heater tube (ống gia nhiệt) từ thử nghiệm JFTOT jet fuel thermal oxidation, cho kết quả pass/fail định lượng trong dưới 10 phút.",
+      "seo_title": "OptiReader | PAC | LT Vietnam",
+      "seo_description": "Máy scan ellipsometric tự động đọc kết quả heater tube (ống gia nhiệt) từ thử nghiệm JFTOT jet fuel thermal oxidation, cho kết quả pass/fail định lượng trong dưới 10 phút.",
+      "categories": [
+        "thermal-oxidation-stability"
+      ],
+      "applications": [
+        "jet-fuel"
+      ],
+      "industries": [
+        "oil-and-gas",
+        "quality-control-lab"
+      ],
+      "overview": [
+        "OptiReader là thiết bị scan ống gia nhiệt (heater tube) nhiên liệu phản lực sử dụng công nghệ multi-wavelength ellipsometry (MWETR) tiên tiến. Máy tạo ra bản đồ độ dày cặn bám (deposit thickness) dạng 2D và 3D đầy đủ, xác định độ dày tối đa và thể tích cặn, cho kết quả pass/fail trong dưới 10 phút. Giao diện đơn giản, không cần đào tạo vận hành, giúp giảm phụ thuộc vào kỹ thuật viên có kinh nghiệm và loại bỏ sai số chủ quan từ việc đánh giá bằng mắt thường. Phương pháp MWETR của OptiReader đã được đưa vào ASTM D3241-18 Annex A4."
+      ],
+      "features": [
+        "Quét toàn bộ ống trong dưới 10 phút, cho kết quả pass/fail tự động, khách quan",
+        "Công nghệ multi-wavelength ellipsometry (MWETR), độ chính xác vượt yêu cầu của ASTM D3241 (repeatability <2 nm, reproducibility <4 nm)",
+        "Bản đồ độ dày cặn 2D & 3D định lượng (thickness map), xác định deposit thickness và deposit volume",
+        "Không cần đào tạo hay kiến thức phân tích chuyên sâu; vận hành một nút bấm, không cần kiểm tra bằng mắt",
+        "Màn hình cảm ứng màu lớn 10.8 inch, giao diện thân thiện",
+        "Unified Test Report — hợp nhất kết quả JFTOT và OptiReader vào một báo cáo duy nhất, tích hợp dữ liệu qua PAC Intelligent Heater Tube (IHT) không phát sinh chi phí thêm",
+        "Báo cáo 3D tương tác — xoay, thu phóng, hiển thị dạng surface/scatter/wire frame/shade, in hoặc lưu USB",
+        "Hệ thống hiệu chuẩn/xác nhận (validation) bằng ống chuẩn tạo bởi Atomic Layer Deposition (ALD)",
+        "Được chấp thuận trong ASTM D3241-18 Annex A4"
+      ],
+      "applications_text": [
+        "Phòng thí nghiệm kiểm tra độ ổn định oxy hóa nhiệt của nhiên liệu phản lực (jet fuel thermal oxidation stability) theo ASTM D3241 (JFTOT)",
+        "Đánh giá heater tube sau thử nghiệm JFTOT thay thế phương pháp đánh giá bằng mắt (visual tube rating - VTR)"
+      ],
+      "principle": [
+        "OptiReader sử dụng kỹ thuật multi-wavelength ellipsometry (MWETR) để quét bề mặt ống gia nhiệt (heater tube) sau khi trải qua thử nghiệm JFTOT, đo sự thay đổi trạng thái phân cực ánh sáng phản xạ tại nhiều điểm đo (1200 điểm) trên bề mặt ống để tính toán độ dày lớp cặn bám tại từng điểm. Từ đó dựng bản đồ độ dày 2D/3D và tính deposit thickness tối đa cùng deposit volume, đối chiếu với ngưỡng của ASTM D3241 để đưa ra kết quả pass/fail khách quan, thay thế đánh giá chủ quan bằng mắt thường (visual tube rating)."
+      ],
+      "sample_types": [
+        "Heater tube tiêu chuẩn hoặc PAC Intelligent Heater Tube (IHT, có RFID) sau khi chạy thử nghiệm JFTOT với nhiên liệu phản lực (jet fuel)"
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 100V đến 240V, 50/60 Hz hoặc 12V/5A DC",
+        "Kích thước: Instrument 10 x 14 x 16.5 in / 25.4 x 35.5 x 42 cm; Crate (đóng gói) 29 x 34 x 29 in / 73.6 x 86.3 cm",
+        "Trọng lượng: Máy 33 lbs (15 kg); đã đóng gói (crated) 130 lbs (59 kg)",
+        "Nhiệt độ vận hành: 10°C đến 35°C (50°F đến 95°F); độ cao vận hành dưới 2000 m"
+      ],
+      "accessories_options": [
+        "PAC Intelligent Heater Tube (IHT) — ống gia nhiệt có RFID, cho phép tích hợp dữ liệu JFTOT vào báo cáo hợp nhất (Unified Report) mà không phát sinh chi phí thêm",
+        "Kết nối máy in mạng (network printer connectivity)"
+      ],
+      "specifications": [
+        {
+          "group_key": "Nguyên lý",
+          "label": "Analytical Principle",
+          "value": "Multi-wavelength Ellipsometry (MWETR)",
+          "unit": null
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Deposit Thickness Range",
+          "value": "0 to 500",
+          "unit": "nm"
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Deposit Volume Range",
+          "value": "0 to 0.5",
+          "unit": "mm³"
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Repeatability",
+          "value": "<2",
+          "unit": "nm"
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Reproducibility",
+          "value": "<4",
+          "unit": "nm"
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Number of measurement points",
+          "value": "1200",
+          "unit": "điểm"
+        },
+        {
+          "group_key": "Đo lường",
+          "label": "Test Duration",
+          "value": "<10",
+          "unit": "minutes"
+        },
+        {
+          "group_key": "Hệ thống",
+          "label": "RFID Reader",
+          "value": "Có",
+          "unit": null
+        },
+        {
+          "group_key": "Hệ thống",
+          "label": "User Interface",
+          "value": "10.8\" Color Touchscreen",
+          "unit": null
+        },
+        {
+          "group_key": "Hệ thống",
+          "label": "Internal Memory",
+          "value": "Up to 2000",
+          "unit": "test results"
+        },
+        {
+          "group_key": "Hệ thống",
+          "label": "Output",
+          "value": "3x USB, 1x Ethernet LAN",
+          "unit": null
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d3241",
+          "compliance_type": "compliance",
+          "note": "OptiReader (MWETR) được chấp thuận chính thức trong annex này để đánh giá heater tube"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\PAC Lab\\OptiReader\\Marketing Materials\\OptiReader.jpg"
+    },
+    {
+      "file": "pac_zynthair.md",
+      "name": "ZyNthAir",
+      "model": "ZyNthAir",
+      "slug": "pac-zynthair-gas-mixer",
+      "brand": "pac",
+      "product_type": "accessory",
+      "short_description": "Thiết bị trộn khí (gas mixer) tạo khí đốt tổng hợp (combustion air) thay thế Synthetic Air cho máy phân tích Cetane CID 510 của PAC, kiểm soát nồng độ Oxy 20±0.05%.",
+      "seo_title": "ZyNthAir | PAC | LT Vietnam",
+      "seo_description": "Thiết bị trộn khí (gas mixer) tạo khí đốt tổng hợp (combustion air) thay thế Synthetic Air cho máy phân tích Cetane CID 510 của PAC, kiểm soát nồng độ Oxy 20±0.05%.",
+      "categories": [
+        "lab-accessories"
+      ],
+      "applications": [
+        "diesel"
+      ],
+      "industries": [
+        "oil-and-gas"
+      ],
+      "overview": [
+        "ZyNthAir là phụ kiện gas mixer dùng cho máy phân tích Cetane CID hiện có của PAC (ví dụ CID 510), loại bỏ nhu cầu sử dụng Synthetic Air trong khi vẫn tạo ra khí đốt (combustion air) ổn định, đáng tin cậy và chính xác. ZyNthAir tương thích ngược (backward compatible) với các máy CID hiện hữu, giúp giảm chi phí mua Synthetic Air và loại bỏ nhu cầu hiệu chuẩn Cetane mỗi khi thay bình gas. Thiết bị cần 3 nguồn khí đầu vào: Nitrogen và Zero Air (khí sạch khô nén) để tổng hợp ra 20% Oxy phục vụ đốt cháy ổn định, cùng một lượng nhỏ Oxy để tự động hiệu chuẩn định kỳ cảm biến Oxy."
+      ],
+      "features": [
+        "Loại bỏ nhu cầu sử dụng Synthetic Air, tạo khí đốt (combustion air) với nồng độ Oxy kiểm soát 20±0.05%",
+        "Không còn cần hiệu chuẩn Cetane mỗi khi thay bình gas (giảm chi phí và thời gian vận hành)",
+        "Plug and play với hệ thống CID hiện có, không cần cập nhật phần mềm",
+        "Cảm biến Oxy paramagnetic kiểm soát nhiệt độ, độ chính xác nội tại ±0.01%; độ lặp lại nồng độ Oxy ±0.01%",
+        "Tự động hiệu chuẩn (auto-calibration) cảm biến Oxy định kỳ mỗi 24 giờ, thời gian hiệu chuẩn dưới 2 phút/lần",
+        "Bảo trì và hiệu chuẩn hàng năm cho pressure sensor, lưu lại 6 lần hiệu chuẩn gần nhất",
+        "Tự chẩn đoán (self-diagnostics); màn hình LCD hiển thị trạng thái, nồng độ O2 và mã lỗi; đèn LED trạng thái",
+        "Control App (qua Ethernet) cho phép thiết lập, bảo trì và theo dõi hệ thống từ xa"
+      ],
+      "applications_text": [
+        "Cung cấp khí đốt (combustion air) cho máy phân tích Cetane CID 510 của PAC (đo Cetane Number theo ASTM D7668)",
+        "Phòng thí nghiệm dầu khí cần đo Cetane liên tục, thường xuyên thay bình gas, muốn giảm chi phí Synthetic Air và thời gian hiệu chuẩn lại sau mỗi lần thay bình"
+      ],
+      "principle": [
+        "ZyNthAir trộn Nitrogen và Zero Air (khí nén sạch khô) nén cao áp theo tỷ lệ được kiểm soát bởi các Mass Flow Controller (MFC) — mỗi đường khí có một MFC riêng — để tạo ra khí đốt có nồng độ Oxy 20±0.05%, lưu trữ trong bình chứa khí trộn (mixed air reservoir) dung tích 1 lít, cấp cho máy phân tích ở áp suất 25–38 bar. Cảm biến Oxy được hiệu chuẩn tự động mỗi 24 giờ (dùng chính lượng Oxy tinh khiết đưa vào) và được giữ ở 50°C để triệt tiêu trôi nhiệt (thermal drift), đảm bảo độ chính xác ổn định qua thời gian và giữa các lần thay bình gas."
+      ],
+      "sample_types": [
+        "Không áp dụng — ZyNthAir không đo mẫu nhiên liệu, mà cung cấp khí đốt (combustion air) đầu vào cho máy phân tích Cetane CID 510."
+      ],
+      "operating_conditions": [
+        "Điện áp/công suất: 90 đến 240 VAC, 50/60 Hz, công suất tiêu thụ <60 W (chỉ dùng trong nhà)",
+        "Kích thước: Width 203 mm (8.0 in) x Depth 508 mm (20.0 in) x Height 610 mm (24.0 in) — kích thước lắp đặt trên bàn (bench top); đổi chỗ width/depth khi lắp trên tường (wall mounting)",
+        "Trọng lượng: 74 lbs / 34 kg; hai số liệu tương đồng",
+        "Nhiệt độ vận hành: 10°C đến 35°C (50°F đến 95°F), khuyến nghị 15°C đến 25°C (59°F đến 77°F); độ ẩm vận hành ≤85% không ngưng tụ"
+      ],
+      "accessories_options": [
+        "Bộ gas line tiêu chuẩn (Oxygen, Nitrogen, Consumer line) dài 72 inch",
+        "Bộ regulator theo kiểu đầu nối bình gas (CGA / DIN / BS) — chọn theo tiêu chuẩn bình gas tại hiện trường",
+        "Cáp Ethernet để kết nối Control App",
+        "Calibration Kit cho pressure sensor"
+      ],
+      "specifications": [
+        {
+          "group_key": "Output",
+          "label": "Nồng độ Oxy đầu ra (Combustion Air)",
+          "value": "20.0 ± 0.05",
+          "unit": "%"
+        },
+        {
+          "group_key": "Output",
+          "label": "Áp suất khí đầu ra",
+          "value": "≤25",
+          "unit": "barg"
+        },
+        {
+          "group_key": "Output",
+          "label": "Dung tích bình chứa khí trộn (mixed air reservoir)",
+          "value": "1",
+          "unit": "lít"
+        },
+        {
+          "group_key": "Cảm biến",
+          "label": "Độ chính xác nội tại cảm biến Oxy",
+          "value": "±0.01",
+          "unit": "%"
+        },
+        {
+          "group_key": "Cảm biến",
+          "label": "Độ lặp lại nồng độ Oxy",
+          "value": "±0.01",
+          "unit": "%"
+        },
+        {
+          "group_key": "Cảm biến",
+          "label": "Nhiệt độ vận hành cảm biến Oxy",
+          "value": "50",
+          "unit": "°C"
+        },
+        {
+          "group_key": "Cảm biến",
+          "label": "Chu kỳ tự hiệu chuẩn cảm biến Oxy",
+          "value": "24",
+          "unit": "giờ"
+        },
+        {
+          "group_key": "Cảm biến",
+          "label": "Thời gian hiệu chuẩn mỗi lần",
+          "value": "<2",
+          "unit": "phút"
+        },
+        {
+          "group_key": "Gas input",
+          "label": "Áp suất Nitrogen/Air cấp vào",
+          "value": "37 – 40",
+          "unit": "barg"
+        },
+        {
+          "group_key": "Gas input",
+          "label": "Độ tinh khiết Nitrogen",
+          "value": "≥99.999",
+          "unit": "%"
+        },
+        {
+          "group_key": "Gas input",
+          "label": "Áp suất Oxygen cấp vào",
+          "value": "2.2 – 3.4",
+          "unit": "barg"
+        },
+        {
+          "group_key": "Gas input",
+          "label": "Độ tinh khiết Oxygen",
+          "value": "≥99.994",
+          "unit": "%"
+        },
+        {
+          "group_key": "Kết nối",
+          "label": "Đầu nối gas/output",
+          "value": "¼\" Tube Fitting",
+          "unit": null
+        },
+        {
+          "group_key": "Kết nối",
+          "label": "Data input/output",
+          "value": "1x Ethernet port",
+          "unit": null
+        },
+        {
+          "group_key": "Hiệu năng đo",
+          "label": "Số chu kỳ injection thử nghiệm (dữ liệu công bố)",
+          "value": "biến thiên ~±0.01% trong 160 lần injection, trong ngưỡng mục tiêu ±0.05%",
+          "unit": "%"
+        }
+      ],
+      "standards": [
+        {
+          "slug": "astm-d7668",
+          "compliance_type": "reference",
+          "note": "Phương pháp đo Cetane Number của máy CID 510 (patented method) mà ZyNthAir cấp khí đốt hỗ trợ; không phải tiêu chuẩn của bản thân ZyNthAir"
+        },
+        {
+          "slug": "astm-d613",
+          "compliance_type": "reference",
+          "note": "Máy CID 510 (được ZyNthAir hỗ trợ khí đốt) correlate với phương pháp Cetane Engine Method D613"
+        }
+      ],
+      "image_path": "D:\\Work\\LTVN\\Lab\\PAC Lab\\ZyNthAir\\Marketing Materials\\Product Images and Graphics\\PAC ZyNthAir Image.jpg"
+    }
+  ]
+}

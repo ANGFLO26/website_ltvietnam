@@ -41,12 +41,13 @@ export class AdminProductController {
       {
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.brand_id !== undefined && { brandId: dto.brand_id }),
+        ...(dto.category_id !== undefined && { categoryId: dto.category_id }),
         ...(dto.q !== undefined && { search: dto.q }),
         ...(dto.include_deleted && { includeDeleted: true }),
       },
       { page: dto.page, pageSize: dto.page_size },
     );
-    return page(result.items.map(toAdminView), {
+    return page(result.items, {
       page: result.page,
       pageSize: result.pageSize,
       totalItems: result.totalItems,

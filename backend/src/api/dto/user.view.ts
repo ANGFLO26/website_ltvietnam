@@ -1,4 +1,5 @@
 import type { User } from '../../dao/users/object.js';
+import type { AdminSessionView, AdminUserView } from '@ltv/contracts';
 
 /**
  * Hinh dang cua `user` KHI DI RA NGOAI. Khong phai thuc the nghiep vu.
@@ -27,12 +28,7 @@ import type { User } from '../../dao/users/object.js';
  * thanh `camelCase` cua nghiep vu; `api/dto/<x>.view.ts` doi nguoc lai o bien
  * ra. Nghiep vu o giua khong biet kieu viet nao ca.
  */
-export interface UserIdentityView {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly role: string;
-}
+export type UserIdentityView = AdminSessionView;
 
 /**
  * HAI kieu chu khong phai mot kieu co truong tuy chon.
@@ -49,10 +45,7 @@ export interface UserIdentityView {
  * ten thi moi endpoint noi dung nhung gi no biet, va `UserView` la tap CHA
  * cua `UserIdentityView` nen ma dung chung van dung duoc ca hai.
  */
-export interface UserView extends UserIdentityView {
-  /** ISO 8601, hoac `null` khi that su chua bao gio dang nhap. */
-  readonly last_login_at: string | null;
-}
+export type UserView = AdminUserView;
 
 export function toUserView(u: User): UserView {
   return {

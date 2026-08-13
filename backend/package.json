@@ -10,7 +10,12 @@
     "start": "node --env-file-if-exists=../.env dist/main.js",
     "test": "vitest run",
     "dao:new": "node scripts/new-dao.mjs",
-    "seed:demo": "tsx --env-file-if-exists=../.env scripts/seed-demo.ts"
+    "seed:demo": "tsx --env-file-if-exists=../.env scripts/seed-demo.ts",
+    "e2e:admin:create": "tsx --env-file-if-exists=../.env scripts/admin-e2e-fixture.ts create",
+    "e2e:admin:cleanup": "tsx --env-file-if-exists=../.env scripts/admin-e2e-fixture.ts cleanup",
+    "seed:lab": "tsx --env-file-if-exists=../.env scripts/seed-lab-products.ts",
+    "seed:valves": "tsx --env-file-if-exists=../.env scripts/seed-valve-products.ts",
+    "test:db": "node --env-file-if-exists=../.env ../node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@ltv/config": "workspace:*",

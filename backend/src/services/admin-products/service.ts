@@ -1,4 +1,9 @@
-import { extractMediaIds, type ContentBlock } from '@ltv/contracts';
+import {
+  extractMediaIds,
+  type AdminEntityStatus,
+  type AdminProductListItemView,
+  type ContentBlock,
+} from '@ltv/contracts';
 import { ConflictError, DomainError, NotFoundError } from '../../shared/errors.js';
 import { chiCo } from '../../shared/omit-undefined.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
@@ -35,16 +40,17 @@ export class AdminProductServiceImpl implements AdminProductService {
 
   async list(
     filter: {
-      readonly status?: string | undefined;
+      readonly status?: AdminEntityStatus | undefined;
       readonly brandId?: string | undefined;
+      readonly categoryId?: string | undefined;
       readonly search?: string | undefined;
       readonly includeDeleted?: boolean | undefined;
     },
     page: { readonly page: number; readonly pageSize: number },
   ): Promise<AdminProductPage> {
-    const result = await this.daos.products.list(chiCo(filter), page);
+    const result = await this.daos.products.listAdmin(chiCo(filter), page);
     return {
-      items: result.data,
+      items: result.data.map(productListView),
       page: result.meta.page,
       pageSize: result.meta.pageSize,
       totalItems: result.meta.totalItems,
@@ -167,6 +173,38 @@ export class AdminProductServiceImpl implements AdminProductService {
       ...extra,
     });
   }
+}
+
+function productListView(
+  row: Awaited<ReturnType<AdminProductDaos['products']['listAdmin']>>['data'][number],
+): AdminProductListItemView {
+  const primaryCategory =
+    row.primaryCategoryId === null || row.primaryCategoryName === null
+      ? null
+      : {
+          id: row.primaryCategoryId,
+          label: row.primaryCategoryName,
+          slug: row.primaryCategorySlug,
+        };
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    model: row.model,
+    internal_code: row.internalCode,
+    sku: row.sku,
+    status: row.status,
+    brand: { id: row.brandId, label: row.brandName, slug: row.brandSlug },
+    primary_category: primaryCategory,
+    thumbnail_id: row.thumbnailId,
+    thumbnail_url: row.thumbnailUrl,
+    thumbnail_alt: row.thumbnailAlt,
+    is_featured: row.isFeatured,
+    discontinued_at: row.discontinuedAt?.toISOString() ?? null,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+    deleted_at: row.deletedAt?.toISOString() ?? null,
+  };
 }
 
 function entityFields(input: AdminProductWrite): UpdateProductInput {

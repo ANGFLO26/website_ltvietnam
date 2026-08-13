@@ -52,8 +52,23 @@ export type ResolveResponse =
   | { readonly kind: 'redirect'; readonly status: 301 | 302; readonly target: string }
   | { readonly kind: 'content' };
 
-/** Phase theo `doc/12`. `F-1` la phase va nen da lam truoc F0. */
-export type ApiPhase = 'F-1' | 'F0' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6' | 'F7' | 'F8';
+/** Phase backend `doc/12` va giao dien quan tri `doc/21`. */
+export type ApiPhase =
+  | 'F-1'
+  | 'F0'
+  | 'F1'
+  | 'F2'
+  | 'F3'
+  | 'F4'
+  | 'F5'
+  | 'F6'
+  | 'F7'
+  | 'F8'
+  | 'A1'
+  | 'A2'
+  | 'A3'
+  | 'A4'
+  | 'A5';
 
 export interface ApiEndpointDef {
   readonly method: ApiMethod;
@@ -154,6 +169,15 @@ export const API_ENDPOINTS = [
     phase: 'F-1',
     status: 'done',
     note: 'chi chay khi bang users RONG — xem doc/13 muc 15',
+  },
+  {
+    method: 'GET',
+    path: '/admin/dashboard',
+    area: 'admin',
+    auth: true,
+    phase: 'A1',
+    status: 'done',
+    note: 'count va recent inquiry da sanitize; khong tra secret/PII',
   },
 
   // ══════════════ F1 — taxonomy ══════════════
@@ -539,6 +563,15 @@ export const API_ENDPOINTS = [
     phase: 'F7',
     status: 'done',
     note: 'tra TEP — khong bi boc vo {data}',
+  },
+  {
+    method: 'POST',
+    path: '/admin/publish-check',
+    area: 'admin',
+    auth: true,
+    phase: 'F8',
+    status: 'done',
+    note: 'kiem dieu kien ma khong thay doi trang thai; locale bat buoc cho noi dung co ban dich',
   },
   // F8a - taxonomy admin. DELETE ?hard=true only for never-published drafts.
   { method: 'GET', path: '/admin/brands', area: 'admin', auth: true, phase: 'F8', status: 'done' },

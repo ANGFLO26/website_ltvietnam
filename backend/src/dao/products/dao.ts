@@ -19,6 +19,11 @@ import type {
 import { toProduct } from './mapper.js';
 import { ProductQueryRunner } from './query.js';
 import type { ProductCard, ProductDetail, ProductFilter, ProductSort } from './object.js';
+import {
+  listAdminProducts,
+  type AdminProductListFilter,
+  type AdminProductListRow,
+} from '../admin-read-model.js';
 
 export class KyselyProductDao extends BaseDao implements ProductDao {
   private readonly slugs: SlugSupport;
@@ -138,6 +143,13 @@ export class KyselyProductDao extends BaseDao implements ProductDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toProduct), total, p);
+  }
+
+  listAdmin(
+    filter: AdminProductListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminProductListRow>> {
+    return listAdminProducts(this.db, filter, page);
   }
 
   // ── ghi ────────────────────────────────────────────────────────

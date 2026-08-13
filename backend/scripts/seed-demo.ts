@@ -27,8 +27,11 @@
  * ngon ngu; dich la lam nguoi doc khong tra cuu duoc thiet bi.
  */
 import { randomUUID } from 'node:crypto';
-import { loadConfig } from '@ltv/config';
+import { mkdir, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { loadConfig, mediaPaths, type AppConfig } from '@ltv/config';
 import type { ContentBlock } from '@ltv/contracts';
+import sharp from 'sharp';
 import { createDaoRuntime } from '../src/dao/connection.js';
 import type { DaoManager } from '../src/dao/dao-manager.js';
 
@@ -1219,12 +1222,12 @@ async function seedTrang(daos: DaoManager): Promise<void> {
  * MOT hang `media` kieu anh, dung chung cho banner va logo khach hang.
  *
  * `banners.image_id` la NOT NULL va `customers.logo_id` di qua `innerJoin`, nen
- * khong co hang media thi khong the seed hai nhom kia. Tep KHONG ton tai va do la
- * co y: luu tru that la viec cua F7. Duong `/media/...` se 404 cho den luc do, con
- * moi phep kiem cua F4 (banner con hieu luc, logo duoc phep hien) khong phu thuoc
- * vao tep.
+ * khong co hang media thi khong the seed hai nhom kia. Ban F4 cu chi tao row nen
+ * UI luon co 404. F7 da hoan tat, seed nay gio tao mot JPEG mau that de smoke
+ * khong che cac console error khac.
  */
-async function seedAnh(daos: DaoManager): Promise<string> {
+async function seedAnh(daos: DaoManager, cfg: AppConfig): Promise<string> {
+  await ensureDemoImage(cfg);
   const co = await daos.media.findByChecksum?.('demo-image').catch(() => null);
   if (co) {
     dem.daCo += 1;
@@ -1247,6 +1250,28 @@ async function seedAnh(daos: DaoManager): Promise<string> {
   });
   dem.moi += 1;
   return m.id;
+}
+
+async function ensureDemoImage(cfg: AppConfig): Promise<void> {
+  const directory = mediaPaths(cfg).public;
+  const destination = join(directory, 'demo-image.jpg');
+  try {
+    const info = await stat(destination);
+    if (info.isFile() && info.size > 0) return;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  await mkdir(directory, { recursive: true });
+  await sharp({
+    create: {
+      width: 1920,
+      height: 720,
+      channels: 3,
+      background: { r: 15, g: 53, b: 84 },
+    },
+  })
+    .jpeg({ quality: 82 })
+    .toFile(destination);
 }
 
 /**
@@ -1527,6 +1552,28 @@ async function main(): Promise<void> {
   const daos = rt.manager;
 
   try {
+    /**
+     * CHOT CHAN — khong do du lieu demo len tren du lieu THAT.
+     *
+     * Tu khi `seed-lab-products.ts` nap 17 dong may that (ma `LAB-`), chay
+     * nham lenh nay se chen 17 san pham `DEMO-` vao cung mot catalogue. Chung
+     * co ten that (`OptiDist`, `HVM 472`) nhung MOI doan mo ta deu la van ban
+     * thay the — nhin qua rat kho phan biet voi hang that, va co the bi dung
+     * de bao gia.
+     *
+     * Kiem o day chu khong chi ghi trong tai lieu: mot canh bao nam trong tai
+     * lieu khong chan duoc lenh go nham.
+     */
+    const thatSuCo = await daos.products.list({}, { page: 1, pageSize: 100 });
+    const soThat = thatSuCo.data.filter((p) => p.internalCode?.startsWith('LAB-')).length;
+    if (soThat > 0) {
+      log(`\nDUNG LAI: co ${soThat} san pham THAT (ma LAB-) trong co so du lieu.\n`);
+      log('Do them du lieu demo len tren se tron van ban thay the vao catalogue that.');
+      log('Neu that su muon dung du lieu demo, hay xoa du lieu that truoc:');
+      log("  DELETE FROM ltv.products WHERE internal_code LIKE 'LAB-%';\n");
+      return;
+    }
+
     log('\nDu lieu demo (idempotent — chay lai khong nhan doi)\n');
     const hang = await seedHang(daos);
     const danhMuc = await seedCay(daos, 'productCategories', DANH_MUC);
@@ -1546,7 +1593,7 @@ async function main(): Promise<void> {
     await seedTrang(daos);
 
     // ── F4: khung site ──
-    const anhId = await seedAnh(daos);
+    const anhId = await seedAnh(daos, cfg);
     const spDau = (await daos.products.list({ status: 'published' }, { page: 1, pageSize: 1 }))
       .data[0];
     const hangDau = hang.get('pac') ?? [...hang.values()][0];

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { contactMetadata, renderContactPage } from '@/lib/w5/contact';
+import { contactMetadata, renderContactPage } from '@/page-views/contact';
 
 export const metadata: Metadata = contactMetadata('en');
 

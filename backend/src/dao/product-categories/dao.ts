@@ -11,6 +11,11 @@ import type {
   UpdateProductCategoryInput,
 } from './object.js';
 import { toProductCategory } from './mapper.js';
+import {
+  listAdminTaxonomy,
+  type AdminTaxonomyListFilter,
+  type AdminTaxonomyListRow,
+} from '../admin-read-model.js';
 
 /** Cay + slug + xoa mem — cung hinh dang voi `brands`. */
 export class KyselyProductCategoryDao extends TreeDao implements ProductCategoryDao {
@@ -80,6 +85,25 @@ export class KyselyProductCategoryDao extends TreeDao implements ProductCategory
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toProductCategory), total, p);
+  }
+
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>> {
+    return listAdminTaxonomy(
+      this.db,
+      {
+        kind: 'product_category',
+        table: 'product_categories',
+        tree: true,
+        thumbnailColumns: ['featured_image_id', 'icon_id'],
+        relatedTable: 'product_category_links',
+        relatedForeignKey: 'category_id',
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreateProductCategoryInput): Promise<ProductCategory> {

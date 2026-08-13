@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminContentListFilter, AdminContentListRow } from '../admin-read-model.js';
 import type {
   HreflangAlternate,
   Locale,
@@ -19,6 +20,10 @@ import type {
 export interface ProjectDao {
   findById(id: string): Promise<Project | null>;
   list(filter: ProjectFilter, page?: Partial<Page>): Promise<Paged<Project>>;
+  listAdmin(
+    filter: AdminContentListFilter<'project_type' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>>;
 
   insert(input: CreateProjectInput): Promise<Project>;
   update(id: string, input: UpdateProjectInput): Promise<Project>;
@@ -54,6 +59,9 @@ export interface ProjectDao {
     id: string,
     media: readonly { mediaId: string; caption?: string | null }[],
   ): Promise<void>;
+  findMedia(
+    id: string,
+  ): Promise<readonly { mediaId: string; caption: string | null; displayOrder: number }[]>;
   findLinks(id: string): Promise<Required<ProjectLinks>>;
   countMedia(id: string): Promise<number>;
 

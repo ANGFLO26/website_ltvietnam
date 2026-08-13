@@ -200,7 +200,7 @@ export interface ProductCard {
   readonly brandName: string;
   readonly brandSlug: string;
   readonly featuredImageId: string | null;
-  readonly featuredImagePath: string | null;
+  readonly featuredImageUrl: string | null;
   readonly featuredImageAlt: string | null;
   readonly standards: readonly CardStandard[];
   readonly isFeatured: boolean;
@@ -228,7 +228,7 @@ export interface ProductDetail {
   readonly brand: { id: string; name: string; slug: string };
   readonly categories: readonly DetailCategory[];
   readonly standards: readonly DetailStandard[];
-  readonly applications: readonly DetailTaxon[];
+  readonly applications: readonly DetailApplication[];
   readonly industries: readonly DetailTaxon[];
   readonly media: readonly DetailMedia[];
   readonly specifications: readonly DetailSpec[];
@@ -250,12 +250,17 @@ export interface DetailStandard {
   readonly slug: string;
   readonly complianceType: ComplianceType;
   readonly note: string | null;
+  readonly displayOrder: number;
 }
 
 export interface DetailTaxon {
   readonly id: string;
   readonly name: string;
   readonly slug: string;
+}
+
+export interface DetailApplication extends DetailTaxon {
+  readonly isPrimary: boolean;
 }
 
 export interface DetailMedia {
@@ -267,6 +272,7 @@ export interface DetailMedia {
   readonly width: number | null;
   readonly height: number | null;
   readonly mediaRole: MediaRole;
+  readonly displayOrder: number;
 }
 
 export interface DetailSpec {
@@ -275,9 +281,11 @@ export interface DetailSpec {
   readonly label: string;
   readonly value: string | null;
   readonly unit: string | null;
+  readonly displayOrder: number;
 }
 
 export interface DetailRelated {
   readonly relationType: RelationType;
+  readonly displayOrder: number;
   readonly card: ProductCard;
 }

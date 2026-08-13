@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { postDetailMetadata, renderPostDetail } from '@/lib/w4/news';
+import { postDetailMetadata, renderPostDetail } from '@/page-views/news';
 
 export function generateMetadata({
   params,

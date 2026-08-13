@@ -18,6 +18,7 @@ describe('loadConfig', () => {
     const cfg = loadConfig(base as NodeJS.ProcessEnv);
     expect(cfg.DATABASE_SCHEMA).toBe('ltv');
     expect(cfg.API_PORT).toBe(3001);
+    expect(cfg.ADMIN_SITE_URL).toBe('http://localhost:3002');
     expect(cfg.MEDIA_PURGE_DELAY_DAYS).toBe(30);
   });
 
@@ -60,6 +61,7 @@ describe('loadConfig', () => {
       NODE_ENV: 'production',
       CORS_ORIGINS: 'https://ltvietnam.com.vn',
       NEXT_PUBLIC_SITE_URL: 'https://ltvietnam.com.vn',
+      ADMIN_SITE_URL: 'https://admin.ltvietnam.com.vn',
     } as NodeJS.ProcessEnv);
     expect(() => assertProductionSafe(cfg)).toThrow(/EMAIL_TRANSPORT|CAPTCHA/);
     expect(() =>
@@ -67,6 +69,7 @@ describe('loadConfig', () => {
         loadWorkerConfig({
           DATABASE_URL: base.DATABASE_URL,
           NODE_ENV: 'production',
+          ADMIN_SITE_URL: 'https://admin.ltvietnam.com.vn',
         } as NodeJS.ProcessEnv),
       ),
     ).toThrow(/EMAIL_TRANSPORT/);
@@ -79,5 +82,24 @@ describe('loadConfig', () => {
     expect(() =>
       loadConfig({ ...base, CAPTCHA_PROVIDER: 'turnstile' } as NodeJS.ProcessEnv),
     ).toThrow(/CAPTCHA_SECRET/);
+  });
+
+  it('tu choi ADMIN_SITE_URL co path va HTTP tren production', () => {
+    expect(() =>
+      loadWorkerConfig({
+        DATABASE_URL: base.DATABASE_URL,
+        ADMIN_SITE_URL: 'https://admin.ltvietnam.com.vn/reset',
+      } as NodeJS.ProcessEnv),
+    ).toThrow(/ADMIN_SITE_URL/);
+
+    expect(() =>
+      assertWorkerProductionSafe(
+        loadWorkerConfig({
+          DATABASE_URL: base.DATABASE_URL,
+          NODE_ENV: 'production',
+          ADMIN_SITE_URL: 'http://localhost:3002',
+        } as NodeJS.ProcessEnv),
+      ),
+    ).toThrow(/ADMIN_SITE_URL/);
   });
 });

@@ -132,6 +132,8 @@ export interface ProductCardView {
   readonly model: string | null;
   readonly short_description: string | null;
   readonly featured_image_id: string | null;
+  readonly featured_image_url: string | null;
+  readonly featured_image_alt: string | null;
   readonly brand: { readonly slug: string; readonly name: string } | null;
   /** Danh sach gon de ve nhan tieu chuan ngay tren card, khong goi them API. */
   readonly standards: readonly StandardCardView[];

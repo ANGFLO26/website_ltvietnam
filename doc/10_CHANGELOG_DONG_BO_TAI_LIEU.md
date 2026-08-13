@@ -320,3 +320,136 @@ Test bảo mật chặn: `javascript:`, `http://` không mã hóa, provider ngo�
 
 ## R5. Ghi chú migration
 Danh sách "Methods" của site cũ (`ASTM D86, D1078...`) là **dữ liệu quan hệ**, phải parse vào `product_standards`, không để trong block — nếu để trong block thì mất khả năng lọc theo tiêu chuẩn (ADR-007).
+
+
+---
+
+# PHẦN S — KẾ HOẠCH GIAO DIỆN QUẢN TRỊ A1–A5 (2026-08-10)
+
+## S1. Tài liệu mới
+
+Thêm [`doc/21_KE_HOACH_CODE_ADMIN.md`](21_KE_HOACH_CODE_ADMIN.md): quyết định tách admin
+thành workspace Next.js riêng, kiến trúc thông tin, luồng UX, route, cấu trúc mã, khoảng
+trống backend và tiêu chí nghiệm thu cho A1–A5.
+
+## S2. Mâu thuẫn được đóng
+
+- Thống nhất ADR-003 hiện hành: Admin có danh sách/chi tiết inquiry chỉ đọc và nút
+  `handled`; không có CRM/pipeline/phân công/ghi chú.
+- Sản phẩm là entity một ngôn ngữ theo ADR-014; form sản phẩm không có tab VI/EN, không
+  có cột/badge bản dịch và không dùng `Tên VI/Tên EN` cho specification.
+- Phân biệt soft delete với delete vĩnh viễn của office/banner/menu.
+- Footer được quản lý qua menu `footer_*` và Settings, không tạo entity/endpoint giả.
+
+## S3. Khoảng trống triển khai được ghi nhận
+
+CRUD backend đã có nhưng admin read-model chưa đủ: danh sách content không có title/name
+bản dịch; danh sách sản phẩm thiếu brand/category/thumbnail; phần lớn response admin chưa
+có hợp đồng dùng chung trong `@ltv/contracts`; dashboard chưa có endpoint tổng hợp. Các
+việc này được đưa vào A1 như điều kiện mở khóa, không bù bằng N+1 hoặc dữ liệu mock.
+
+## S4. Lớp mở khóa admin đã triển khai
+
+- Thêm `ADMIN_SITE_URL` tách khỏi `NEXT_PUBLIC_SITE_URL`; worker gửi link đặt lại mật khẩu
+  về `/reset-password` trên admin origin và production chặn HTTP/origin có path.
+- Thêm shared admin contracts cho content/product/taxonomy list view và publish preflight.
+- Thêm read-model một query cho content VI/EN, sản phẩm và taxonomy; các controller danh
+  sách không còn buộc frontend gọi detail từng hàng.
+- Thêm `POST /api/v1/admin/publish-check`, tái sử dụng `PublishService` để UI lấy blocker
+  trước publish mà không sao chép business rule.
+- Public banner view trả URL ảnh desktop/mobile và hero dùng banner active với fallback an
+  toàn. Menu public mang `label_i18n_key`, được dịch theo locale và fallback nhãn DB.
+- Cập nhật `doc/21` để phân biệt phần đã hoàn tất với dashboard/detail contracts và admin
+  workspace còn phải làm trong A1.
+
+---
+
+# PHẦN T — HOÀN THÀNH GIAO DIỆN QUẢN TRỊ A1 (2026-08-11)
+
+## T1. Workspace và vận hành
+
+- Thêm workspace Next.js `@ltv/admin` độc lập tại cổng 3002, proxy cùng origin cho API/media,
+  CSP chống nhúng, `X-Robots-Tag: noindex` và script `run-admin.cmd`/`pnpm dev:admin`.
+- Thêm session gate ở middleware và server layout; URL `next` được kiểm soát để không tạo open redirect.
+- API client browser/server dùng response envelope chung, timeout, FormData, 204, cookie session và
+  CSRF double-submit; không lưu token vào localStorage/sessionStorage.
+
+## T2. Auth, shell và component nền
+
+- Hoàn thành setup admin đầu tiên, login, quên/đặt lại/đổi mật khẩu và logout.
+- Hoàn thành AdminShell responsive, sidebar mobile có focus/Escape, breadcrumb, account menu,
+  trạng thái loading/empty/error, dialog, toast, field, select, checkbox, status badge, table,
+  filter và pagination.
+- Logout hoặc API trả 401 đều xóa TanStack Query cache trước khi chuyển về login.
+
+## T3. Dashboard và hợp đồng
+
+- Thêm shared `AdminSessionView`, `AdminUserView`, auth schemas và `AdminDashboardView`.
+- Thêm `GET /api/v1/admin/dashboard`; recent inquiry chỉ chứa metadata vận hành, không có họ tên,
+  email, điện thoại, nội dung yêu cầu hoặc secret.
+- Dashboard admin dùng dữ liệu thật; panel publish preflight gọi trực tiếp business rule backend,
+  không sao chép rule sang frontend.
+- Registry API tăng lên 200/200 endpoint; nhóm F8 có 137 endpoint quản trị.
+
+## T4. Bằng chứng
+
+Kết quả và giới hạn chi tiết được ghi tại
+[`doc/22_BAO_CAO_HOAN_THANH_ADMIN_A1.md`](22_BAO_CAO_HOAN_THANH_ADMIN_A1.md).
+
+---
+
+# PHẦN U — HOÀN THÀNH GIAO DIỆN QUẢN TRỊ A2 (2026-08-11)
+
+## U1. Catalogue và tài nguyên
+
+- Thêm shared detail/write contracts cho taxonomy, sản phẩm và tài liệu; mở rộng product detail
+  để giữ `display_order`, vai trò media và ứng dụng chính khi round-trip.
+- Hoàn thành Media Library/upload queue/metadata/usage/MediaPicker; giới hạn ảnh và PDF được kiểm
+  cả ở client lẫn backend.
+- Hoàn thành năm nhóm taxonomy, cây hãng/danh mục, cảnh báo đổi parent và ứng dụng phẳng theo ADR-010.
+- Hoàn thành danh sách, tạo draft nhanh và form section-based cho sản phẩm; mỗi tập quan hệ chỉ được
+  gửi trong PATCH khi section tương ứng thực sự thay đổi theo ADR-008.
+- Hoàn thành danh sách/form tài liệu và liên kết sản phẩm, hãng, dịch vụ, bài viết.
+
+## U2. Chất lượng và lỗi route
+
+- Thêm lọc sản phẩm admin theo `category_id` ngay trong read-model một query.
+- Thêm cảnh báo rời form khi còn thay đổi chưa lưu; MediaPicker chặn PDF trong trường ảnh.
+- Sửa xung đột `/media`: Media Library giữ route admin, chỉ `originals`/`variants` được proxy sang
+  cổng media công khai; middleware vẫn bảo vệ `/media` và `/media/[id]`.
+- Kết quả và giới hạn chi tiết được ghi tại
+  [`doc/23_BAO_CAO_HOAN_THANH_ADMIN_A2.md`](23_BAO_CAO_HOAN_THANH_ADMIN_A2.md).
+
+---
+
+# PHẦN V — HOÀN THÀNH GIAO DIỆN QUẢN TRỊ A3–A4 (2026-08-11)
+
+## V1. Nội dung song ngữ A3
+
+- Hoàn thành pages/services/projects/posts/post-categories, tab VI/EN, block editor allowlist,
+  preview an toàn và publish/hide độc lập theo locale.
+- Bổ sung admin content detail/write contracts và read-model không N+1.
+- Báo cáo: [`doc/24_BAO_CAO_HOAN_THANH_ADMIN_A3.md`](24_BAO_CAO_HOAN_THANH_ADMIN_A3.md).
+
+## V2. Vận hành website A4
+
+- Hoàn thành inquiry inbox, homepage, banner, customer, office, menu/footer, redirect, settings
+  và managed users.
+- Khóa invariant link type/target, menu tree/reorder, homepage allowlist, coordinate pair, secret
+  masking và quyền công khai logo khách hàng ở contract/backend/UI.
+- Mutation site invalidates đúng cache public `home:*` hoặc `nav:*` trong cùng tiến trình.
+- Báo cáo: [`doc/25_BAO_CAO_HOAN_THANH_ADMIN_A4.md`](25_BAO_CAO_HOAN_THANH_ADMIN_A4.md).
+
+---
+
+# PHẦN W — NGHIỆM THU GIAO DIỆN QUẢN TRỊ A5 (2026-08-11)
+
+- Hoàn thiện retry/offline/error boundary, chống mutation trùng, dirty guard, focus trap/return,
+  accessible live region, responsive card-list và secret-state hygiene.
+- Bổ sung budget 34 route, Lighthouse authenticated, smoke 16 route × 4 viewport và E2E thật cho
+  sản phẩm, nội dung, inquiry trên fixture PostgreSQL có cleanup chính xác.
+- Nghiệm thu cuối: responsive/E2E 72/72, console error 0, accessibility 100/100 trên bốn route,
+  LCP lớn nhất 2,356 giây, CLS 0, JavaScript lớn nhất 169/190 KiB gzip.
+- Full workspace đạt 725/725 test, typecheck/lint/format sạch và production build toàn workspace đạt.
+- Báo cáo: [`doc/26_BAO_CAO_NGHIEM_THU_ADMIN_A5.md`](26_BAO_CAO_NGHIEM_THU_ADMIN_A5.md); runbook:
+  [`doc/27_HUONG_DAN_VAN_HANH_ADMIN.md`](27_HUONG_DAN_VAN_HANH_ADMIN.md).

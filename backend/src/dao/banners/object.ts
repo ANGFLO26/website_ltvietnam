@@ -49,6 +49,12 @@ export interface Banner {
   readonly endAt: Date | null;
 }
 
+/** Banner cong khai kem URL hai anh, du de frontend ve ma khong goi media theo tung dong. */
+export interface ActiveBanner extends Banner {
+  readonly imagePublicUrl: string | null;
+  readonly mobileImagePublicUrl: string | null;
+}
+
 export interface CreateBannerInput {
   readonly imageId: string;
   readonly title: string;

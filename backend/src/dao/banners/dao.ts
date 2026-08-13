@@ -1,7 +1,13 @@
 import { sql } from 'kysely';
 import { BaseDao } from '../base.dao.js';
 import type { BannerDao } from './dao.interface.js';
-import type { Banner, BannerFilter, CreateBannerInput, UpdateBannerInput } from './object.js';
+import type {
+  ActiveBanner,
+  Banner,
+  BannerFilter,
+  CreateBannerInput,
+  UpdateBannerInput,
+} from './object.js';
 import { toBanner } from './mapper.js';
 
 export class KyselyBannerDao extends BaseDao implements BannerDao {
@@ -21,16 +27,27 @@ export class KyselyBannerDao extends BaseDao implements BannerDao {
     return rows.map(toBanner);
   }
 
-  async findActive(): Promise<Banner[]> {
+  async findActive(): Promise<ActiveBanner[]> {
     // Dung query builder de `toBanner` nhan dung kieu hang, khong phai ep.
     // Rieng hai dieu kien thoi gian viet bang `sql` vi chung phai dung
     // `NOW()` cua PostgreSQL — xem chu thich o `dao.interface.ts`.
     const rows = await this.db
       .selectFrom('banners')
       .innerJoin('media', 'media.id', 'banners.image_id')
+      .leftJoin('media as mobile_media', (join) =>
+        join
+          .onRef('mobile_media.id', '=', 'banners.mobile_image_id')
+          .on('mobile_media.deleted_at', 'is', null)
+          .on('mobile_media.storage_class', '=', 'public'),
+      )
       .selectAll('banners')
+      .select([
+        'media.public_url as image_public_url',
+        'mobile_media.public_url as mobile_image_public_url',
+      ])
       .where('banners.status', '=', 'published')
       .where('media.deleted_at', 'is', null)
+      .where('media.storage_class', '=', 'public')
       // NGOAC LA BAT BUOC. Kysely noi cac `where` bang AND, nhung KHONG boc
       // ngoac doan SQL tho. Thieu ngoac thi `AND a OR b` bi PostgreSQL doc
       // thanh `(AND a) OR b` vi AND uu tien hon OR — va moi banner het han
@@ -40,7 +57,11 @@ export class KyselyBannerDao extends BaseDao implements BannerDao {
       .orderBy('banners.display_order')
       .orderBy('banners.title')
       .execute();
-    return rows.map(toBanner);
+    return rows.map((row) => ({
+      ...toBanner(row),
+      imagePublicUrl: row.image_public_url,
+      mobileImagePublicUrl: row.mobile_image_public_url,
+    }));
   }
 
   async insert(input: CreateBannerInput): Promise<Banner> {

@@ -329,6 +329,31 @@ run('ContentService tren PostgreSQL that', () => {
     });
   });
 
+  describe('admin read-model', () => {
+    it('gom translation, tim kiem va phan trang trong mot truy van', async () => {
+      const before = sqlCount;
+      const result = await daos.services.listAdmin(
+        { locale: 'vi', search: 'Dich vu sv-goc' },
+        { pageSize: 10 },
+      );
+
+      expect(sqlCount - before).toBe(1);
+      expect(result.meta.totalItems).toBe(1);
+      expect(result.data[0]).toMatchObject({
+        id: id['sv0'],
+        kind: 'service',
+        translations: [
+          expect.objectContaining({
+            locale: 'vi',
+            title: 'Dich vu sv-goc',
+            slug: s('sv-goc'),
+            status: 'published',
+          }),
+        ],
+      });
+    });
+  });
+
   // ══════════════ locale ══════════════
   describe('locale', () => {
     it('locale KHAC nhau cho ket qua KHAC nhau', async () => {

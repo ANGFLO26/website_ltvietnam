@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ProductCardView } from '@ltv/contracts';
 import type { Dictionary } from '@/lib/i18n';
 import { routePath } from '@/lib/routes';
@@ -24,10 +25,25 @@ export function ProductCard({
         href={detailHref}
         aria-label={`${dictionary.products.viewProduct}: ${product.name}`}
       >
+        {product.featured_image_url === null ? null : (
+          <>
+            <Image
+              src={product.featured_image_url}
+              alt={product.featured_image_alt ?? product.name}
+              fill
+              sizes="(max-width: 640px) 92vw, (max-width: 1280px) 46vw, 30vw"
+              className="object-contain p-7 transition duration-500 group-hover:scale-105"
+            />
+            <span
+              className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white via-white/75 to-transparent"
+              aria-hidden="true"
+            />
+          </>
+        )}
         <span className="absolute right-5 top-5 rounded-full border border-slate-300/70 bg-white/80 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-600 backdrop-blur">
           {product.brand?.name ?? dictionary.products.brandLabel}
         </span>
-        <span className="relative mt-auto block max-w-[85%]">
+        <span className="relative z-10 mt-auto block max-w-[85%]">
           <span className="block text-xs font-bold uppercase tracking-[0.18em] text-blue-800">
             {dictionary.layout.companyDescriptor}
           </span>

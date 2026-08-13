@@ -21,6 +21,11 @@ import type {
   UpsertServiceTranslationInput,
 } from './object.js';
 import { toService, toServiceTranslation } from './mapper.js';
+import {
+  listAdminContent,
+  type AdminContentListFilter,
+  type AdminContentListRow,
+} from '../admin-read-model.js';
 
 /**
  * Dich vu: CAY lam lop cha, BAN DICH lam thanh phan ket hop.
@@ -87,6 +92,25 @@ export class KyselyServiceDao extends TreeDao implements ServiceDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toService), total, p);
+  }
+
+  listAdmin(
+    filter: AdminContentListFilter<'parent_id' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>> {
+    return listAdminContent(
+      this.db,
+      {
+        kind: 'service',
+        parentTable: 'services',
+        translationTable: 'service_translations',
+        parentKey: 'service_id',
+        titleColumn: 'name',
+        allowedParentFilters: ['parent_id', 'is_featured'],
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreateServiceInput): Promise<Service> {

@@ -1,4 +1,4 @@
-import type { ContentBlock } from '@ltv/contracts';
+import type { AdminTaxonomyKind, AdminTaxonomyListItemView, ContentBlock } from '@ltv/contracts';
 import type { Application } from '../../dao/applications/object.js';
 import type { Brand, BrandType, EntityStatus } from '../../dao/brands/object.js';
 import type { Industry } from '../../dao/industries/object.js';
@@ -7,13 +7,12 @@ import type { Standard } from '../../dao/standards/object.js';
 
 export const ADMIN_TAXONOMY_SERVICE = Symbol('ADMIN_TAXONOMY_SERVICE');
 
-export type AdminTaxonomyKind =
-  'brand' | 'product_category' | 'standard' | 'application' | 'industry';
+export type { AdminTaxonomyKind } from '@ltv/contracts';
 
 export type AdminTaxonomyEntity = Brand | ProductCategory | Standard | Application | Industry;
 
 export interface AdminTaxonomyPage {
-  readonly items: readonly AdminTaxonomyEntity[];
+  readonly items: readonly AdminTaxonomyListItemView[];
   readonly page: number;
   readonly pageSize: number;
   readonly totalItems: number;

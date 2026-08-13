@@ -18,6 +18,22 @@ export const vi: DictionaryShape = {
     paginationLabel: 'Trang {page} trên {total}',
     loading: 'Đang tải nội dung',
   },
+  nav: {
+    home: 'Trang chủ',
+    about: 'Về chúng tôi',
+    products: 'Sản phẩm',
+    brands: 'Hãng',
+    services: 'Dịch vụ',
+    projects: 'Dự án',
+    news: 'Tin tức',
+    resources: 'Tài liệu',
+    contact: 'Liên hệ',
+    solutions: 'Giải pháp',
+    knowledge: 'Kiến thức',
+    company: 'Công ty',
+    laboratory: 'Phòng thí nghiệm & Phân tích',
+    valves: 'Van & Điều khiển dòng chảy',
+  },
   layout: {
     brandShort: 'LT Vietnam',
     companyDescriptor: 'Thiết bị công nghiệp và dịch vụ kỹ thuật',
@@ -43,13 +59,23 @@ export const vi: DictionaryShape = {
     description:
       'Dịch vụ kỹ thuật, phụ tùng, thiết bị và vật tư tiêu hao cho các nhà máy công nghiệp nặng tại Việt Nam.',
     foundationNotice: 'Nền frontend công khai đã sẵn sàng. Các khối trang chủ sẽ được dựng ở W1.',
-    heroFallbackTitle: 'Thiết bị công nghiệp và chuyên môn kỹ thuật cho các vận hành trọng yếu',
+    heroFallbackTitle:
+      'Giải pháp phân tích phòng thí nghiệm và van cho ngành công nghiệp trọng yếu',
     heroFallbackDescription:
-      'LT Vietnam cung cấp thiết bị phân tích, phụ tùng và dịch vụ kỹ thuật cho các nhà máy công nghiệp.',
+      'Khám phá thiết bị phân tích, van điều khiển quá trình, van an toàn, phụ tùng và dịch vụ kỹ thuật tại Việt Nam.',
     companyIntroTitle: 'Về LT Vietnam',
     companyIntroDescription:
       'Chúng tôi kết nối đơn vị vận hành công nghiệp với thiết bị tin cậy, hỗ trợ kỹ thuật thực tế và dịch vụ tại chỗ kịp thời.',
-    businessAreasTitle: 'Giải pháp theo ứng dụng',
+    chooseAreaTitle: 'Chọn lĩnh vực bạn quan tâm',
+    businessAreasTitle: 'Hai lĩnh vực chuyên sâu, một đội ngũ kỹ thuật tại Việt Nam',
+    businessAreasDescription:
+      'Bắt đầu từ lĩnh vực phù hợp với vận hành của bạn. Mỗi hướng dẫn đến đúng thiết bị, hãng và hỗ trợ kỹ thuật liên quan.',
+    laboratoryTitle: 'Phòng thí nghiệm & Phân tích',
+    laboratoryDescription:
+      'Thiết bị phân tích, chuẩn bị mẫu và giải pháp thử nghiệm cho phòng thí nghiệm công nghiệp.',
+    valvesTitle: 'Van & Điều khiển dòng chảy',
+    valvesDescription:
+      'Van điều khiển, van an toàn và xả áp, bộ truyền động, bộ định vị và công cụ kỹ thuật van.',
     categoriesTitle: 'Danh mục sản phẩm nổi bật',
     productsTitle: 'Sản phẩm nổi bật',
     brandsTitle: 'Hãng và đối tác',
@@ -61,6 +87,9 @@ export const vi: DictionaryShape = {
     projectsTitle: 'Dự án gần đây',
     postsTitle: 'Tin tức mới nhất',
     customersTitle: 'Khách hàng tin tưởng chúng tôi',
+    customersHeadline: 'Kinh nghiệm trong các ngành công nghiệp trọng yếu tại Việt Nam',
+    customersDescription:
+      'Một số tổ chức và dự án LT Vietnam đã phục vụ. Logo chỉ được hiển thị khi đã xác nhận quyền công khai.',
     contactTitle: 'Cần hỗ trợ lựa chọn thiết bị hoặc dịch vụ kỹ thuật?',
     contactDescription: 'Gửi yêu cầu và đội ngũ của chúng tôi sẽ liên hệ với bước xử lý phù hợp.',
     contactAction: 'Liên hệ đội ngũ',
@@ -71,18 +100,19 @@ export const vi: DictionaryShape = {
     confidentialCustomer: 'Khách hàng trong ngành',
   },
   products: {
-    finderTitle: 'Tìm thiết bị theo ứng dụng, tiêu chuẩn hoặc model',
+    finderTitle:
+      'Tìm thiết bị phòng thí nghiệm hoặc giải pháp van theo nhu cầu, tiêu chuẩn hay model',
     finderEyebrow: 'Bắt đầu từ thông tin bạn đang có',
     finderPathsTitle: 'Bốn cách để tìm đúng thiết bị',
     categoriesDescription:
-      'Chọn phép đo hoặc nhóm thiết bị phù hợp với quy trình của phòng thí nghiệm.',
+      'Chọn nhóm thiết bị phòng thí nghiệm, van điều khiển hoặc van an toàn phù hợp với vận hành.',
     applicationsDescription:
       'Bắt đầu từ loại mẫu, quy trình hoặc phép phân tích bạn cần thực hiện.',
     standardsDescription:
       'Đi trực tiếp từ phương pháp ASTM, ISO hoặc IP đến các thiết bị tương thích.',
     brandsDescription:
       'Khám phá thiết bị từ các hãng sản xuất và đối tác công nghệ mà chúng tôi hỗ trợ.',
-    selectedEquipmentTitle: 'Thiết bị tiêu biểu cho phòng thí nghiệm công nghiệp',
+    selectedEquipmentTitle: 'Thiết bị tiêu biểu cho phòng thí nghiệm và vận hành quá trình',
     selectedEquipmentDescription:
       'Xem model, tiêu chuẩn hỗ trợ và thông tin sản phẩm trước khi yêu cầu tư vấn kỹ thuật.',
     consultationEyebrow: 'Tư vấn kỹ thuật',
@@ -91,7 +121,7 @@ export const vi: DictionaryShape = {
       'Gửi loại mẫu, tiêu chuẩn hoặc yêu cầu vận hành. Đội ngũ của chúng tôi sẽ giúp thu hẹp lựa chọn.',
     catalogueTitle: 'Danh mục sản phẩm',
     catalogueDescription:
-      'Tìm thiết bị phân tích và thiết bị công nghiệp theo danh mục, hãng, tiêu chuẩn hoặc ứng dụng.',
+      'Tìm thiết bị phân tích, van điều khiển và van an toàn theo danh mục, hãng, tiêu chuẩn hoặc ứng dụng.',
     allProductsTitle: 'Tất cả sản phẩm',
     allProductsDescription: 'Dùng bộ lọc để thu hẹp danh mục theo yêu cầu kỹ thuật.',
     featuredCategories: 'Danh mục nổi bật',
@@ -143,6 +173,13 @@ export const vi: DictionaryShape = {
     specificationParameter: 'Thông số',
     specificationValue: 'Giá trị',
     standardsTitle: 'Tiêu chuẩn và tuân thủ',
+    standardsComplianceTitle: 'Phương pháp thử máy tuân thủ trực tiếp',
+    standardsRelatedTitle: 'Tiêu chuẩn tương quan và tham chiếu',
+    standardTypeCorrelation: 'Tương quan',
+    standardTypeSpecification: 'Đặc tính',
+    standardTypeReference: 'Tham chiếu',
+    specificationsHint: '{count} thông số',
+    standardsHint: '{count} tiêu chuẩn',
     standardType: 'Quan hệ',
     categoriesTitle: 'Danh mục sản phẩm',
     industriesTitle: 'Ngành',

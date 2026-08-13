@@ -261,7 +261,7 @@ export class AdminTaxonomyController {
       page: dto.page,
       pageSize: dto.page_size,
     });
-    return page(result.items.map(toAdminView), {
+    return page(result.items, {
       page: result.page,
       pageSize: result.pageSize,
       totalItems: result.totalItems,

@@ -1,9 +1,14 @@
-import { extractMediaIds, type ContentBlock, type Locale } from '@ltv/contracts';
+import {
+  extractMediaIds,
+  type AdminContentListItemView,
+  type ContentBlock,
+  type Locale,
+} from '@ltv/contracts';
 import { ConflictError, DomainError, NotFoundError } from '../../shared/errors.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type { PublishService } from '../shared/publish.interface.js';
 import type { SlugService } from '../shared/slug.interface.js';
-import type { AdminContentKind, AdminContentService } from './interface.js';
+import type { AdminContentFilter, AdminContentKind, AdminContentService } from './interface.js';
 
 export type AdminContentDaos = DaoScope<
   'services' | 'projects' | 'posts' | 'pages' | 'postCategories' | 'redirects' | 'contentMediaRefs'
@@ -18,12 +23,12 @@ export class AdminContentServiceImpl implements AdminContentService {
 
   async list(
     kind: AdminContentKind,
-    filter: Record<string, unknown>,
+    filter: AdminContentFilter,
     page: { page: number; pageSize: number },
   ) {
-    const result = await this.listDao(kind, filter, page);
+    const result = await this.listAdminDao(kind, filter, page);
     return {
-      items: result.data,
+      items: result.data.map((row) => contentListView(row, filter.locale)),
       page: result.meta.page,
       pageSize: result.meta.pageSize,
       totalItems: result.meta.totalItems,
@@ -32,9 +37,20 @@ export class AdminContentServiceImpl implements AdminContentService {
 
   async findById(kind: AdminContentKind, id: string) {
     const entity = await this.require(kind, id);
-    const translations = await this.listTranslations(kind, id);
+    const translations = (
+      await Promise.all([
+        this.findTranslation(kind, id, 'vi'),
+        this.findTranslation(kind, id, 'en'),
+      ])
+    ).filter((translation) => translation !== null);
     const links = kind === 'page' ? {} : await this.findLinks(kind, id);
-    return { entity, translations, links };
+    const media =
+      kind === 'project'
+        ? await this.daos.projects.findMedia(id)
+        : kind === 'post'
+          ? await this.daos.posts.findMedia(id)
+          : [];
+    return { kind, entity, translations, links, media };
   }
 
   async create(kind: AdminContentKind, input: Record<string, unknown>, actorId: string) {
@@ -238,32 +254,45 @@ export class AdminContentServiceImpl implements AdminContentService {
     return this.findPostCategory(id);
   }
 
-  private async listDao(
+  private listAdminDao(
     kind: AdminContentKind,
-    filter: Record<string, unknown>,
+    filter: AdminContentFilter,
     page: { page: number; pageSize: number },
   ) {
+    const common = {
+      status: filter.status,
+      translationStatus: filter.translationStatus,
+      locale: filter.locale,
+      search: filter.search,
+      includeDeleted: filter.includeDeleted,
+    };
     switch (kind) {
       case 'service':
-        return this.daos.services.list(filter, page);
-      case 'project':
-        return this.daos.projects.list(filter, page);
-      case 'post':
-        return this.daos.posts.list(filter, page);
-      case 'page': {
-        let rows = await this.daos.pages.listAll(filter.includeDeleted === true);
-        if (filter.status !== undefined) rows = rows.filter((row) => row.status === filter.status);
-        const start = (page.page - 1) * page.pageSize;
-        return {
-          data: rows.slice(start, start + page.pageSize),
-          meta: {
-            page: page.page,
-            pageSize: page.pageSize,
-            totalItems: rows.length,
-            totalPages: Math.ceil(rows.length / page.pageSize),
+        return this.daos.services.listAdmin(
+          {
+            ...common,
+            where: { parent_id: filter.parentId, is_featured: filter.isFeatured },
           },
-        };
-      }
+          page,
+        );
+      case 'project':
+        return this.daos.projects.listAdmin(
+          {
+            ...common,
+            where: { project_type: filter.projectType, is_featured: filter.isFeatured },
+          },
+          page,
+        );
+      case 'post':
+        return this.daos.posts.listAdmin(
+          {
+            ...common,
+            where: { category_id: filter.categoryId, is_featured: filter.isFeatured },
+          },
+          page,
+        );
+      case 'page':
+        return this.daos.pages.listAdmin(common, page);
     }
   }
   private require(kind: AdminContentKind, id: string) {
@@ -312,6 +341,33 @@ export class AdminContentServiceImpl implements AdminContentService {
         return this.daos.posts.findLinks(id);
     }
   }
+}
+
+function contentListView(
+  row: Awaited<ReturnType<AdminContentDaos['pages']['listAdmin']>>['data'][number],
+  preferredLocale?: Locale,
+): AdminContentListItemView {
+  const preferred =
+    (preferredLocale === undefined
+      ? row.translations.find((item) => item.locale === 'vi')
+      : row.translations.find((item) => item.locale === preferredLocale)) ?? row.translations[0];
+  return {
+    id: row.id,
+    kind: row.kind,
+    title: preferred?.title ?? null,
+    slug: preferred?.slug ?? null,
+    status: row.status,
+    translations: row.translations.map((item) => ({
+      locale: item.locale,
+      title: item.title,
+      slug: item.slug,
+      status: item.status,
+      published_at: item.publishedAt?.toISOString() ?? null,
+    })),
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+    deleted_at: row.deletedAt?.toISOString() ?? null,
+  };
 }
 
 async function requireRow<T>(p: Promise<T | null>, kind: string, id: string) {

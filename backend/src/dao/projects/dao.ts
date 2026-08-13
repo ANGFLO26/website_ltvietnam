@@ -22,6 +22,11 @@ import type {
   UpsertProjectTranslationInput,
 } from './object.js';
 import { toProject, toProjectTranslation } from './mapper.js';
+import {
+  listAdminContent,
+  type AdminContentListFilter,
+  type AdminContentListRow,
+} from '../admin-read-model.js';
 
 export class KyselyProjectDao extends BaseDao implements ProjectDao {
   private readonly tr: TranslationSupport<'project_type' | 'is_featured'>;
@@ -74,6 +79,25 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toProject), total, p);
+  }
+
+  listAdmin(
+    filter: AdminContentListFilter<'project_type' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>> {
+    return listAdminContent(
+      this.db,
+      {
+        kind: 'project',
+        parentTable: 'projects',
+        translationTable: 'project_translations',
+        parentKey: 'project_id',
+        titleColumn: 'title',
+        allowedParentFilters: ['project_type', 'is_featured'],
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreateProjectInput): Promise<Project> {
@@ -343,6 +367,17 @@ export class KyselyProjectDao extends BaseDao implements ProjectDao {
           display_order: i,
         })),
       )
+      .execute();
+  }
+
+  async findMedia(
+    id: string,
+  ): Promise<readonly { mediaId: string; caption: string | null; displayOrder: number }[]> {
+    return this.db
+      .selectFrom('project_media')
+      .select(['media_id as mediaId', 'caption', 'display_order as displayOrder'])
+      .where('project_id', '=', id)
+      .orderBy('display_order', 'asc')
       .execute();
   }
 

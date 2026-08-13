@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { newsCategoryMetadata, renderNewsCategory } from '@/lib/w4/news';
+import { newsCategoryMetadata, renderNewsCategory } from '@/page-views/news';
 
 export function generateMetadata({
   params,

@@ -7,7 +7,7 @@
     "node": ">=22.11.0 <25"
   },
   "scripts": {
-    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @ltv/backend build && pnpm --filter @ltv/frontend build && pnpm --filter @ltv/worker build",
+    "build": "pnpm -r --filter \"./packages/*\" build && pnpm --filter @ltv/backend build && pnpm --filter @ltv/admin build && pnpm --filter @ltv/frontend build && pnpm --filter @ltv/worker build",
     "clean": "node scripts/clean-generated.mjs",
     "typecheck": "pnpm build:packages && pnpm -r typecheck",
     "lint": "eslint .",
@@ -19,11 +19,13 @@
     "db:rollback": "pnpm build:packages && pnpm --filter @ltv/db rollback",
     "dev:worker": "pnpm build:packages && pnpm --filter @ltv/worker dev",
     "dev:backend": "pnpm build:packages && pnpm --filter @ltv/backend dev",
+    "dev:admin": "pnpm build:packages && pnpm --filter @ltv/admin dev",
     "dev:frontend": "pnpm build:packages && pnpm --filter @ltv/frontend dev",
     "smoke:auth": "node scripts/smoke-auth.mjs",
     "db:seed": "pnpm build:packages && pnpm --filter @ltv/db seed",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
     "db:seed:demo": "pnpm build:packages && pnpm --filter @ltv/backend seed:demo",
+    "db:seed:valves": "pnpm build:packages && pnpm --filter @ltv/backend seed:valves",
     "smoke:api": "node scripts/smoke-api.mjs",
     "smoke:web": "node scripts/smoke-web.mjs",
     "inject": "node scripts/inject-f4.mjs && node scripts/inject-f5-f8.mjs && node scripts/inject-web.mjs",
@@ -32,7 +34,13 @@
     "inject:web": "node scripts/inject-web.mjs",
     "quality:web": "node scripts/check-web-budgets.mjs",
     "measure:web": "node scripts/measure-web-vitals.mjs",
-    "smoke:responsive": "node scripts/smoke-responsive.mjs"
+    "smoke:responsive": "node scripts/smoke-responsive.mjs",
+    "quality:admin": "node scripts/check-admin-budgets.mjs",
+    "measure:admin": "node scripts/measure-admin-quality.mjs",
+    "smoke:admin": "node scripts/smoke-admin-responsive.mjs",
+    "e2e:admin:create": "pnpm build:packages && pnpm --filter @ltv/backend e2e:admin:create",
+    "e2e:admin:cleanup": "pnpm build:packages && pnpm --filter @ltv/backend e2e:admin:cleanup",
+    "test:db": "pnpm build:packages && pnpm --filter @ltv/backend test:db"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

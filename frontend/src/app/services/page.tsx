@@ -1,4 +1,4 @@
-import { renderServicesList, servicesListMetadata } from '@/lib/w4/services';
+import { renderServicesList, servicesListMetadata } from '@/page-views/services';
 
 export const metadata = servicesListMetadata('en');
 

@@ -22,7 +22,9 @@ Website **không** phải sàn thương mại điện tử và **không** bán t
 ### Không có trong phiên bản đầu
 Tài khoản khách hàng, đăng nhập khách, giỏ hàng, đặt hàng/thanh toán trực tuyến, theo dõi vận chuyển, quản lý hợp đồng, quản lý báo giá, **giao diện quản lý yêu cầu khách hàng trong Admin**, phân quyền nhiều nhóm nhân viên.
 
-> **Lưu ý quan trọng (ADR-003):** Tuy Admin MVP **không** có màn hình quản lý yêu cầu, hệ thống **vẫn lưu mọi yêu cầu vào database** (`inquiries` + `inquiry_outbox`) trước khi gửi email. Đây là chức năng nền chống mất lead, không phải giao diện CRM.
+> **Lưu ý quan trọng (ADR-003):** Admin MVP có màn hình **chỉ đọc** để xem yêu cầu và
+> đánh dấu đã liên hệ. Hệ thống lưu mọi yêu cầu vào database (`inquiries` +
+> `inquiry_outbox`) trước khi gửi email. Đây là lưới an toàn vận hành, không phải CRM.
 
 ---
 
@@ -76,7 +78,7 @@ Bảng audit_logs + Admin UI xem log — P0 chỉ có structured application log
 ## 4. Future — chỉ ghi nhận hướng mở rộng
 
 ```text
-Quản lý yêu cầu khách hàng trong Admin (nâng cấp từ inquiries)
+Quản lý yêu cầu khách hàng nâng cao (pipeline/phân công/ghi chú)
 Phân quyền nhiều vai trò
 CRM
 Quản lý báo giá
@@ -130,7 +132,7 @@ URL danh sách theo danh mục: `/products/category/{category-slug}` (ADR-001).
 # 9. Sản phẩm
 
 ## 9.1. Thông tin
-Cơ bản: tên VI/EN, model, mã nội bộ, hãng (**bắt buộc**), thương hiệu con, danh mục, ảnh đại diện, thư viện ảnh, mô tả ngắn, trạng thái.
+Cơ bản: tên kỹ thuật, model, mã nội bộ, hãng (**bắt buộc**), thương hiệu con, danh mục, ảnh đại diện, thư viện ảnh, mô tả ngắn, trạng thái. Sản phẩm chỉ có một bộ nội dung theo ADR-014, không có translation VI/EN.
 Kỹ thuật: tổng quan, ứng dụng, tính năng, nguyên lý/phương pháp đo, tiêu chuẩn, thông số kỹ thuật, loại mẫu, phạm vi đo, điều kiện vận hành, phụ kiện/tùy chọn.
 Liên quan: catalogue/brochure/datasheet, **video ngoài qua content block `external_video`** (YouTube/Vimeo — ADR-012, **không** upload video trong P0), dịch vụ/sản phẩm/dự án liên quan, SEO.
 
@@ -141,7 +143,7 @@ Liên quan: catalogue/brochure/datasheet, **video ngoài qua content block `exte
 - **Trường thương mại tương lai** (`sku, price_visibility, sale_mode, warranty_months, requires_configuration`) tồn tại trong schema nhưng **ẩn** khỏi UI MVP, không bắt buộc nhập.
 
 ## 9.3. Tạo nhanh và lưu nháp (ADR liên quan mục 4.7)
-Có thể tạo nháp chỉ với: **Tên VI + Slug (tự sinh) + Hãng + Danh mục chính**. Các trường mô tả có thể để trống khi nháp. PublishService kiểm tra đầy đủ khi xuất bản.
+Có thể tạo nháp chỉ với: **Tên + Slug (tự sinh) + Hãng + Danh mục chính**. Các trường mô tả có thể để trống khi nháp. PublishService kiểm tra đầy đủ khi xuất bản.
 
 ## 9.4. Sản phẩm ngừng kinh doanh (ADR-002)
 Khi có `discontinued_at`: **giữ trang công khai**, hiển thị nhãn "Sản phẩm đã ngừng kinh doanh", có thể ẩn nút báo giá trực tiếp, hiển thị sản phẩm thay thế, **không xóa URL**. Chỉ redirect sang sản phẩm thay thế khi có lý do rõ ràng và doanh nghiệp chấp thuận.
@@ -238,7 +240,9 @@ Một tài khoản `admin`. Quản lý: trang chủ, trang giới thiệu, năng
 
 Lưu `created_by`/`updated_by` để sẵn sàng multi-user.
 
-**Không có trong Admin MVP:** danh sách/giao diện quản lý yêu cầu khách hàng, trạng thái xử lý, phân công, ghi chú CRM, báo giá, hợp đồng, bảo hành, dashboard kinh doanh. (Yêu cầu vẫn được **lưu** trong `inquiries` nhưng không có UI quản lý — ADR-003.)
+**Không có trong Admin MVP:** pipeline nhiều trạng thái, phân công, ghi chú CRM, báo giá,
+hợp đồng, bảo hành và dashboard kinh doanh. Admin MVP chỉ có danh sách/chi tiết inquiry
+đọc và nút đánh dấu đã liên hệ (ADR-003).
 
 # 20. Bảo mật, hiệu năng, vận hành (P0)
 

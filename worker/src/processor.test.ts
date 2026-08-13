@@ -10,7 +10,7 @@ const cfg = {
   WORKER_PROCESSING_TIMEOUT_MS: 300_000,
   WORKER_MAX_ATTEMPTS: 5,
   SMTP_FROM: 'no-reply@ltvietnam.com.vn',
-  NEXT_PUBLIC_SITE_URL: 'https://ltvietnam.com.vn/',
+  ADMIN_SITE_URL: 'https://admin.ltvietnam.com.vn/',
 };
 const inquiry: InquiryMailData = {
   inquiryType: 'quotation',
@@ -93,6 +93,9 @@ describe('outbox worker F5', () => {
     );
     await processor.tick();
     expect(h.sent[0]!.text).toContain('signed-secret-token');
+    expect(h.sent[0]!.text).toContain(
+      'https://admin.ltvietnam.com.vn/reset-password?token=signed-secret-token',
+    );
     expect(JSON.stringify(logs)).not.toContain('signed-secret-token');
     expect(h.repo.findInquiry).not.toHaveBeenCalled();
   });

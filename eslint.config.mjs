@@ -38,6 +38,7 @@ export default tseslint.config(
        * duoc them vao `.gitignore` theo dung khuyen nghi cua Next.js.
        */
       'frontend/next-env.d.ts',
+      'admin/next-env.d.ts',
       '**/coverage/**',
       // Bang chung cua spike P0 — giu lai de doi chieu, khong phai ma san pham.
       'implementation/evidence/**',
@@ -70,7 +71,7 @@ export default tseslint.config(
     plugins: { '@next/next': nextPlugin },
   },
   {
-    files: ['frontend/**/*.{js,jsx,ts,tsx}'],
+    files: ['frontend/**/*.{js,jsx,ts,tsx}', 'admin/**/*.{js,jsx,ts,tsx}'],
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,

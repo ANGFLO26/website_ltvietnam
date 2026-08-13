@@ -11,6 +11,11 @@ import type {
   UpdateStandardInput,
 } from './object.js';
 import { toStandard } from './mapper.js';
+import {
+  listAdminTaxonomy,
+  type AdminTaxonomyListFilter,
+  type AdminTaxonomyListRow,
+} from '../admin-read-model.js';
 
 export class KyselyStandardDao extends BaseDao implements StandardDao {
   private readonly slugs: SlugSupport;
@@ -108,6 +113,26 @@ export class KyselyStandardDao extends BaseDao implements StandardDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toStandard), total, p);
+  }
+
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>> {
+    return listAdminTaxonomy(
+      this.db,
+      {
+        kind: 'standard',
+        table: 'standards',
+        tree: false,
+        standardLabel: true,
+        thumbnailColumns: [],
+        relatedTable: 'product_standards',
+        relatedForeignKey: 'standard_id',
+      },
+      filter,
+      page,
+    );
   }
 
   async listOrganizations(): Promise<{ organization: string; count: number }[]> {

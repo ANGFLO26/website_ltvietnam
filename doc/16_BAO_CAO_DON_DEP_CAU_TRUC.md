@@ -1,5 +1,9 @@
 # Báo cáo dọn dẹp cấu trúc repository
 
+> **Báo cáo lịch sử của vòng làm sạch trước.** Các quyết định mới hơn—bao gồm việc xóa
+> `scripts/dev-setup.sh` sau khi xác minh luồng thay thế—được ghi tại
+> [doc/32](32_BAO_CAO_LAM_SACH_CAU_TRUC_2026_08_13.md).
+
 > Ngày thực hiện: 2026-08-09  
 > Mục tiêu: loại artefact sinh tự động, đưa tài liệu/script lịch sử về đúng khu vực và tránh
 > xóa nhầm code F1–F8 chưa commit.

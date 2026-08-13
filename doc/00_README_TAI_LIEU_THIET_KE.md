@@ -1,7 +1,7 @@
 # 00 — README BỘ TÀI LIỆU THIẾT KẾ WEBSITE LT VIETNAM
 
 **Phiên bản bộ tài liệu:** 1.3
-**Ngày cập nhật:** 2026-07-21
+**Ngày cập nhật:** 2026-08-11
 **Trạng thái:** Approved — READY FOR IMPLEMENTATION
 **Sản phẩm:** Website doanh nghiệp B2B — Công ty TNHH Công nghệ LT Việt Nam.
 
@@ -25,6 +25,12 @@ Bộ tài liệu này là **nguồn sự thật duy nhất** để lập trình 
 07_WIREFRAME_GIAO_DIEN_ADMIN
 08_WIREFRAME_FRONTEND_CONG_KHAI
 10_CHANGELOG_DONG_BO_TAI_LIEU     (nhật ký thay đổi so với bản cũ)
+11_CONTENT_BLOCK_SCHEMA
+21_KE_HOACH_CODE_ADMIN            (đọc trước khi code admin A1–A5)
+22_BAO_CAO_HOAN_THANH_ADMIN_A1    (bằng chứng nghiệm thu nền quản trị A1)
+23_BAO_CAO_HOAN_THANH_ADMIN_A2    (bằng chứng nghiệm thu catalogue quản trị A2)
+24_BAO_CAO_HOAN_THANH_ADMIN_A3    (bằng chứng nghiệm thu nội dung song ngữ A3)
+25_BAO_CAO_HOAN_THANH_ADMIN_A4    (bằng chứng nghiệm thu vận hành website A4)
 ```
 
 ## 3. Nguồn sự thật cho từng vấn đề
@@ -49,7 +55,7 @@ Thứ tự ưu tiên khi mâu thuẫn: **ADR (09) > Phạm vi (01) > Schema (05)
 |---|---|
 | 001 | URL chi tiết **phẳng**; hồ sơ hãng `/brands/{slug}` (index, self-canonical); lọc theo hãng `/products/all?brand={slug}` (noindex,follow, canonical `/products/all`); bỏ `/products/brand/{slug}` (301) |
 | 002 | Slug đã publish **không tái dùng**; `UNIQUE(slug)` cho entity một ngôn ngữ, `UNIQUE(locale, slug)` cho 4 bảng translation; **`first_published_at` đặt cạnh `status`**; SlugService kiểm 3 nguồn, **tập route bảo lưu sinh tự động**; hard-delete chỉ khi chưa từng publish; đổi slug tạo redirect 301 |
-| 003 | **Lưu inquiry vào DB (`inquiries` + `inquiry_outbox`) trước khi gửi email**; outbox concurrency (`processing`/lock/SKIP LOCKED/reaper, `UNIQUE(inquiry_id,channel,recipient)`, `email_status` bỏ `received`); **semantics at-least-once + Message-ID ổn định**; idempotency; không có UI quản lý inquiry MVP; retention TBD |
+| 003 | **Lưu inquiry vào DB (`inquiries` + `inquiry_outbox`) trước khi gửi email**; outbox concurrency (`processing`/lock/SKIP LOCKED/reaper, `UNIQUE(inquiry_id,channel,recipient)`, `email_status` bỏ `received`); **semantics at-least-once + Message-ID ổn định**; idempotency; Admin chỉ có danh sách/chi tiết đọc + nút `handled`, không CRM; retention TBD |
 | 004 | Publish **theo từng ngôn ngữ** cho **4 entity** (pages/posts/services/projects); không có ngôn ngữ bắt buộc; **không auto-fallback**; hreflang chỉ khi cả hai published |
 | 005 | Media FK **RESTRICT**; không xóa media đang dùng (409); **không SVG** |
 | 006 | Khóa phạm vi P0/P1/Future; audit log structured (không bảng `audit_logs` trong P0) |
@@ -63,9 +69,9 @@ Thứ tự ưu tiên khi mâu thuẫn: **ADR (09) > Phạm vi (01) > Schema (05)
 
 Quyết định dữ liệu quan trọng: **bỏ** `products.primary_category_id` (dùng `product_category_links.is_primary`) · **bỏ** `service_documents` (dùng `document_services`) · **bỏ** `product_media.media_role='featured'` · **bỏ** `social_image_id` khỏi page/product translation · giữ `products.brand_id NOT NULL` · applications phẳng trong Admin (DB giữ parent_id) · draft cho phép thiếu (chỉ `name`/`slug` bắt buộc) · thêm `first_published_at` × 12 translation.
 
-## 5. Danh sách tài liệu (mới) & ánh xạ file cũ
+## 5. Danh mục tài liệu hiện hành
 
-| File chính thức | Thay cho (deprecated) |
+| File chính thức | Vai trò / thay cho |
 |---|---|
 | 00_README_TAI_LIEU_THIET_KE.md | — |
 | 01_PHAM_VI_CHUC_NANG_VA_MVP.md | tai lieu pham vi chuc nang.md |
@@ -77,10 +83,31 @@ Quyết định dữ liệu quan trọng: **bỏ** `products.primary_category_id
 | 07_WIREFRAME_GIAO_DIEN_ADMIN.md | thiet ke wireframe va cau truc giao dien admin.md |
 | 08_WIREFRAME_FRONTEND_CONG_KHAI.md | thiet ke wireframe frontend.md |
 | 09_ADR_QUYET_DINH_KIEN_TRUC.md | — |
-| 10_CHANGELOG_DONG_BO_TAI_LIEU.md
-11_CONTENT_BLOCK_SCHEMA.md | — |
+| 10_CHANGELOG_DONG_BO_TAI_LIEU.md | — |
+| 11_CONTENT_BLOCK_SCHEMA.md | — |
+| 12_KE_HOACH_HOAN_THIEN_BACKEND.md | Kế hoạch triển khai Backend F1–F8 |
+| 13_RA_SOAT_BACKEND_TRUOC_PHASE.md | Rà soát kỹ thuật Backend trước triển khai |
+| 14_TRANG_THAI_HIEN_TAI.md | Trạng thái triển khai toàn hệ thống |
+| 15_BAO_CAO_RA_SOAT_F1_F8.md | Báo cáo nghiệm thu Backend F1–F8 |
+| 16_BAO_CAO_DON_DEP_CAU_TRUC.md | Báo cáo dọn cấu trúc lần đầu |
+| 17_KE_HOACH_FRONTEND.md | Định hướng kiến trúc Frontend công khai |
+| 18_DU_LIEU_TU_WEB_CU.md | Kiểm kê dữ liệu từ website cũ |
+| 19_KE_HOACH_CODE_FRONTEND.md | Kế hoạch triển khai Frontend W0–W8 |
+| 20_BAO_CAO_NGHIEM_THU_FRONTEND_W0_W8.md | Báo cáo nghiệm thu Frontend |
+| 21_KE_HOACH_CODE_ADMIN.md | Kế hoạch triển khai giao diện quản trị A1–A5 |
+| 22_BAO_CAO_HOAN_THANH_ADMIN_A1.md | Báo cáo triển khai và nghiệm thu Admin A1 |
+| 23_BAO_CAO_HOAN_THANH_ADMIN_A2.md | Báo cáo triển khai và nghiệm thu Admin A2 |
+| 24_BAO_CAO_HOAN_THANH_ADMIN_A3.md | Báo cáo triển khai và nghiệm thu Admin A3 |
+| 25_BAO_CAO_HOAN_THANH_ADMIN_A4.md | Báo cáo triển khai và nghiệm thu Admin A4 |
+| 26_BAO_CAO_NGHIEM_THU_ADMIN_A5.md | Báo cáo nghiệm thu bảo mật, khả dụng và performance Admin A5 |
+| 27_HUONG_DAN_VAN_HANH_ADMIN.md | Runbook chạy, smoke và xử lý sự cố Admin |
+| 28_KE_HOACH_UI_PHAN_TANG_VA_DU_LIEU_THAT.md | Kế hoạch UI theo Lab/Valve và dữ liệu thật |
+| 29_DIEM_CAN_XAC_MINH_VOI_HANG.md | Các trường dữ liệu cần doanh nghiệp xác minh |
+| 30_BAO_CAO_RA_SOAT_TOAN_HE_THONG.md | Báo cáo kiểm tra Backend, Frontend và Admin |
+| 31_BAO_CAO_CAI_TO_UX_LAB_VALVE_CUSTOMERS.md | Báo cáo cải tổ UX và catalogue |
+| 32_BAO_CAO_LAM_SACH_CAU_TRUC_2026_08_13.md | Báo cáo phân loại và làm sạch toàn bộ cấu trúc repository |
 
-Các file cũ (tên tiếng Việt có dấu cách: `schema.md`, `ERD.md`, `sitemap.md`, …) **đã được xóa** sau khi chuyển toàn bộ nội dung sang các file đánh số ở trên. Chỉ dùng bộ 00–10 để lập trình. **Bản v1.1 (trước vòng sửa kỹ thuật này) được lưu tại `archive/v1.1/`** — chỉ tham khảo, không sửa, không dùng để code.
+Các file cũ (tên tiếng Việt có dấu cách: `schema.md`, `ERD.md`, `sitemap.md`, …) **đã được xóa** sau khi chuyển toàn bộ nội dung sang các file đánh số ở trên. Chỉ dùng bộ tài liệu đánh số hiện hành để lập trình. Tài liệu cũ còn cần truy vết nằm trong `archive/legacy/`; snapshot phát hành đã khóa nằm trong `archive/releases/` — chỉ tham khảo, không sửa, không dùng để code mới.
 
 ## 6. Quy tắc cập nhật (sửa dây chuyền)
 

@@ -1,0 +1,33 @@
+{
+  "javascript_budget_kib": 190,
+  "minimum_route_count": 34,
+  "lcp_budget_ms": 2500,
+  "cls_budget": 0.1,
+  "minimum_accessibility_score": 1,
+  "public_metric_paths": ["/login"],
+  "authenticated_metric_paths": ["/products", "/products/new", "/content/pages/new"],
+  "responsive_paths": [
+    "/dashboard",
+    "/inquiries",
+    "/products",
+    "/products/new",
+    "/taxonomy",
+    "/content",
+    "/content/pages/new",
+    "/media",
+    "/documents",
+    "/website",
+    "/website/homepage",
+    "/website/menus",
+    "/redirects",
+    "/settings",
+    "/users",
+    "/account/password"
+  ],
+  "viewports": [
+    { "name": "mobile", "width": 390, "height": 844 },
+    { "name": "tablet", "width": 768, "height": 1024 },
+    { "name": "desktop", "width": 1024, "height": 768 },
+    { "name": "wide", "width": 1440, "height": 900 }
+  ]
+}

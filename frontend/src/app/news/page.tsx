@@ -1,4 +1,4 @@
-import { newsListMetadata, renderNewsList } from '@/lib/w4/news';
+import { newsListMetadata, renderNewsList } from '@/page-views/news';
 
 export const metadata = newsListMetadata('en');
 

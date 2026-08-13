@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminTaxonomyListFilter, AdminTaxonomyListRow } from '../admin-read-model.js';
 import type {
   CreateIndustryInput,
   Industry,
@@ -10,6 +11,10 @@ export interface IndustryDao {
   findById(id: string): Promise<Industry | null>;
   findBySlug(slug: string): Promise<Industry | null>;
   list(filter: IndustryFilter, page?: Partial<Page>): Promise<Paged<Industry>>;
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>>;
 
   insert(input: CreateIndustryInput): Promise<Industry>;
   update(id: string, input: UpdateIndustryInput): Promise<Industry>;

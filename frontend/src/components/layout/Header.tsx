@@ -1,11 +1,9 @@
 import Link from 'next/link';
-import type { Locale, NavigationView } from '@ltv/contracts';
-import { InquiryLauncher } from '@/components/inquiry/InquiryLauncher';
-import { getPublicCaptchaConfig } from '@/config';
+import type { Locale, MenuItemView, NavigationView } from '@ltv/contracts';
 import type { Dictionary } from '@/lib/i18n';
 import { routePath } from '@/lib/routes';
 import { MegaMenu } from './MegaMenu';
-import { MenuItemLink } from './MenuTree';
+import { menuItemLabel, MenuItemLink } from './MenuTree';
 import { MobileMenu } from './MobileMenu';
 
 export function Header({
@@ -20,11 +18,10 @@ export function Header({
   locale?: Locale;
 }) {
   const productPath = routePath('products.landing');
-  const hiddenDesktopPaths = new Set([routePath('home'), routePath('contact', { locale })]);
+  const hiddenDesktopPaths = new Set([routePath('home')]);
   const items = header.menus
     .flatMap((menu) => menu.items)
     .filter((item) => item.url === null || !hiddenDesktopPaths.has(item.url));
-  const captcha = getPublicCaptchaConfig();
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 shadow-[0_1px_0_rgba(15,23,42,.04)] backdrop-blur">
       <div className="mx-auto flex min-h-18 max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
@@ -47,7 +44,7 @@ export function Header({
                 {item.url === productPath && header.product_mega_menu !== null ? (
                   <div className="flex items-center gap-1">
                     <Link className="font-semibold text-slate-800 no-underline" href={productPath}>
-                      {item.label}
+                      {menuItemLabel(item, dictionary)}
                     </Link>
                     <details className="group relative">
                       <summary
@@ -63,10 +60,13 @@ export function Header({
                       </div>
                     </details>
                   </div>
+                ) : item.children.length > 0 ? (
+                  <DesktopMenuGroup item={item} dictionary={dictionary} />
                 ) : (
                   <MenuItemLink
                     className="font-medium text-slate-700 no-underline transition hover:text-[var(--color-primary)]"
                     item={item}
+                    dictionary={dictionary}
                   />
                 )}
               </li>
@@ -80,15 +80,41 @@ export function Header({
         >
           <span className="search-icon" aria-hidden="true" />
         </Link>
-        <InquiryLauncher
-          className="hidden rounded-lg bg-[var(--color-primary)] px-4 py-2.5 font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-900 lg:block"
-          locale={locale}
-          dictionary={dictionary}
-          captcha={captcha}
-          label={dictionary.layout.requestQuote}
-        />
         <MobileMenu navigation={mobile} dictionary={dictionary} locale={locale} />
       </div>
     </header>
+  );
+}
+
+function DesktopMenuGroup({ item, dictionary }: { item: MenuItemView; dictionary: Dictionary }) {
+  return (
+    <details className="group relative">
+      <summary className="flex cursor-pointer list-none items-center gap-1 font-medium text-slate-700 transition hover:text-[var(--color-primary)] [&::-webkit-details-marker]:hidden">
+        {menuItemLabel(item, dictionary)}
+        <span className="text-xs transition group-open:rotate-180" aria-hidden="true">
+          &#8964;
+        </span>
+      </summary>
+      <div className="absolute left-1/2 z-50 mt-4 min-w-64 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+        {item.url === null ? null : (
+          <MenuItemLink
+            className="mb-1 block rounded-xl bg-slate-950 px-4 py-3 font-bold text-white no-underline"
+            item={{ ...item, children: [] }}
+            dictionary={dictionary}
+          />
+        )}
+        <ul className="space-y-1">
+          {item.children.map((child) => (
+            <li key={`${child.label}:${child.url ?? 'heading'}`}>
+              <MenuItemLink
+                className="block rounded-xl px-4 py-3 font-medium text-slate-700 no-underline transition hover:bg-blue-50 hover:text-blue-900"
+                item={child}
+                dictionary={dictionary}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </details>
   );
 }

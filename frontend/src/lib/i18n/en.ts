@@ -10,6 +10,22 @@ export const en = {
     paginationLabel: 'Page {page} of {total}',
     loading: 'Loading content',
   },
+  nav: {
+    home: 'Home',
+    about: 'About us',
+    products: 'Products',
+    brands: 'Brands',
+    services: 'Services',
+    projects: 'Projects',
+    news: 'News',
+    resources: 'Resources',
+    contact: 'Contact',
+    solutions: 'Solutions',
+    knowledge: 'Knowledge',
+    company: 'Company',
+    laboratory: 'Laboratory & Analysis',
+    valves: 'Valves & Flow Control',
+  },
   layout: {
     brandShort: 'LT Vietnam',
     companyDescriptor: 'Industrial equipment and technical services',
@@ -35,13 +51,22 @@ export const en = {
     description:
       'Technical services, spare parts, equipment and consumables for heavy industrial plants in Vietnam.',
     foundationNotice: 'The public frontend foundation is ready. Homepage sections arrive in W1.',
-    heroFallbackTitle: 'Industrial equipment and technical expertise for critical operations',
+    heroFallbackTitle: 'Laboratory analysis and valve solutions for critical industry',
     heroFallbackDescription:
-      'LT Vietnam supplies analytical equipment, spare parts and technical services for industrial plants.',
+      'Explore analytical equipment, process-control valves, safety valves, spare parts and local technical services from LT Vietnam.',
     companyIntroTitle: 'About LT Vietnam',
     companyIntroDescription:
       'We connect industrial operators with reliable equipment, practical engineering support and responsive local service.',
-    businessAreasTitle: 'Solutions by application',
+    chooseAreaTitle: 'Choose your business area',
+    businessAreasTitle: 'Two focused solution areas, one local technical team',
+    businessAreasDescription:
+      'Start with the area that matches your operation. Each path leads to the relevant equipment, brands and engineering support.',
+    laboratoryTitle: 'Laboratory & Analysis',
+    laboratoryDescription:
+      'Analytical instruments, sample preparation and testing solutions for industrial laboratories.',
+    valvesTitle: 'Valves & Flow Control',
+    valvesDescription:
+      'Control valves, safety and relief valves, actuators, positioners and valve engineering tools.',
     categoriesTitle: 'Featured product categories',
     productsTitle: 'Featured products',
     brandsTitle: 'Brands and partners',
@@ -53,6 +78,9 @@ export const en = {
     projectsTitle: 'Recent projects',
     postsTitle: 'Latest news',
     customersTitle: 'Customers who trust us',
+    customersHeadline: 'Experience across Vietnam’s critical industries',
+    customersDescription:
+      'A selection of organizations and projects served by LT Vietnam. Logos are shown only with confirmed publication permission.',
     contactTitle: 'Need help selecting equipment or a technical service?',
     contactDescription:
       'Send your requirements and our team will contact you with a practical next step.',
@@ -64,16 +92,16 @@ export const en = {
     confidentialCustomer: 'Customer in the industry',
   },
   products: {
-    finderTitle: 'Find equipment by application, standard or model',
+    finderTitle: 'Find laboratory instruments or valve solutions by need, standard or model',
     finderEyebrow: 'Start with what you know',
     finderPathsTitle: 'Four ways to reach the right equipment',
     categoriesDescription:
-      'Choose the measurement or equipment family that matches your laboratory workflow.',
+      'Choose a laboratory, control-valve or safety-valve family that matches your operation.',
     applicationsDescription: 'Begin with the sample, process or analysis you need to perform.',
     standardsDescription: 'Go directly from an ASTM, ISO or IP method to compatible instruments.',
     brandsDescription:
       'Explore equipment from the manufacturers and technology partners we support.',
-    selectedEquipmentTitle: 'Selected equipment for industrial laboratories',
+    selectedEquipmentTitle: 'Selected equipment for laboratory and process operations',
     selectedEquipmentDescription:
       'Review key models, supported standards and product details before requesting technical advice.',
     consultationEyebrow: 'Technical consultation',
@@ -82,7 +110,7 @@ export const en = {
       'Send us your sample type, standard or operating requirement. Our team will help narrow the options.',
     catalogueTitle: 'Product catalogue',
     catalogueDescription:
-      'Browse analytical instruments and industrial equipment by category, brand, standard or application.',
+      'Browse analytical instruments, control valves and safety valves by category, brand, standard or application.',
     allProductsTitle: 'All products',
     allProductsDescription:
       'Use the filters to narrow the catalogue to your technical requirements.',
@@ -135,6 +163,13 @@ export const en = {
     specificationParameter: 'Parameter',
     specificationValue: 'Value',
     standardsTitle: 'Standards and compliance',
+    standardsComplianceTitle: 'Test methods the instrument complies with',
+    standardsRelatedTitle: 'Correlated and referenced standards',
+    standardTypeCorrelation: 'Correlates',
+    standardTypeSpecification: 'Specification',
+    standardTypeReference: 'Reference',
+    specificationsHint: '{count} parameters',
+    standardsHint: '{count} standards',
     standardType: 'Relationship',
     categoriesTitle: 'Product categories',
     industriesTitle: 'Industries',

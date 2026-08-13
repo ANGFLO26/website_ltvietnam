@@ -10,6 +10,7 @@ import type {
   EmailStatus,
   Inquiry,
   InquiryCreateResult,
+  InquiryDashboardSummary,
   InquiryFilter,
   OutboxJob,
 } from './object.js';
@@ -59,6 +60,10 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
         : cq.where('handled_at', 'is', null);
     }
     const rows = await q
+      // Hộp thư vận hành ưu tiên việc chưa xử lý; trong cùng nhóm, lỗi gửi
+      // email phải nổi lên trước để quản trị viên không bỏ sót yêu cầu.
+      .orderBy(sql<boolean>`handled_at IS NULL`, 'desc')
+      .orderBy(sql<boolean>`email_status = 'email_failed'`, 'desc')
       .orderBy('created_at', 'desc')
       .orderBy('id')
       .limit(p.pageSize)
@@ -66,6 +71,51 @@ export class KyselyInquiryDao extends BaseDao implements InquiryDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toInquiry), total, p);
+  }
+
+  async dashboardSummary(limit: number): Promise<InquiryDashboardSummary> {
+    const take = Math.min(20, Math.max(1, Math.trunc(limit)));
+    const [summary, recent] = await Promise.all([
+      sql<{
+        unhandled: number | string;
+        last_30_days: number | string;
+        email_pending: number | string;
+        email_failed: number | string;
+      }>`
+        SELECT
+          count(*) FILTER (WHERE handled_at IS NULL)::int AS unhandled,
+          count(*) FILTER (WHERE created_at >= now() - interval '30 days')::int AS last_30_days,
+          count(*) FILTER (WHERE email_status = 'email_pending')::int AS email_pending,
+          count(*) FILTER (WHERE email_status = 'email_failed')::int AS email_failed
+        FROM ltv.inquiries
+      `.execute(this.db),
+      sql<{
+        id: string;
+        inquiry_type: InquiryDashboardSummary['recent'][number]['inquiryType'];
+        email_status: EmailStatus;
+        handled: boolean;
+        created_at: Date;
+      }>`
+        SELECT id, inquiry_type, email_status, handled_at IS NOT NULL AS handled, created_at
+        FROM ltv.inquiries
+        ORDER BY (handled_at IS NULL) DESC, created_at DESC, id ASC
+        LIMIT ${take}
+      `.execute(this.db),
+    ]);
+    const counts = summary.rows[0];
+    return {
+      unhandled: Number(counts?.unhandled ?? 0),
+      last30Days: Number(counts?.last_30_days ?? 0),
+      emailPending: Number(counts?.email_pending ?? 0),
+      emailFailed: Number(counts?.email_failed ?? 0),
+      recent: recent.rows.map((row) => ({
+        id: row.id,
+        inquiryType: row.inquiry_type,
+        emailStatus: row.email_status,
+        handled: row.handled,
+        createdAt: row.created_at,
+      })),
+    };
   }
 
   /**

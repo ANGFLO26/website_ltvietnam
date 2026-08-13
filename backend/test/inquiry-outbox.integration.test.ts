@@ -31,7 +31,31 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
   beforeAll(async () => {
     pool = createTestPool(url);
     daos = createDaoManager(createKysely(pool));
+    /**
+     * Don job cua cac tep test KHAC truoc khi bat dau.
+     *
+     * NO GIOI HAN CON LAI (chua sua xong): cac bai kiem lay job trong tep nay
+     * van chua co lap voi NHAU. `claimJobs(worker, n, ...)` lay `n` dong DAU CUA
+     * CA BANG chu khong phai `n` job cua rieng bai kiem dang chay; cac bai kiem
+     * truoc trong chinh tep nay de lai job `pending`, nen khi tong vuot `n` thi
+     * mot phan job cua bai kiem hien tai nam NGOAI cua so lay, va
+     * `FOR UPDATE SKIP LOCKED` khong quet lai de bu.
+     *
+     * Hau qua do duoc: chay rieng tep nay thi hong ~1/6 lan; chay ca bo test thi
+     * hong gan nhu moi lan (vi co nhieu job ton hon).
+     *
+     * MA NGUON KHONG SAI — da doi chieu rieng bang mot kich ban tai hien: cau
+     * lenh `UPDATE ... FROM (SELECT ... FOR UPDATE SKIP LOCKED)` cua `claimJobs`
+     * chay dung 20/20 lan khi hang doi sach, khong mat va khong trung job nao.
+     *
+     * Sua tan goc phai tach fixture cho tung bai kiem lay job (hoac dat moi bai
+     * trong mot `describe` rieng co `beforeEach` don hang doi) — mot viec rieng,
+     * khong gop vao dot ra soat nay. Dung `beforeEach` don sach o day thi bai
+     * kiem "dem theo trang thai" do, vi no lai DUA VAO job do bai kiem truoc tao.
+     */
+    await pool.query(`DELETE FROM ltv.inquiry_outbox`);
   });
+
   afterAll(async () => {
     await pool.query(`DELETE FROM ltv.inquiry_outbox WHERE recipient = $1`, [
       `reset-${tag}@example.com`,
@@ -176,6 +200,14 @@ run('Inquiry + outbox tren PostgreSQL that', () => {
     expect(job.inquiryId).toBeNull();
     expect(job.notificationType).toBe('password_reset');
     expect(job.payload).toEqual({ token: 'signed-reset-token' });
+  });
+
+  it('dashboard summary chi doc metadata van hanh, khong doc PII', async () => {
+    const summary = await daos.inquiries.dashboardSummary(20);
+    expect(summary.last30Days).toBeGreaterThan(0);
+    expect(summary.recent.length).toBeGreaterThan(0);
+    const serialized = JSON.stringify(summary.recent);
+    expect(serialized).not.toMatch(/fullName|companyName|phone|message|recipient/);
   });
 
   // ══════════════════ FV-08 — lay job dong thoi ══════════════════

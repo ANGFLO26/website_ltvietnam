@@ -62,17 +62,23 @@ export class KyselyCustomerDao extends BaseDao implements CustomerDao {
       .selectFrom('customers')
       .innerJoin('media', 'media.id', 'customers.logo_id')
       .selectAll('customers')
+      .select('media.public_url as logo_url')
       .where('customers.deleted_at', 'is', null)
       .where('customers.status', '=', 'published')
       .where('customers.is_public', '=', true)
       .where('media.deleted_at', 'is', null)
+      .where('media.storage_class', '=', 'public')
+      .where('media.public_url', 'is not', null)
       .orderBy('customers.display_order')
       .orderBy('customers.name')
       .limit(Math.max(1, Math.trunc(limit)))
       .execute();
     // `innerJoin` tren `logo_id` da loai het hang khong co logo, nen
     // `logoId: string` (khong nullable) la ket luan cua truy van.
-    return rows.map(toCustomer) as PublicCustomer[];
+    return rows.map((row) => ({
+      ...toCustomer(row),
+      logoUrl: row.logo_url!,
+    })) as PublicCustomer[];
   }
 
   async insert(input: CreateCustomerInput): Promise<Customer> {

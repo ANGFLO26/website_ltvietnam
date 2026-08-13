@@ -79,6 +79,10 @@ import { AdminSiteController } from './api/admin/site.controller.js';
 import { ADMIN_SITE_SERVICE } from './services/admin-site/interface.js';
 import { AdminSiteServiceImpl } from './services/admin-site/service.js';
 import { AdminContentController } from './api/admin/content.controller.js';
+import { AdminPublishController } from './api/admin/publish.controller.js';
+import { AdminDashboardController } from './api/admin/dashboard.controller.js';
+import { ADMIN_DASHBOARD_SERVICE } from './services/admin-dashboard/interface.js';
+import { AdminDashboardServiceImpl } from './services/admin-dashboard/service.js';
 import { ADMIN_CONTENT_SERVICE } from './services/admin-content/interface.js';
 import { AdminContentServiceImpl } from './services/admin-content/service.js';
 
@@ -126,6 +130,8 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     AdminSystemController,
     AdminSiteController,
     AdminContentController,
+    AdminPublishController,
+    AdminDashboardController,
     AuthController,
   ],
   providers: [
@@ -273,15 +279,24 @@ const DAO_RUNTIME = Symbol('DAO_RUNTIME');
     },
     {
       provide: ADMIN_SITE_SERVICE,
-      useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService) =>
-        new AdminSiteServiceImpl(daos, slugs, publisher),
-      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE],
+      useFactory: (
+        daos: DaoManager,
+        slugs: SlugService,
+        publisher: PublishService,
+        cache: TtlCache,
+      ) => new AdminSiteServiceImpl(daos, slugs, publisher, cache),
+      inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE, SITE_CACHE],
     },
     {
       provide: ADMIN_CONTENT_SERVICE,
       useFactory: (daos: DaoManager, slugs: SlugService, publisher: PublishService) =>
         new AdminContentServiceImpl(daos, slugs, publisher),
       inject: [DAO_MANAGER, SLUG_SERVICE, PUBLISH_SERVICE],
+    },
+    {
+      provide: ADMIN_DASHBOARD_SERVICE,
+      useFactory: (daos: DaoManager) => new AdminDashboardServiceImpl(daos),
+      inject: [DAO_MANAGER],
     },
 
     // ── mat ma: cai dat nam o shared/crypto, service chi biet cong ──

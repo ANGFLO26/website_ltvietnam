@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { renderServiceDetail, serviceDetailMetadata } from '@/lib/w4/services';
+import { renderServiceDetail, serviceDetailMetadata } from '@/page-views/services';
 
 export function generateMetadata({
   params,

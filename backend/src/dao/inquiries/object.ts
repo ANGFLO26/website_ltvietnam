@@ -89,6 +89,22 @@ export interface InquiryFilter {
   readonly productId?: string;
 }
 
+export interface InquiryDashboardRecent {
+  readonly id: string;
+  readonly inquiryType: InquiryType;
+  readonly emailStatus: EmailStatus;
+  readonly handled: boolean;
+  readonly createdAt: Date;
+}
+
+export interface InquiryDashboardSummary {
+  readonly unhandled: number;
+  readonly last30Days: number;
+  readonly emailPending: number;
+  readonly emailFailed: number;
+  readonly recent: readonly InquiryDashboardRecent[];
+}
+
 // ═══════════════════ HANG DOI GUI EMAIL (outbox) ═══════════════════
 /**
  * `inquiry_outbox` khong co thu muc rieng: mot job khong bao gio ton tai

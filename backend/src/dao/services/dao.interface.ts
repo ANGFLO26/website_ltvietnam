@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminContentListFilter, AdminContentListRow } from '../admin-read-model.js';
 import type { TreeNode } from '../tree.dao.js';
 import type {
   HreflangAlternate,
@@ -20,6 +21,10 @@ import type {
 export interface ServiceDao {
   findById(id: string): Promise<Service | null>;
   list(filter: ServiceFilter, page?: Partial<Page>): Promise<Paged<Service>>;
+  listAdmin(
+    filter: AdminContentListFilter<'parent_id' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>>;
 
   insert(input: CreateServiceInput): Promise<Service>;
   update(id: string, input: UpdateServiceInput): Promise<Service>;

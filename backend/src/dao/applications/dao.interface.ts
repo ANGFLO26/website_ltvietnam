@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminTaxonomyListFilter, AdminTaxonomyListRow } from '../admin-read-model.js';
 import type { TreeNode } from '../tree.dao.js';
 import type {
   Application,
@@ -11,6 +12,10 @@ export interface ApplicationDao {
   findById(id: string): Promise<Application | null>;
   findBySlug(slug: string): Promise<Application | null>;
   list(filter: ApplicationFilter, page?: Partial<Page>): Promise<Paged<Application>>;
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>>;
 
   insert(input: CreateApplicationInput): Promise<Application>;
   update(id: string, input: UpdateApplicationInput): Promise<Application>;

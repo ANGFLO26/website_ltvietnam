@@ -126,8 +126,15 @@ export class MediaServiceImpl implements MediaService {
 
   async openPublic(assetPath: string): Promise<PublicMediaFile> {
     const clean = publicAssetPath(assetPath);
-    const storagePath = `${this.cfg.MEDIA_PUBLIC_DIR.replaceAll('\\', '/')}/${clean}`;
-    const media = await this.daos.media.findActiveByPublicAssetPath(storagePath);
+    let storagePath = `${this.cfg.MEDIA_PUBLIC_DIR.replaceAll('\\', '/')}/${clean}`;
+    let media = await this.daos.media.findActiveByPublicAssetPath(storagePath);
+    // F4 cu da seed `public/<file>` truoc khi F7 chot public-media/originals.
+    // Fallback chi mo nhanh public/ va adapter van rang tep vao publicDir.
+    if (!media && clean.startsWith('public/')) {
+      const legacyPath = clean;
+      media = await this.daos.media.findActiveByPublicAssetPath(legacyPath);
+      if (media) storagePath = legacyPath;
+    }
     if (!media) throw new NotFoundError('MEDIA_NOT_FOUND', 'Khong tim thay tep media');
     const opened = await this.storage.open(media, storagePath);
     return {

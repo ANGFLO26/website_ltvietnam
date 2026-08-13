@@ -6,6 +6,7 @@ import type {
   CreatePasswordResetJobInput,
   EmailStatus,
   Inquiry,
+  InquiryDashboardSummary,
   InquiryCreateResult,
   InquiryFilter,
   OutboxJob,
@@ -15,6 +16,7 @@ export interface InquiryDao {
   findById(id: string): Promise<Inquiry | null>;
   findByIdempotencyKey(key: string): Promise<Inquiry | null>;
   list(filter: InquiryFilter, page?: Partial<Page>): Promise<Paged<Inquiry>>;
+  dashboardSummary(limit: number): Promise<InquiryDashboardSummary>;
 
   /**
    * D19 — TAO YEU CAU MOT CACH NGUYEN TU.

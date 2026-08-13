@@ -8,6 +8,7 @@ doc/verify/
 │   ├── schema_up.sql        DDL có thẩm quyền của baseline v1.3 (52 bảng)
 │   ├── schema_down.sql      rollback
 │   ├── seed_test.sql        dữ liệu mẫu mô phỏng cấu trúc website thật
+│   ├── run_verification.sh  verifier PostgreSQL 16 cho Bash
 │   └── README_V1_3.md       kết quả kiểm chứng trên PostgreSQL 16.2
 ├── v1.2.1-legacy/           ← KHÔNG hoạt động, giữ để tham chiếu
 │   ├── schema_up.sql        baseline 63 bảng, CHƯA TỪNG CHẠY ở đâu
@@ -27,12 +28,7 @@ doc/verify/
 ## Chạy kiểm chứng
 
 ```bash
-createdb ltvn_verify
-psql -d ltvn_verify -f v1.3/schema_up.sql
-psql -d ltvn_verify -f v1.3/seed_test.sql
-# kiểm tra
-psql -d ltvn_verify -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='ltv' AND table_type='BASE TABLE';"   # 52
-psql -d ltvn_verify -f v1.3/schema_down.sql
+./doc/verify/v1.3/run_verification.sh
 ```
 
 Yêu cầu PostgreSQL 16 với `pgcrypto`, `citext`, `pg_trgm`.

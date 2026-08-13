@@ -5,6 +5,11 @@ import { normalizePage, offsetOf, toPaged, type Paged, type Page } from '../help
 import type { BrandDao } from './dao.interface.js';
 import type { Brand, BrandFilter, CreateBrandInput, UpdateBrandInput } from './object.js';
 import { toBrand } from './mapper.js';
+import {
+  listAdminTaxonomy,
+  type AdminTaxonomyListFilter,
+  type AdminTaxonomyListRow,
+} from '../admin-read-model.js';
 
 /**
  * `brands` la bang phuc tap nhat: vua la CAY, vua co SLUG, vua XOA MEM.
@@ -69,6 +74,25 @@ export class KyselyBrandDao extends TreeDao implements BrandDao {
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
 
     return toPaged(rows.map(toBrand), total, p);
+  }
+
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>> {
+    return listAdminTaxonomy(
+      this.db,
+      {
+        kind: 'brand',
+        table: 'brands',
+        tree: true,
+        thumbnailColumns: ['logo_id'],
+        relatedTable: 'products',
+        relatedForeignKey: 'brand_id',
+      },
+      filter,
+      page,
+    );
   }
 
   // ── ghi ────────────────────────────────────────────────────────

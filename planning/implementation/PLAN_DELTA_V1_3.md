@@ -15,7 +15,8 @@ Toàn bộ 20 file trong `planning/implementation/v1.0/` bị khóa bởi `V1_0_
 1. làm hỏng manifest và fail CI;
 2. quan trọng hơn — làm sai lệch chính bộ hash mà evidence Gate B đã chứng nhận.
 
-Nên plan giữ nguyên như lúc được duyệt, và file này ghi phần đã lỗi thời. Cùng cơ chế với `GATE_STATUS.md`.
+Nên plan giữ nguyên như lúc được duyệt, và file này ghi phần đã lỗi thời. Cùng cơ chế với snapshot
+Gate P0 tại `history/GATE_STATUS_P0_2026-07-29.md`.
 
 ---
 

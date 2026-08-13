@@ -1,15 +1,32 @@
-import type { Locale } from '@ltv/contracts';
+import type {
+  AdminContentKind,
+  AdminContentListItemView,
+  AdminEntityStatus,
+  Locale,
+} from '@ltv/contracts';
 
 export const ADMIN_CONTENT_SERVICE = Symbol('ADMIN_CONTENT_SERVICE');
-export type AdminContentKind = 'service' | 'project' | 'post' | 'page';
+export type { AdminContentKind } from '@ltv/contracts';
+
+export interface AdminContentFilter {
+  readonly status?: AdminEntityStatus | undefined;
+  readonly translationStatus?: 'draft' | 'published' | 'hidden' | undefined;
+  readonly locale?: Locale | undefined;
+  readonly search?: string | undefined;
+  readonly includeDeleted?: boolean | undefined;
+  readonly isFeatured?: boolean | undefined;
+  readonly projectType?: string | undefined;
+  readonly categoryId?: string | undefined;
+  readonly parentId?: string | null | undefined;
+}
 
 export interface AdminContentService {
   list(
     kind: AdminContentKind,
-    filter: Record<string, unknown>,
+    filter: AdminContentFilter,
     page: { page: number; pageSize: number },
   ): Promise<{
-    items: readonly unknown[];
+    items: readonly AdminContentListItemView[];
     page: number;
     pageSize: number;
     totalItems: number;

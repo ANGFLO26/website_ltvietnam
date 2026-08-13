@@ -1,9 +1,9 @@
+import type { AdminEntityStatus, AdminProductListItemView } from '@ltv/contracts';
 import type {
   ApplicationLink,
   CategoryLink,
   CreateProductInput,
   IndustryLink,
-  Product,
   ProductDetail,
   ProductMediaLink,
   RelatedLink,
@@ -29,7 +29,7 @@ export interface AdminProductWrite extends UpdateProductInput, AdminProductRelat
 export interface AdminProductCreate extends CreateProductInput, AdminProductRelations {}
 
 export interface AdminProductPage {
-  readonly items: readonly Product[];
+  readonly items: readonly AdminProductListItemView[];
   readonly page: number;
   readonly pageSize: number;
   readonly totalItems: number;
@@ -38,8 +38,9 @@ export interface AdminProductPage {
 export interface AdminProductService {
   list(
     filter: {
-      readonly status?: string | undefined;
+      readonly status?: AdminEntityStatus | undefined;
       readonly brandId?: string | undefined;
+      readonly categoryId?: string | undefined;
       readonly search?: string | undefined;
       readonly includeDeleted?: boolean | undefined;
     },

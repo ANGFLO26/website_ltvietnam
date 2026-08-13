@@ -28,6 +28,8 @@ export const productCard = (p: ProductCard): ProductCardView => ({
   model: p.model,
   short_description: p.shortDescription,
   featured_image_id: p.featuredImageId,
+  featured_image_url: p.featuredImageUrl,
+  featured_image_alt: p.featuredImageAlt,
   brand: { slug: p.brandSlug, name: p.brandName },
   standards: p.standards,
   is_featured: p.isFeatured,

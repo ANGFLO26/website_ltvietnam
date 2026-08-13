@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { projectDetailMetadata, renderProjectDetail } from '@/lib/w4/projects';
+import { projectDetailMetadata, renderProjectDetail } from '@/page-views/projects';
 
 export function generateMetadata({
   params,

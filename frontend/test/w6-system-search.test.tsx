@@ -4,8 +4,8 @@ import type { PageDetailView } from '@ltv/contracts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CookieBanner } from '@/components/ui/CookieBanner';
 import { getDictionary } from '@/lib/i18n';
-import { policyMetadata, renderPolicyPage } from '@/lib/w6/policies';
-import { renderSearchPage, searchMetadata } from '@/lib/w6/search';
+import { policyMetadata, renderPolicyPage } from '@/page-views/policies';
+import { renderSearchPage, searchMetadata } from '@/page-views/search';
 
 const { getPageMock, searchSiteMock } = vi.hoisted(() => ({
   getPageMock: vi.fn(),

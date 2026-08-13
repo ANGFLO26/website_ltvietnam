@@ -20,13 +20,11 @@
  *   1. Cache nam trong bo nho TIEN TRINH. Chay nhieu ban sao thi moi ban co ban
  *      cache rieng, nen mot thay doi cua bien tap co the hien khong dong thoi
  *      giua cac ban — trong pham vi TTL.
- *   2. KHONG co co che vo hieu hoa. Bien tap doi `is_featured` thi phai doi het
- *      TTL moi thay. Do la ly do TTL phai NGAN (60s), khong phai "vai phut cho
- *      hieu qua hon".
+ *   2. Mutation admin site xóa được đúng prefix trong cùng tiến trình. Khi chạy
+ *      nhiều bản sao, mỗi bản vẫn có cache riêng nên độ trễ tối đa vẫn bằng TTL.
  *
- * Truoc khi chay nhieu ban sao hoac muon vo hieu hoa tuc thi thi phai chuyen
- * sang Redis. Cung ket luan voi `AttemptCounter` va `SlidingWindowLimiter`, va
- * cung ly do: khong them ha tang truoc khi co nhu cau that.
+ * Trước khi chạy nhiều bản sao và cần invalidation đồng thời phải chuyển sang
+ * Redis/pub-sub. Cùng kết luận với `AttemptCounter` và `SlidingWindowLimiter`.
  */
 export interface CacheEntry<T> {
   readonly value: T;
@@ -106,5 +104,13 @@ export class TtlCache {
   clear(): void {
     this.kho.clear();
     this.thongKe = { hit: 0, miss: 0 };
+  }
+
+  /**
+   * Xóa đúng nhóm read-model sau mutation admin. Prefix luôn là hằng số nội
+   * bộ (`home:`/`nav:`), không nhận dữ liệu người dùng nên không làm phình key.
+   */
+  invalidatePrefix(prefix: string): void {
+    for (const key of this.kho.keys()) if (key.startsWith(prefix)) this.kho.delete(key);
   }
 }

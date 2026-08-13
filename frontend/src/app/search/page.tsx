@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { renderSearchPage, searchMetadata } from '@/lib/w6/search';
+import { renderSearchPage, searchMetadata } from '@/page-views/search';
 
 export const metadata: Metadata = searchMetadata('en');
 

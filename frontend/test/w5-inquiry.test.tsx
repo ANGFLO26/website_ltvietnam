@@ -5,7 +5,7 @@ import { InquiryForm } from '@/components/inquiry/InquiryForm';
 import type { PublicCaptchaConfig } from '@/config';
 import { createInquiryRequestId } from '@/lib/idempotency';
 import { getDictionary } from '@/lib/i18n';
-import { requestSuccessMetadata } from '@/lib/w5/success';
+import { requestSuccessMetadata } from '@/page-views/request-success';
 
 const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
 

@@ -21,6 +21,11 @@ import type {
   UpsertPostTranslationInput,
 } from './object.js';
 import { toPost, toPostTranslation } from './mapper.js';
+import {
+  listAdminContent,
+  type AdminContentListFilter,
+  type AdminContentListRow,
+} from '../admin-read-model.js';
 
 export class KyselyPostDao extends BaseDao implements PostDao {
   private readonly tr: TranslationSupport<'category_id' | 'is_featured'>;
@@ -74,6 +79,25 @@ export class KyselyPostDao extends BaseDao implements PostDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toPost), total, p);
+  }
+
+  listAdmin(
+    filter: AdminContentListFilter<'category_id' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>> {
+    return listAdminContent(
+      this.db,
+      {
+        kind: 'post',
+        parentTable: 'posts',
+        translationTable: 'post_translations',
+        parentKey: 'post_id',
+        titleColumn: 'title',
+        allowedParentFilters: ['category_id', 'is_featured'],
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreatePostInput): Promise<Post> {
@@ -272,6 +296,15 @@ export class KyselyPostDao extends BaseDao implements PostDao {
     await this.db
       .insertInto('post_media')
       .values(mediaIds.map((m, i) => ({ post_id: id, media_id: m, display_order: i })))
+      .execute();
+  }
+
+  async findMedia(id: string): Promise<readonly { mediaId: string; displayOrder: number }[]> {
+    return this.db
+      .selectFrom('post_media')
+      .select(['media_id as mediaId', 'display_order as displayOrder'])
+      .where('post_id', '=', id)
+      .orderBy('display_order', 'asc')
       .execute();
   }
 

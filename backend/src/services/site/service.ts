@@ -129,9 +129,8 @@ export class SiteServiceImpl implements SiteService {
      * mot khoa se cho nguoi doc tieng Viet thay noi dung tieng Anh — mot loi hien
      * ra binh thuong, khong bao gi ca.
      *
-     * Gioi han cua cache nay (mot tien trinh, khong vo hieu hoa duoc) ghi o
-     * `shared/cache.ts`. TTL 60s la con so chon theo do: bien tap sua roi tai lai
-     * trong vong mot phut phai thay duoc thay doi.
+     * Gioi han cache mot tien trinh ghi o `shared/cache.ts`. Mutation admin site
+     * xóa prefix `home:` ngay; TTL 60s vẫn là lưới an toàn khi chạy nhiều bản sao.
      */
     return this.cache.lay(`home:${locale}`, () => this.homeThat(locale));
   }
@@ -184,6 +183,8 @@ export class SiteServiceImpl implements SiteService {
       subtitle: b.subtitle,
       image_id: b.imageId,
       mobile_image_id: b.mobileImageId,
+      image_url: b.imagePublicUrl,
+      mobile_image_url: b.mobileImagePublicUrl,
       image_alt: b.imageAlt,
       button_label: b.buttonLabel,
       /**
@@ -311,7 +312,13 @@ export class SiteServiceImpl implements SiteService {
         daGiai,
       );
       if (url === null && n.linkType !== 'none' && con.length === 0) continue;
-      ra.push({ label: n.label, url, open_new_tab: n.openNewTab, children: con });
+      ra.push({
+        label: n.label,
+        label_i18n_key: n.labelI18nKey,
+        url,
+        open_new_tab: n.openNewTab,
+        children: con,
+      });
     }
     return ra;
   }
@@ -394,12 +401,14 @@ function khachHang(c: {
   name: string;
   shortDescription: string | null;
   logoId: string;
+  logoUrl: string;
   websiteUrl: string | null;
 }): CustomerView {
   return {
     name: c.name,
     short_description: c.shortDescription,
     logo_id: c.logoId,
+    logo_url: c.logoUrl,
     website_url: c.websiteUrl,
   };
 }

@@ -11,6 +11,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const targets = [
   '.tmp',
   'backend/dist',
+  'admin/.next',
+  'admin/next-env.d.ts',
+  'admin/tsconfig.tsbuildinfo',
   'frontend/.next',
   'frontend/next-env.d.ts',
   'frontend/tsconfig.tsbuildinfo',

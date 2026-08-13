@@ -1,5 +1,5 @@
+import type { AdminTaxonomyListItemView } from '@ltv/contracts';
 import { ConflictError, DomainError, NotFoundError } from '../../shared/errors.js';
-import { chiCo } from '../../shared/omit-undefined.js';
 import type { DaoScope } from '../../dao/dao-scope.js';
 import type {
   CreateApplicationInput,
@@ -44,7 +44,7 @@ export class AdminTaxonomyServiceImpl implements AdminTaxonomyService {
   ): Promise<AdminTaxonomyPage> {
     const result = await this.listFromDao(kind, filter, page);
     return {
-      items: result.data,
+      items: result.data.map(taxonomyListView),
       page: result.meta.page,
       pageSize: result.meta.pageSize,
       totalItems: result.meta.totalItems,
@@ -153,55 +153,15 @@ export class AdminTaxonomyServiceImpl implements AdminTaxonomyService {
   ) {
     switch (kind) {
       case 'brand':
-        return this.daos.brands.list(
-          chiCo({
-            status: filter.status,
-            isFeatured: filter.isFeatured,
-            parentId: filter.parentId,
-            includeDeleted: filter.includeDeleted,
-          }),
-          page,
-        );
+        return this.daos.brands.listAdmin(filter, page);
       case 'product_category':
-        return this.daos.productCategories.list(
-          chiCo({
-            status: filter.status,
-            isFeatured: filter.isFeatured,
-            parentId: filter.parentId,
-            includeDeleted: filter.includeDeleted,
-          }),
-          page,
-        );
+        return this.daos.productCategories.listAdmin(filter, page);
       case 'standard':
-        return this.daos.standards.list(
-          chiCo({
-            status: filter.status,
-            isFeatured: filter.isFeatured,
-            organization: filter.organization,
-            search: filter.search,
-            includeDeleted: filter.includeDeleted,
-          }),
-          page,
-        );
+        return this.daos.standards.listAdmin(filter, page);
       case 'application':
-        return this.daos.applications.list(
-          chiCo({
-            status: filter.status,
-            isFeatured: filter.isFeatured,
-            parentId: filter.parentId,
-            includeDeleted: filter.includeDeleted,
-          }),
-          page,
-        );
+        return this.daos.applications.listAdmin(filter, page);
       case 'industry':
-        return this.daos.industries.list(
-          chiCo({
-            status: filter.status,
-            isFeatured: filter.isFeatured,
-            includeDeleted: filter.includeDeleted,
-          }),
-          page,
-        );
+        return this.daos.industries.listAdmin(filter, page);
     }
   }
 
@@ -377,6 +337,29 @@ export class AdminTaxonomyServiceImpl implements AdminTaxonomyService {
   private audit(event: string, kind: AdminTaxonomyKind, id: string, extra = {}): void {
     this.onAudit?.(event, { entity: kind, entity_id: id, ...extra });
   }
+}
+
+function taxonomyListView(
+  row: Awaited<ReturnType<AdminTaxonomyDaos['brands']['listAdmin']>>['data'][number],
+): AdminTaxonomyListItemView {
+  return {
+    id: row.id,
+    kind: row.kind,
+    label: row.label,
+    slug: row.slug,
+    status: row.status,
+    parent:
+      row.parentId === null || row.parentLabel === null
+        ? null
+        : { id: row.parentId, label: row.parentLabel, slug: row.parentSlug },
+    thumbnail_id: row.thumbnailId,
+    thumbnail_url: row.thumbnailUrl,
+    is_featured: row.isFeatured,
+    related_product_count: row.relatedProductCount,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+    deleted_at: row.deletedAt?.toISOString() ?? null,
+  };
 }
 
 function code(kind: AdminTaxonomyKind): string {

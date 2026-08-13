@@ -12,6 +12,7 @@ import {
 } from '../src/services/admin-redirects/service.js';
 import { SettingServiceImpl, type SettingDaos } from '../src/services/settings/service.js';
 import { adminDeleteQuerySchema } from '../src/api/dto/admin-taxonomy.dto.js';
+import { adminProductListQuerySchema } from '../src/api/dto/admin-product.dto.js';
 import {
   contentListSchema,
   postTranslationSchema,
@@ -79,6 +80,14 @@ describe('F8 admin commands', () => {
     expect(contentListSchema.parse({ featured: 'false' }).featured).toBe(false);
     expect(redirectListQuerySchema.parse({ never_hit: 'false' }).never_hit).toBe(false);
     expect(() => adminDeleteQuerySchema.parse({ hard: 'yes' })).toThrow();
+  });
+
+  it('validates the A2 category filter before it reaches the product read-model', () => {
+    const categoryId = '33333333-3333-4333-8333-333333333333';
+    expect(adminProductListQuerySchema.parse({ category_id: categoryId }).category_id).toBe(
+      categoryId,
+    );
+    expect(() => adminProductListQuerySchema.parse({ category_id: 'not-a-uuid' })).toThrow();
   });
 
   it('accepts a status-only translation PATCH as documented', async () => {
@@ -170,14 +179,20 @@ describe('F8 admin commands', () => {
   });
 
   it('honors include_deleted when listing admin pages', async () => {
-    const listAll = vi.fn(async () => []);
-    const pages = { listAll };
+    const listAdmin = vi.fn(async () => ({
+      data: [],
+      meta: { page: 1, pageSize: 20, totalItems: 0, totalPages: 1 },
+    }));
+    const pages = { listAdmin };
     const daos = { pages, transaction: vi.fn() } as unknown as AdminContentDaos;
     const service = new AdminContentServiceImpl(daos, {} as SlugService, {} as PublishService);
 
     await service.list('page', { includeDeleted: true }, { page: 1, pageSize: 20 });
 
-    expect(listAll).toHaveBeenCalledWith(true);
+    expect(listAdmin).toHaveBeenCalledWith(expect.objectContaining({ includeDeleted: true }), {
+      page: 1,
+      pageSize: 20,
+    });
   });
 
   it('hides a customer editorially without revoking its independent logo-consent flag', async () => {

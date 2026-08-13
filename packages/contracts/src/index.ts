@@ -8,3 +8,7 @@ export * from './site.view.js';
 export * from './seo.view.js';
 export * from './inquiry.view.js';
 export * from './media.view.js';
+export * from './admin.view.js';
+export * from './admin.catalogue.js';
+export * from './admin.content.js';
+export * from './admin.operations.js';

@@ -63,6 +63,7 @@ export const adminProductListQuerySchema = z
   .object({
     status: z.enum(['draft', 'published', 'hidden', 'archived']).optional(),
     brand_id: uuid.optional(),
+    category_id: uuid.optional(),
     q: text(255).optional(),
     include_deleted: queryBooleanSchema.default(false),
     page: z.coerce.number().int().min(1).default(1),

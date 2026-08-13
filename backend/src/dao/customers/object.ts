@@ -33,6 +33,7 @@ export interface PublicCustomer extends Customer {
   readonly status: 'published';
   readonly isPublic: true;
   readonly logoId: string;
+  readonly logoUrl: string;
 }
 
 export interface CreateCustomerInput {

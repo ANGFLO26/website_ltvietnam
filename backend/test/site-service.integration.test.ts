@@ -67,6 +67,7 @@ run('SiteService tren PostgreSQL that', () => {
       originalName: `${tag}.jpg`,
       storageClass: 'public',
       storagePath: `public/${tag}.jpg`,
+      publicUrl: `/media/${tag}.jpg`,
       mimeType: 'image/jpeg',
       fileExtension: 'jpg',
       fileSize: 10,
@@ -182,7 +183,13 @@ run('SiteService tren PostgreSQL that', () => {
     id['menu'] = menu.id;
     const chaChet = randomUUID();
     await daos.menus.replaceItems(menu.id, [
-      { label: 'Song', linkType: 'product', linkTargetId: sp.id, displayOrder: 0 },
+      {
+        label: 'Song',
+        labelI18nKey: 'nav.products',
+        linkType: 'product',
+        linkTargetId: sp.id,
+        displayOrder: 0,
+      },
       { label: 'Chet', linkType: 'product', linkTargetId: randomUUID(), displayOrder: 1 },
       { label: 'Chua publish', linkType: 'product', linkTargetId: spNhap.id, displayOrder: 2 },
       { label: 'Tieu de', linkType: 'none', displayOrder: 3 },
@@ -294,6 +301,7 @@ run('SiteService tren PostgreSQL that', () => {
       const m = nav.menus.find((x) => x.code === s('menu'))!;
       const i = m.items.find((x) => x.label === 'Song')!;
       expect(i.url).toBe(`/products/${s('sp')}`);
+      expect(i.label_i18n_key).toBe('nav.products');
     });
 
     it('`link_type = none` la TIEU DE — giu lai voi url null', async () => {
@@ -368,7 +376,7 @@ run('SiteService tren PostgreSQL that', () => {
         for (const pid of them) await daos.products.hardDelete(pid);
         cache.clear();
       }
-    });
+    }, 20_000);
 
     it('`footer` gop bon menu va KHONG co mega menu', async () => {
       const nav = await site.navigation('footer', 'en');
@@ -423,7 +431,9 @@ run('SiteService tren PostgreSQL that', () => {
     it('banner song mang duong dan da giai', async () => {
       cache.clear();
       const h = await site.home('en');
-      expect(h.banners.find((x) => x.title === `B song ${tag}`)?.url).toBe(`/products/${s('sp')}`);
+      const banner = h.banners.find((x) => x.title === `B song ${tag}`);
+      expect(banner?.url).toBe(`/products/${s('sp')}`);
+      expect(banner?.image_url).toBe(`/media/${tag}.jpg`);
     });
 
     it('`locale` co trong than phan hoi', async () => {

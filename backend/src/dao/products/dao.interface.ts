@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminProductListFilter, AdminProductListRow } from '../admin-read-model.js';
 import type {
   ApplicationLink,
   CategoryLink,
@@ -64,6 +65,10 @@ export interface ProductDao extends ProductQuery {
     filter: { status?: string; brandId?: string; includeDeleted?: boolean; search?: string },
     page?: Partial<Page>,
   ): Promise<Paged<Product>>;
+  listAdmin(
+    filter: AdminProductListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminProductListRow>>;
 
   insert(input: CreateProductInput): Promise<Product>;
   update(id: string, input: UpdateProductInput): Promise<Product>;

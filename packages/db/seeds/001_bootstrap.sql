@@ -21,18 +21,18 @@ ON CONFLICT (slug) DO NOTHING;
 -- ── Homepage sections (doc/01 muc 5 — thu tu co dinh o P0) ─────────
 INSERT INTO ltv.homepage_sections (section_type, is_enabled, display_order, settings) VALUES
   ('hero',                    TRUE,  0, '{"limit":5}'),
-  ('company_intro',           TRUE,  1, '{}'),
-  ('business_areas',          TRUE,  2, '{"limit":6}'),
-  ('featured_categories',     TRUE,  3, '{"limit":8}'),
-  ('featured_products',       TRUE,  4, '{"limit":8}'),
+  ('business_areas',          TRUE,  1, '{"limit":2}'),
+  ('featured_products',       TRUE,  2, '{"limit":6}'),
+  ('services',                TRUE,  3, '{"limit":4}'),
+  ('company_intro',           TRUE,  4, '{}'),
   ('featured_brands',         TRUE,  5, '{"limit":12}'),
-  ('services',                TRUE,  6, '{"limit":4}'),
-  ('capabilities',            TRUE,  7, '{}'),
-  ('projects',                TRUE,  8, '{"limit":3}'),
-  ('posts',                   TRUE,  9, '{"limit":3}'),
-  ('customers',               TRUE, 10, '{"limit":12}'),
-  ('contact_call_to_action',  TRUE, 11, '{}'),
-  ('offices',                 TRUE, 12, '{}')
+  ('customers',               TRUE,  6, '{"limit":12}'),
+  ('projects',                TRUE,  7, '{"limit":3}'),
+  ('posts',                   TRUE,  8, '{"limit":3}'),
+  ('contact_call_to_action',  TRUE,  9, '{}'),
+  ('featured_categories',     FALSE, 10, '{"limit":8}'),
+  ('capabilities',            FALSE, 11, '{}'),
+  ('offices',                 FALSE, 12, '{}')
 ON CONFLICT (section_type) DO NOTHING;
 
 -- ── Menu (doc/02 PHAN III) ─────────────────────────────────────────
@@ -45,23 +45,36 @@ INSERT INTO ltv.menus (code, name, location, status) VALUES
   ('footer_legal',    'Footer Legal',    'footer_legal',    'active')
 ON CONFLICT (code) DO NOTHING;
 
--- Muc menu header. label_i18n_key de frontend dich nhan giao dien (ADR-014).
+-- Header gom theo y dinh nguoi dung; "Our Customers" la khoi Home, KHONG la menu.
 INSERT INTO ltv.menu_items (menu_id, label, label_i18n_key, link_type, custom_url, display_order, status)
-SELECT m.id, v.label, v.key, 'custom_url', v.url, v.ord, 'active'
+SELECT m.id, v.label, v.key, v.link_type, v.url, v.ord, 'active'
 FROM ltv.menus m
 CROSS JOIN (VALUES
-  ('Home',            'nav.home',      '/',          0),
-  ('About Us',        'nav.about',     '/about',     1),
-  ('Products',        'nav.products',  '/products',  2),
-  ('Brands',          'nav.brands',    '/brands',    3),
-  ('Services',        'nav.services',  '/services',  4),
-  ('Projects',        'nav.projects',  '/projects',  5),
-  ('News',            'nav.news',      '/news',      6),
-  ('Resources',       'nav.resources', '/resources', 7),
-  ('Contact',         'nav.contact',   '/contact',   8)
-) AS v(label, key, url, ord)
+  ('Solutions', 'nav.solutions', 'none',       NULL,        0),
+  ('Products',  'nav.products',  'custom_url', '/products', 1),
+  ('Services',  'nav.services',  'custom_url', '/services', 2),
+  ('Knowledge', 'nav.knowledge', 'none',       NULL,        3),
+  ('Company',   'nav.company',   'none',       NULL,        4)
+) AS v(label, key, link_type, url, ord)
 WHERE m.code = 'header'
   AND NOT EXISTS (SELECT 1 FROM ltv.menu_items x WHERE x.menu_id = m.id AND x.label = v.label);
+
+INSERT INTO ltv.menu_items (menu_id, parent_id, label, label_i18n_key, link_type, custom_url, display_order, status)
+SELECT m.id, p.id, v.label, v.key, 'custom_url', v.url, v.ord, 'active'
+FROM ltv.menus m
+JOIN (VALUES
+  ('Solutions', 'Laboratory & Analysis',  'nav.laboratory', '/products/category/laboratory-analysis', 0),
+  ('Solutions', 'Valves & Flow Control',  'nav.valves',     '/products/category/valves-flow-control',  1),
+  ('Knowledge', 'News',                   'nav.news',       '/news',                                   0),
+  ('Knowledge', 'Resources',              'nav.resources',  '/resources',                              1),
+  ('Company',   'About Us',               'nav.about',      '/about',                                  0),
+  ('Company',   'Brands',                 'nav.brands',     '/brands',                                 1),
+  ('Company',   'Projects',               'nav.projects',   '/projects',                               2),
+  ('Company',   'Contact',                'nav.contact',    '/contact',                                3)
+) AS v(parent_label, label, key, url, ord) ON TRUE
+JOIN ltv.menu_items p ON p.menu_id = m.id AND p.label = v.parent_label AND p.parent_id IS NULL
+WHERE m.code = 'header'
+  AND NOT EXISTS (SELECT 1 FROM ltv.menu_items x WHERE x.menu_id = m.id AND x.label = v.label AND x.parent_id = p.id);
 
 -- ── Trang he thong (doc/03 PHAN IV) ────────────────────────────────
 INSERT INTO ltv.pages (page_type, status, is_system_page, display_order)

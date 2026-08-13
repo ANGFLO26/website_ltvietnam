@@ -1,4 +1,5 @@
 import type { Paged, Page } from '../helpers.js';
+import type { AdminTaxonomyListFilter, AdminTaxonomyListRow } from '../admin-read-model.js';
 import type { TreeNode } from '../tree.dao.js';
 import type { Brand, BrandFilter, CreateBrandInput, UpdateBrandInput } from './object.js';
 
@@ -10,6 +11,10 @@ export interface BrandDao {
   findById(id: string): Promise<Brand | null>;
   findBySlug(slug: string): Promise<Brand | null>;
   list(filter: BrandFilter, page?: Partial<Page>): Promise<Paged<Brand>>;
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>>;
 
   insert(input: CreateBrandInput): Promise<Brand>;
   update(id: string, input: UpdateBrandInput): Promise<Brand>;

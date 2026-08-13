@@ -12,12 +12,18 @@ import type {
   UpdatePageInput,
   UpsertPageTranslationInput,
 } from './object.js';
+import type { AdminContentListFilter, AdminContentListRow } from '../admin-read-model.js';
+import type { Page, Paged } from '../helpers.js';
 
 export interface PageDao {
   findById(id: string): Promise<AppPage | null>;
   /** Tra cuu theo khoa nghiep vu — cach ma nguon tro toi mot trang. */
   findByType(pageType: string): Promise<AppPage | null>;
   listAll(includeDeleted?: boolean): Promise<AppPage[]>;
+  listAdmin(
+    filter: AdminContentListFilter<never>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>>;
 
   insert(input: CreatePageInput): Promise<AppPage>;
   update(id: string, input: UpdatePageInput): Promise<AppPage>;

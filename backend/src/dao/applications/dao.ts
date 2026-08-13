@@ -11,6 +11,11 @@ import type {
   UpdateApplicationInput,
 } from './object.js';
 import { toApplication } from './mapper.js';
+import {
+  listAdminTaxonomy,
+  type AdminTaxonomyListFilter,
+  type AdminTaxonomyListRow,
+} from '../admin-read-model.js';
 
 export class KyselyApplicationDao extends TreeDao implements ApplicationDao {
   protected readonly table: TreeTableName = 'applications';
@@ -77,6 +82,25 @@ export class KyselyApplicationDao extends TreeDao implements ApplicationDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toApplication), total, p);
+  }
+
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>> {
+    return listAdminTaxonomy(
+      this.db,
+      {
+        kind: 'application',
+        table: 'applications',
+        tree: true,
+        thumbnailColumns: ['icon_id'],
+        relatedTable: 'product_applications',
+        relatedForeignKey: 'application_id',
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreateApplicationInput): Promise<Application> {

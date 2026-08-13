@@ -19,20 +19,21 @@ const optionalText = z.preprocess(
   z.string().min(1).optional(),
 );
 
-const siteOrigin = z
-  .string()
-  .url()
-  .refine((value) => {
-    const url = new URL(value);
-    return (
-      (url.protocol === 'http:' || url.protocol === 'https:') &&
-      url.username === '' &&
-      url.password === '' &&
-      url.pathname === '/' &&
-      url.search === '' &&
-      url.hash === ''
-    );
-  }, 'NEXT_PUBLIC_SITE_URL phai la HTTP(S) origin, khong co credentials/path/query/hash');
+const siteOrigin = (name: string) =>
+  z
+    .string()
+    .url()
+    .refine((value) => {
+      const url = new URL(value);
+      return (
+        (url.protocol === 'http:' || url.protocol === 'https:') &&
+        url.username === '' &&
+        url.password === '' &&
+        url.pathname === '/' &&
+        url.search === '' &&
+        url.hash === ''
+      );
+    }, `${name} phai la HTTP(S) origin, khong co credentials/path/query/hash`);
 
 export const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -46,7 +47,9 @@ export const configSchema = z.object({
   API_PORT: int.default(3001),
   API_BASE_PATH: z.string().default('/api/v1'),
   /** Origin cong khai dung cho canonical, hreflang va sitemap (F6). */
-  NEXT_PUBLIC_SITE_URL: siteOrigin.default('http://localhost:3000'),
+  NEXT_PUBLIC_SITE_URL: siteOrigin('NEXT_PUBLIC_SITE_URL').default('http://localhost:3000'),
+  /** Origin cua ung dung quan tri; worker dung de tao link dat lai mat khau. */
+  ADMIN_SITE_URL: siteOrigin('ADMIN_SITE_URL').default('http://localhost:3002'),
   CORS_ORIGINS: z
     .string()
     .default('')
@@ -158,7 +161,7 @@ export const workerConfigSchema = configSchema.pick({
   DATABASE_SCHEMA: true,
   DATABASE_POOL_MAX: true,
   DATABASE_STATEMENT_TIMEOUT_MS: true,
-  NEXT_PUBLIC_SITE_URL: true,
+  ADMIN_SITE_URL: true,
   WORKER_ID: true,
   WORKER_BATCH_SIZE: true,
   WORKER_POLL_INTERVAL_MS: true,
@@ -201,6 +204,9 @@ export function assertProductionSafe(cfg: AppConfig): void {
   }
   if (!cfg.NEXT_PUBLIC_SITE_URL.startsWith('https://')) {
     loi.push('NEXT_PUBLIC_SITE_URL phai dung https:// tren production');
+  }
+  if (!cfg.ADMIN_SITE_URL.startsWith('https://')) {
+    loi.push('ADMIN_SITE_URL phai dung https:// tren production');
   }
   if (cfg.HASH_MAX_CONCURRENT > 16) {
     // Moi lan bam ton 19 MiB. 16 x 19 = 304 MiB da la nhieu cho mot may nho.
@@ -284,6 +290,9 @@ export function assertWorkerProductionSafe(cfg: WorkerConfig): void {
   if (!cfg.SMTP_HOST) loi.push('SMTP_HOST bat buoc tren production');
   if (!cfg.SMTP_FROM.toLowerCase().endsWith('@ltvietnam.com.vn')) {
     loi.push('SMTP_FROM phai thuoc ten mien ltvietnam.com.vn');
+  }
+  if (!cfg.ADMIN_SITE_URL.startsWith('https://')) {
+    loi.push('ADMIN_SITE_URL phai dung https:// tren production');
   }
   if ((cfg.SMTP_USER === undefined) !== (cfg.SMTP_PASSWORD === undefined)) {
     loi.push('SMTP_USER va SMTP_PASSWORD phai cung co hoac cung trong');

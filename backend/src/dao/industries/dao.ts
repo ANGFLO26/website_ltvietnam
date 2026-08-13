@@ -11,6 +11,11 @@ import type {
   UpdateIndustryInput,
 } from './object.js';
 import { toIndustry } from './mapper.js';
+import {
+  listAdminTaxonomy,
+  type AdminTaxonomyListFilter,
+  type AdminTaxonomyListRow,
+} from '../admin-read-model.js';
 
 export class KyselyIndustryDao extends BaseDao implements IndustryDao {
   private readonly slugs: SlugSupport;
@@ -66,6 +71,25 @@ export class KyselyIndustryDao extends BaseDao implements IndustryDao {
       .execute();
     const total = Number((await cq.executeTakeFirstOrThrow()).n);
     return toPaged(rows.map(toIndustry), total, p);
+  }
+
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>> {
+    return listAdminTaxonomy(
+      this.db,
+      {
+        kind: 'industry',
+        table: 'industries',
+        tree: false,
+        thumbnailColumns: ['featured_image_id', 'icon_id'],
+        relatedTable: 'product_industries',
+        relatedForeignKey: 'industry_id',
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreateIndustryInput): Promise<Industry> {

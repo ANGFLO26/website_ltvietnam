@@ -1,6 +1,6 @@
-# Trạng thái backend — cập nhật sau rà soát F1–F8
+# Trạng thái hệ thống — cập nhật sau Admin A5
 
-> Cập nhật: 2026-08-10 · nhánh `feat/p0-scaffold` · commit nền `6a9b4bf`
+> Cập nhật: 2026-08-11 · nhánh `feat/p0-scaffold` · commit nền `6a9b4bf`
 > File này trả lời hai câu: **đang ở đâu** và **làm gì tiếp**.
 > Mọi con số dưới đây là **đo được**, không phải tuyên bố — cách chạy lại ở mục 6.
 
@@ -8,13 +8,9 @@
 
 ## 1. Một dòng
 
-Backend đã xong **đường đọc công khai và toàn bộ API quản trị F8**: 198/198 endpoint.
-F8 cung cấp 136 endpoint cho taxonomy, sản phẩm, nội dung đa ngôn ngữ, site chrome,
-settings, redirects và users. Rà soát ngày 2026-08-09 đã sửa các lỗi chức năng tìm thấy
-và xác nhận lại trên PostgreSQL thật.
-
-**Frontend có thể dựng gần như toàn bộ website công khai ngay bây giờ** — trang chủ,
-catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đều đã có API thật.
+Backend đã xong đường đọc công khai, toàn bộ API quản trị F8 và dashboard A1: **200/200 endpoint**.
+Website công khai W0–W8 và Admin A1–A5 đã hoàn tất. Admin đã được nghiệm thu bằng production
+build, PostgreSQL thật, responsive/E2E, accessibility, performance budget và các gate toàn workspace.
 
 ---
 
@@ -33,25 +29,38 @@ catalogue, sản phẩm, dịch vụ, dự án, tin tức, menu, tìm kiếm đ�
 | **F5** | Inquiry idempotent, CAPTCHA/rate limit, admin đọc, email worker + reset password | 4/4 | **vừa xong** |
 | **F6** | Sitemap EN/VI, robots, canonical/robots/hreflang và ADR-011 §2b | 3/3 | xong |
 | **F7** | Media upload/variants, public delivery, protected document download, soft-delete/purge | 7/7 | **vừa xong** |
-| **F8** | Admin CRUD: F8a taxonomy · F8b products · F8c content · F8d site · F8e system | 136/136 | **vừa xong** |
+| **F8** | Admin CRUD: F8a taxonomy · F8b products · F8c content · F8d site · F8e system | 137/137 | xong |
+| **A1** | Nền admin: dashboard contract/API, auth UI, shell, component và publish preflight client | 1/1 | **xong** |
+| **A2** | Media Library, taxonomy, sản phẩm, tài liệu và shared catalogue contracts | dùng F8 hiện có | **xong** |
+| **A3** | Nội dung song ngữ, block editor, preview và publish theo locale | dùng F8 hiện có | **xong** |
+| **A4** | Inquiry, homepage, banner, customer, office, menu/footer, redirect, settings, users | dùng F5/F8 hiện có | **xong** |
+| **A5** | Bảo mật, khả dụng, responsive, accessibility, performance và E2E production | — | **xong** |
 
 ### Số đo hiện tại
 
 ```
-workspace test                 594/594 xanh
-backend test                   535/535 xanh; integration chạy trên PostgreSQL thật, không skip
+workspace test với `.env`      725/725 xanh
+backend test với PostgreSQL    563/563 xanh
 worker test                    5/5 xanh
-contracts test                 33/33 xanh
-config test                    8/8 xanh
+frontend test                  66/66 xanh
+admin test                     30/30 xanh
+contracts test                 39/39 xanh
+config test                    9/9 xanh
 db migration-runner            13/13 xanh
-API                            198/198 endpoint (F8: 136/136)
+A2 PostgreSQL integration      71/71 xanh (product filter + taxonomy + publish/media)
+A4 PostgreSQL integration      57/57 xanh (inquiry order + site/menu + users)
+API                            200/200 endpoint (A1: 1/1; F8: 137/137)
+A1 inquiry/dashboard DB test   21/21 xanh trên PostgreSQL thật
 PostgreSQL migration           38/38 đã apply; manifest 38/38 hợp lệ
 smoke-api.mjs                  228/228 qua HTTP thật
 smoke-auth.mjs                 38/38 (41/41 o lan chay dau — xem muc 9)
 inject-f4.mjs                  14/14 (đã sửa: trước đó 11/14 — xem mục 9)
 inject-f5-f8.mjs               24/24 (MỚI — F5–F8 trước đây không có phép tiêm nào)
-pnpm build                     đạt; Next.js cảnh báo chưa khai báo plugin ESLint frontend
-pnpm typecheck                 sạch (7 gói; tự build package dependency)
+Admin responsive/E2E           72/72 xanh; 4 viewport x 16 route; console error 0
+Admin Lighthouse              A11y 100/100; LCP lớn nhất 2,356 giây; CLS 0
+Admin JS budget               34 route; lớn nhất 169/190 KiB gzip
+pnpm build                     đạt cho packages, backend, admin, frontend và worker
+pnpm typecheck                 sạch toàn workspace; tự build package dependency
 pnpm lint                      0 lỗi
 pnpm format:check              sạch
 ```
@@ -64,7 +73,8 @@ pnpm format:check              sạch
 |---|---|---|---|
 | — | Không còn phase backend nào để trống trong kế hoạch F-1…F8 | — | DB thật và smoke HTTP đã xác nhận |
 
-Ngoài backend: **frontend gần như trống** (`layout.tsx`, `page.tsx`, `middleware.ts`).
+Website công khai W0–W8 và admin A1–A5 đã hoàn tất. Không còn phase code trong hai kế hoạch này.
+Phần còn lại là cấu hình/deploy production và hai xác nhận nghiệp vụ được liệt kê trong runbook A5.
 Worker đã có claim/reaper/backoff và adapter file/SMTP.
 
 > **F5–F8 đã được commit** (`6a9b4bf`) và đẩy lên `origin/feat/p0-scaffold`. Cảnh báo
@@ -247,5 +257,5 @@ mã "không có vấn đề gì". Đã thêm file vào `.gitignore` và vào `ig
 
 592 test workspace (533 backend / 35 file, 33 contracts, 8 config, 13 db, 5 worker) — nay
 là **594** sau khi thêm hai bài kiểm (ranh giới `storage_class`, và mục menu trỏ tới bản
-ghi ngoài trang đầu — xem `doc/13` mục 23), 198/198 endpoint, 38 migration, smoke-api 228/228, typecheck + lint +
+ghi ngoài trang đầu — xem `doc/13` mục 23), 200/200 endpoint, 38 migration, smoke-api 228/228, typecheck + lint +
 format:check + build đều sạch.

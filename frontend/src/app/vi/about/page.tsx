@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { aboutMetadata, renderAbout } from '@/lib/w4/about';
+import { aboutMetadata, renderAbout } from '@/page-views/about';
 
 export function generateMetadata(): Promise<Metadata> {
   return aboutMetadata('vi');

@@ -8,6 +8,14 @@ const nullableUuid = uuid.nullable();
 const slug = text(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const order = z.number().int().min(0);
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const safeUrl = z
+  .string()
+  .trim()
+  .max(2_048)
+  .refine(
+    (value) => value.startsWith('https://') || (value.startsWith('/') && !value.startsWith('//')),
+    'Chi chap nhan HTTPS hoac duong dan noi bo bat dau bang /',
+  );
 const patch = <S extends z.ZodRawShape>(shape: S) =>
   z
     .object(shape)
@@ -113,14 +121,31 @@ const officeShape = {
   phone: nullableText(100).optional(),
   fax: nullableText(100).optional(),
   email: z.string().email().max(320).nullable().optional(),
-  map_url: z.string().url().max(2_048).nullable().optional(),
+  map_url: safeUrl.nullable().optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
   featured_image_id: nullableUuid.optional(),
   display_order: order.optional(),
 };
-export const officeSchema = z.object(officeShape).strict();
-export const officePatchSchema = patch(officeShape);
+const officeBase = z.object(officeShape).strict();
+const coordinatePair = (
+  value: { latitude?: number | null | undefined; longitude?: number | null | undefined },
+  ctx: z.RefinementCtx,
+) => {
+  const hasLatitude = value.latitude !== undefined && value.latitude !== null;
+  const hasLongitude = value.longitude !== undefined && value.longitude !== null;
+  if (hasLatitude !== hasLongitude)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['latitude'],
+      message: 'Latitude va longitude phai duoc nhap cung nhau',
+    });
+};
+export const officeSchema = officeBase.superRefine(coordinatePair);
+export const officePatchSchema = officeBase
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'Can it nhat mot truong')
+  .superRefine(coordinatePair);
 export const officeListSchema = z
   .object({
     status: z.enum(['draft', 'published', 'hidden', 'archived']).optional(),
@@ -149,7 +174,7 @@ const bannerShape = {
     ])
     .optional(),
   link_target_id: nullableUuid.optional(),
-  custom_url: z.string().url().max(2_048).nullable().optional(),
+  custom_url: safeUrl.nullable().optional(),
   open_new_tab: z.boolean().optional(),
   display_order: order.optional(),
   start_at: z
@@ -165,8 +190,58 @@ const bannerShape = {
     .nullable()
     .optional(),
 };
-export const bannerSchema = z.object(bannerShape).strict();
-export const bannerPatchSchema = patch(bannerShape);
+const bannerBase = z.object(bannerShape).strict();
+const polymorphicLink = (
+  value: {
+    link_type?: string | undefined;
+    link_target_id?: string | null | undefined;
+    custom_url?: string | null | undefined;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  const kind = value.link_type;
+  if (kind === undefined) return;
+  if (kind === 'custom_url' && !value.custom_url)
+    ctx.addIssue({ code: 'custom', path: ['custom_url'], message: 'Hay nhap URL tuy chinh' });
+  if (kind === 'custom_url' && value.link_target_id)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['link_target_id'],
+      message: 'Custom URL khong dung target ID',
+    });
+  if (kind === 'none' && (value.link_target_id || value.custom_url))
+    ctx.addIssue({ code: 'custom', path: ['link_type'], message: 'Lien ket none khong co target' });
+  if (!['custom_url', 'none'].includes(kind) && !value.link_target_id)
+    ctx.addIssue({ code: 'custom', path: ['link_target_id'], message: 'Hay chon noi dung dich' });
+  if (!['custom_url', 'none'].includes(kind) && value.custom_url)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['custom_url'],
+      message: 'Loai lien ket noi bo khong dung custom URL',
+    });
+};
+const bannerRules = (value: z.infer<typeof bannerBase>, ctx: z.RefinementCtx) => {
+  polymorphicLink(value, ctx);
+  if (value.start_at && value.end_at && value.start_at >= value.end_at)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['end_at'],
+      message: 'Thoi gian ket thuc phai sau thoi gian bat dau',
+    });
+};
+export const bannerSchema = bannerBase.superRefine(bannerRules);
+export const bannerPatchSchema = bannerBase
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'Can it nhat mot truong')
+  .superRefine((value, ctx) => {
+    polymorphicLink(value, ctx);
+    if (value.start_at && value.end_at && value.start_at >= value.end_at)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['end_at'],
+        message: 'Thoi gian ket thuc phai sau thoi gian bat dau',
+      });
+  });
 export const bannerListSchema = z
   .object({ status: z.enum(['draft', 'published', 'hidden']).optional() })
   .strict();
@@ -228,12 +303,16 @@ const menuItemShape = {
     'none',
   ]),
   link_target_id: nullableUuid.optional(),
-  custom_url: z.string().url().max(2_048).nullable().optional(),
+  custom_url: safeUrl.nullable().optional(),
   icon_id: nullableUuid.optional(),
   open_new_tab: z.boolean().optional(),
   display_order: order.optional(),
   status: z.enum(['active', 'hidden']).optional(),
 };
-export const menuItemSchema = z.object(menuItemShape).strict();
-export const menuItemPatchSchema = patch(menuItemShape);
+const menuItemBase = z.object(menuItemShape).strict();
+export const menuItemSchema = menuItemBase.superRefine(polymorphicLink);
+export const menuItemPatchSchema = menuItemBase
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'Can it nhat mot truong')
+  .superRefine(polymorphicLink);
 export const reorderSchema = z.object({ item_ids: z.array(uuid).max(500) }).strict();

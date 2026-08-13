@@ -5,6 +5,8 @@ import { ContentBlocks } from '@/components/content/ContentBlocks';
 import { DiscontinuedNotice } from '@/components/product/DiscontinuedNotice';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { SpecificationTable } from '@/components/product/SpecificationTable';
+import { StandardList } from '@/components/product/StandardList';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { getDictionary } from '@/lib/i18n';
 import {
   buildBreadcrumbStructuredData,
@@ -53,6 +55,68 @@ describe('W3 safe product content', () => {
     );
     expect(screen.getByRole('table')).toHaveClass('min-w-[42rem]');
     expect(container.querySelector('.overflow-x-auto')).not.toBeNull();
+  });
+
+  it('groups specifications by group_key instead of repeating a group column', () => {
+    render(
+      <SpecificationTable
+        specifications={[
+          { group_key: 'Operation', label: 'Sample volume', value: '18', unit: 'ml' },
+          { group_key: 'Operation', label: 'Cycle time', value: '25-35', unit: 'min' },
+          { group_key: 'Physical', label: 'Weight', value: '80', unit: 'kg' },
+        ]}
+        dictionary={dictionary}
+      />,
+    );
+    // Nhom hien MOT lan lam dong tieu de, khong lap lai o tung dong.
+    expect(screen.getAllByText('Operation')).toHaveLength(1);
+    expect(screen.getByRole('columnheader', { name: 'Physical' })).toBeInTheDocument();
+    expect(screen.getByText('80 kg')).toBeInTheDocument();
+  });
+
+  it('separates standards the instrument complies with from correlated ones', () => {
+    render(
+      <StandardList
+        standards={[
+          {
+            slug: 'astm-d445',
+            organization: 'ASTM',
+            code: 'D445',
+            name: null,
+            note: null,
+            compliance_type: 'compliance',
+          },
+          {
+            slug: 'astm-d446',
+            organization: 'ASTM',
+            code: 'D446',
+            name: null,
+            note: null,
+            compliance_type: 'reference',
+          },
+        ]}
+        dictionary={dictionary}
+      />,
+    );
+    expect(screen.getByText(dictionary.products.standardsComplianceTitle)).toBeInTheDocument();
+    expect(screen.getByText(dictionary.products.standardsRelatedTitle)).toBeInTheDocument();
+    // Chi tieu chuan KHONG phai `compliance` moi deo nhan phan loai.
+    expect(screen.getByText(dictionary.products.standardTypeReference)).toBeInTheDocument();
+  });
+
+  it('keeps deep-reference sections collapsed by default but still in the document', () => {
+    render(
+      <CollapsibleSection id="specifications" title="Technical specifications" hint="25 parameters">
+        <p>Bang thong so day du</p>
+      </CollapsibleSection>,
+    );
+    const details = document.querySelector('details');
+    expect(details).not.toBeNull();
+    // Dong san — nhung noi dung VAN nam trong DOM de cong cu tim kiem doc duoc.
+    expect(details).not.toHaveAttribute('open');
+    expect(screen.getByText('Bang thong so day du')).toBeInTheDocument();
+    // Cho biet truoc khoi luong ben trong de nguoi doc quyet dinh co mo hay khong.
+    expect(screen.getByText('25 parameters')).toBeInTheDocument();
   });
 
   it('shows a placeholder when the product has no publishable media', () => {
@@ -116,6 +180,8 @@ function productCard(slug: string, name: string): ProductRelatedView['product'] 
     model: name,
     short_description: null,
     featured_image_id: null,
+    featured_image_url: null,
+    featured_image_alt: null,
     brand: { slug: 'isl', name: 'ISL' },
     standards: [],
     is_featured: false,

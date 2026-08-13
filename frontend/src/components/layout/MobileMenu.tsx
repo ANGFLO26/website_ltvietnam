@@ -79,7 +79,12 @@ export function MobileMenu({
           </form>
           <nav aria-label={dictionary.layout.mobileNavigation}>
             {navigation.menus.map((menu) => (
-              <MenuTree key={menu.code} className="space-y-1" items={menu.items} />
+              <MenuTree
+                key={menu.code}
+                className="space-y-1"
+                items={menu.items}
+                dictionary={dictionary}
+              />
             ))}
           </nav>
           {navigation.product_mega_menu === null ? null : (

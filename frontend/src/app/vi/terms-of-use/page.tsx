@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { policyMetadata, renderPolicyPage } from '@/lib/w6/policies';
+import { policyMetadata, renderPolicyPage } from '@/page-views/policies';
 
 export function generateMetadata(): Promise<Metadata> {
   return policyMetadata('terms-of-use', 'vi');

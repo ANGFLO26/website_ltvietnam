@@ -8,6 +8,7 @@ build/
 .next/
 # Do `next build` sinh ra; khong phai ma nguon (khuyen nghi cua Next.js).
 frontend/next-env.d.ts
+admin/next-env.d.ts
 out/
 .turbo/
 coverage/
@@ -22,7 +23,8 @@ coverage/
 
 # Editor and operating-system files
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 *.swo
 *~

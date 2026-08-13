@@ -149,7 +149,10 @@ export class LocalMediaStorage {
     const allowed =
       storagePath === media.storagePath || Object.values(media.variants).includes(storagePath);
     if (!allowed) throw new NotFoundError('MEDIA_NOT_FOUND', 'Khong tim thay tep media');
-    const path = storageAbsolutePath(this.root, storagePath);
+    const legacyPublicPath = storagePath.startsWith('public/')
+      ? storageAbsolutePath(this.publicDir, storagePath.slice('public/'.length))
+      : null;
+    const path = legacyPublicPath ?? storageAbsolutePath(this.root, storagePath);
     if (media.storageClass === 'public') assertInside(this.publicDir, path, 'public media');
     else if (media.storageClass === 'protected')
       assertInside(this.protectedDir, path, 'protected media');

@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminContentListFilter, AdminContentListRow } from '../admin-read-model.js';
 import type {
   HreflangAlternate,
   Locale,
@@ -19,6 +20,10 @@ import type {
 export interface PostDao {
   findById(id: string): Promise<Post | null>;
   list(filter: PostFilter, page?: Partial<Page>): Promise<Paged<Post>>;
+  listAdmin(
+    filter: AdminContentListFilter<'category_id' | 'is_featured'>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>>;
 
   insert(input: CreatePostInput): Promise<Post>;
   update(id: string, input: UpdatePostInput): Promise<Post>;
@@ -42,6 +47,7 @@ export interface PostDao {
   /** Thay ca tap quan he trong mot lan goi (ADR-008). */
   replaceLinks(id: string, links: PostLinks): Promise<void>;
   replaceMedia(id: string, mediaIds: readonly string[]): Promise<void>;
+  findMedia(id: string): Promise<readonly { mediaId: string; displayOrder: number }[]>;
   findLinks(id: string): Promise<Required<PostLinks>>;
 
   /**

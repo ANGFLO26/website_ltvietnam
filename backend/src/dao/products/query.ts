@@ -18,6 +18,7 @@ import type {
   ProductFilter,
   ProductSort,
   RelationType,
+  DetailApplication,
   DetailCategory,
   DetailMedia,
   DetailRelated,
@@ -67,7 +68,7 @@ export class ProductQueryRunner implements ProductQuery {
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
-        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt,
+        p.featured_image_id, m.public_url AS image_url, m.alt_text AS image_alt,
         ${cardStandards()} AS standards
       FROM ltv.products p
       JOIN ltv.brands b ON b.id = p.brand_id
@@ -91,7 +92,7 @@ export class ProductQueryRunner implements ProductQuery {
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
-        p.featured_image_id, m.storage_path AS image_path, m.alt_text AS image_alt,
+        p.featured_image_id, m.public_url AS image_url, m.alt_text AS image_alt,
         ${cardStandards()} AS standards
       FROM ltv.products p
       JOIN ltv.brands b ON b.id = p.brand_id
@@ -161,16 +162,18 @@ export class ProductQueryRunner implements ProductQuery {
       slug: string;
       compliance_type: string;
       note: string | null;
+      display_order: number;
     }>`
-      SELECT s.id, s.organization, s.code, s.name, s.slug, ps.compliance_type, ps.note
+      SELECT s.id, s.organization, s.code, s.name, s.slug, ps.compliance_type, ps.note,
+             ps.display_order
       FROM ltv.product_standards ps
       JOIN ltv.standards s ON s.id = ps.standard_id
       WHERE ps.product_id = ${id} AND s.deleted_at IS NULL
       ORDER BY ps.display_order, s.organization, s.code
     `.execute(this.db);
 
-    const apps = await sql<DetailTaxon>`
-      SELECT a.id, a.name, a.slug
+    const apps = await sql<DetailApplication & { is_primary: boolean }>`
+      SELECT a.id, a.name, a.slug, pa.is_primary
       FROM ltv.product_applications pa
       JOIN ltv.applications a ON a.id = pa.application_id
       WHERE pa.product_id = ${id} AND a.deleted_at IS NULL
@@ -194,9 +197,10 @@ export class ProductQueryRunner implements ProductQuery {
       width: number | null;
       height: number | null;
       media_role: string;
+      display_order: number;
     }>`
       SELECT m.id, m.storage_path, m.public_url, m.alt_text, m.caption,
-             m.width, m.height, pm.media_role
+             m.width, m.height, pm.media_role, pm.display_order
       FROM ltv.product_media pm
       JOIN ltv.media m ON m.id = pm.media_id
       WHERE pm.product_id = ${id} AND m.deleted_at IS NULL
@@ -204,16 +208,17 @@ export class ProductQueryRunner implements ProductQuery {
     `.execute(this.db);
 
     const specs = await sql<DetailSpec>`
-      SELECT id, group_key AS "groupKey", label, value, unit
+      SELECT id, group_key AS "groupKey", label, value, unit,
+             display_order AS "displayOrder"
       FROM ltv.product_specifications
       WHERE product_id = ${id}
       ORDER BY display_order, label
     `.execute(this.db);
 
     // San pham lien quan: MOT cau kem san the day du, khong lay id roi vong lai.
-    const rel = await sql<CardRow & { relation_type: string }>`
+    const rel = await sql<CardRow & { relation_type: string; display_order: number }>`
       SELECT
-        rp.relation_type,
+        rp.relation_type, rp.display_order,
         p.id, p.name, p.slug, p.model, p.short_description, p.is_featured,
         p.discontinued_at, p.brand_id,
         b.name AS brand_name, b.slug AS brand_slug,
@@ -245,8 +250,14 @@ export class ProductQueryRunner implements ProductQuery {
         slug: s.slug,
         complianceType: s.compliance_type as ComplianceType,
         note: s.note,
+        displayOrder: s.display_order,
       })),
-      applications: apps.rows,
+      applications: apps.rows.map((application): DetailApplication => ({
+        id: application.id,
+        name: application.name,
+        slug: application.slug,
+        isPrimary: application.is_primary,
+      })),
       industries: inds.rows,
       media: media.rows.map((m): DetailMedia => ({
         id: m.id,
@@ -257,10 +268,12 @@ export class ProductQueryRunner implements ProductQuery {
         width: m.width,
         height: m.height,
         mediaRole: m.media_role as MediaRole,
+        displayOrder: m.display_order,
       })),
       specifications: specs.rows,
       related: rel.rows.map((r): DetailRelated => ({
         relationType: r.relation_type as RelationType,
+        displayOrder: r.display_order,
         card: toCard(r),
       })),
     };
@@ -464,7 +477,7 @@ interface CardRow {
   brand_name: string;
   brand_slug: string;
   featured_image_id: string | null;
-  image_path: string | null;
+  image_url: string | null;
   image_alt: string | null;
   standards: CardStandardRow[];
 }
@@ -507,7 +520,7 @@ function toCard(r: CardRow): ProductCard {
     brandName: r.brand_name,
     brandSlug: r.brand_slug,
     featuredImageId: r.featured_image_id,
-    featuredImagePath: r.image_path,
+    featuredImageUrl: r.image_url,
     featuredImageAlt: r.image_alt,
     standards: r.standards,
     isFeatured: r.is_featured,

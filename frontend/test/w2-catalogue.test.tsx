@@ -69,6 +69,8 @@ describe('W2 product card', () => {
       model: 'OptiDist 2',
       short_description: 'Automatic distillation analyzer',
       featured_image_id: null,
+      featured_image_url: '/media/public/optidist-2.jpg',
+      featured_image_alt: 'OptiDist 2 analyzer',
       brand: { slug: 'isl', name: 'ISL' },
       standards: [{ slug: 'astm-d86', organization: 'ASTM', code: 'D86', name: 'Distillation' }],
       is_featured: true,
@@ -77,6 +79,7 @@ describe('W2 product card', () => {
 
     render(<ProductCard product={product} dictionary={dictionary} />);
     expect(screen.getByRole('heading', { name: 'OptiDist 2' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'OptiDist 2 analyzer' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ASTM D86' })).toHaveAttribute(
       'href',
       '/products/standard/astm-d86',

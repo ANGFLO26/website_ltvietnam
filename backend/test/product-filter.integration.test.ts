@@ -4,6 +4,7 @@ import { createTestPool } from '@ltv/testing';
 import { Kysely, PostgresDialect } from 'kysely';
 import type { Database } from '@ltv/db';
 import { createDaoManager, type DaoManager } from '../src/dao/dao-manager.js';
+import { listAdminProducts } from '../src/dao/admin-read-model.js';
 
 const url = process.env.DATABASE_URL;
 const run = url ? describe : describe.skip;
@@ -23,6 +24,7 @@ const run = url ? describe : describe.skip;
  */
 run('Bo loc san pham tren PostgreSQL that', () => {
   let pool: pg.Pool;
+  let db: Kysely<Database>;
   let daos: DaoManager;
   /** Dem so cau SQL that su gui di — dung de chung minh khong co N+1. */
   let sqlCount = 0;
@@ -35,7 +37,7 @@ run('Bo loc san pham tren PostgreSQL that', () => {
 
   beforeAll(async () => {
     pool = createTestPool(url);
-    const db = new Kysely<Database>({
+    db = new Kysely<Database>({
       dialect: new PostgresDialect({ pool }),
       log: (e) => {
         if (e.level !== 'query') return;
@@ -278,8 +280,20 @@ run('Bo loc san pham tren PostgreSQL that', () => {
   });
 
   it('ky tu dai dien trong tu khoa tim la ky tu thuong', async () => {
-    const r = await daos.products.filter({ search: '%' }, undefined, { pageSize: 5 });
-    expect(r.meta.totalItems).toBe(0);
+    /**
+     * Kiem theo NGHIA, khong kiem theo mot con so tuyet doi.
+     *
+     * Ban dau bai kiem nay doi `totalItems === 0`, tuc la ngam gia dinh KHONG
+     * san pham nao trong DB chua ky tu `%`. Gia dinh do vo hieu ngay khi du
+     * lieu that duoc nap: mo ta cua ZyNthAir co cum "nong do Oxy 20±0.05%",
+     * nen phep tim tra ve 1 ban ghi — va bai kiem do, du ma nguon van dung.
+     *
+     * Dieu THAT SU can kiem: `%` khong duoc hieu la ky tu dai dien. Neu no bi
+     * hieu nham thi MOI san pham deu khop, ke ca fixture cua chinh bai kiem nay
+     * (von khong chua `%`). Nen kiem dung dieu do.
+     */
+    const r = await daos.products.filter({ search: '%' }, undefined, { pageSize: 100 });
+    expect(r.data.filter((p) => p.slug.startsWith(tag))).toHaveLength(0);
   });
 
   it('the san pham mang san ten hang va anh — khong phai lay them', async () => {
@@ -300,6 +314,47 @@ run('Bo loc san pham tren PostgreSQL that', () => {
     expect(r.data).toHaveLength(2);
     expect(r.meta.totalItems).toBe(3);
     expect(r.meta.totalPages).toBe(2);
+  });
+
+  describe('admin read-model', () => {
+    it('san pham mang san brand va danh muc chinh trong mot truy van', async () => {
+      const before = sqlCount;
+      const result = await daos.products.listAdmin({ search: `OPTIDIST ${tag}` }, { pageSize: 10 });
+
+      expect(sqlCount - before).toBe(1);
+      expect(result.meta.totalItems).toBe(1);
+      expect(result.data[0]).toMatchObject({
+        id: id['optidist'],
+        brandName: 'HERZOG',
+        primaryCategoryId: id['c2'],
+        primaryCategoryName: 'Chung cat',
+      });
+    });
+
+    it('loc danh sach admin theo category_id ma van chi dung mot truy van', async () => {
+      const before = sqlCount;
+      const result = await daos.products.listAdmin({ categoryId: id['c2'] }, { pageSize: 10 });
+
+      expect(sqlCount - before).toBe(1);
+      expect(result.data.map((item) => item.id)).toContain(id['optidist']);
+      expect(result.data.every((item) => item.primaryCategoryId === id['c2'])).toBe(true);
+    });
+
+    it('taxonomy mang parent label va product count trong mot truy van', async () => {
+      const before = sqlCount;
+      const result = await daos.productCategories.listAdmin(
+        { search: 'Chung cat' },
+        { pageSize: 10 },
+      );
+
+      expect(sqlCount - before).toBe(1);
+      expect(result.data[0]).toMatchObject({
+        id: id['c2'],
+        parentId: id['c1'],
+        parentLabel: 'Thiet bi',
+        relatedProductCount: 2,
+      });
+    });
   });
 
   it('thu tu phai co KHOA PHU duy nhat — kiem tren chinh cau SQL', async () => {
@@ -348,6 +403,13 @@ run('Bo loc san pham tren PostgreSQL that', () => {
     // Day la phep do that, khong phai loi hua trong tai lieu:
     expect(one.queries).toBe(2); // mot cau lay dong, mot cau dem
     expect(many.queries).toBe(2); // van the du tra ve gap nhieu lan
+  });
+
+  it('A5 admin list page_size 100 van chi dung mot cau SQL', async () => {
+    const before = sqlCount;
+    const result = await listAdminProducts(db, { search: tag }, { page: 1, pageSize: 100 });
+    expect(result.data.length).toBeGreaterThan(2);
+    expect(sqlCount - before).toBe(1);
   });
 
   it('card mang san tieu chuan trong cung hai cau SQL', async () => {

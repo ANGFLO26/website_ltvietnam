@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { ReactNode } from 'react';
 import type { HomeSectionView, HomeView, OfficeView } from '@ltv/contracts';
 import { ProductGrid } from '@/components/product/ProductGrid';
@@ -76,26 +77,7 @@ function HomeSection({
       );
 
     case 'business_areas':
-      return (
-        <CardSection
-          {...common}
-          eyebrow={dictionary.products.applicationFilter}
-          title={dictionary.home.businessAreasTitle}
-          description={dictionary.products.catalogueDescription}
-          action={
-            <Link href={routePath('products.landing')}>{dictionary.layout.productOverview}</Link>
-          }
-        >
-          {home.featured_applications.slice(0, Math.min(limit, 6)).map((application, index) => (
-            <Card
-              key={application.slug}
-              title={application.name}
-              eyebrow={`0${index + 1}`}
-              href={routePath('products.application', { params: { slug: application.slug } })}
-            />
-          ))}
-        </CardSection>
-      );
+      return <BusinessAreasSection {...common} home={home} dictionary={dictionary} limit={limit} />;
 
     case 'featured_categories':
       return (
@@ -301,18 +283,36 @@ function HomeSection({
       return (
         <section {...common} className="border-y border-slate-200 bg-white">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-            <p className="text-center text-sm font-bold uppercase tracking-[0.16em] text-slate-500">
-              {dictionary.home.customersTitle}
-            </p>
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="section-kicker">{dictionary.home.customersTitle}</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                {dictionary.home.customersHeadline}
+              </h2>
+              <p className="mt-3 leading-7 text-slate-600">
+                {dictionary.home.customersDescription}
+              </p>
+            </div>
+            <div className="mt-8 grid items-center justify-center gap-5">
               {customers.slice(0, Math.min(limit, 8)).map((customer) => (
-                <div
+                <figure
                   key={customer.name}
-                  className="flex min-h-18 min-w-44 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-5 text-center font-bold text-slate-700"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
                   title={cleanCopy(customer.short_description)}
                 >
-                  {customer.name}
-                </div>
+                  <Image
+                    src={customer.logo_url}
+                    alt={customer.name}
+                    width={1045}
+                    height={241}
+                    className="h-auto w-full object-contain"
+                    sizes="(max-width: 1280px) 92vw, 1180px"
+                  />
+                  {cleanCopy(customer.short_description) === undefined ? null : (
+                    <figcaption className="mt-4 text-center text-sm text-slate-600">
+                      {customer.short_description}
+                    </figcaption>
+                  )}
+                </figure>
               ))}
             </div>
           </div>
@@ -392,96 +392,206 @@ function HeroSection({
   'data-section': string;
   'data-order': number;
 }) {
-  const quickLinks = [
-    ...home.featured_applications.slice(0, 2).map((item) => ({
-      label: item.name,
-      href: routePath('products.application', { params: { slug: item.slug } }),
-    })),
-    ...home.featured_categories.slice(0, 2).map((item) => ({
-      label: item.name,
-      href: routePath('products.category', { params: { slug: item.slug } }),
-    })),
-  ];
+  const quickLinks = businessAreas(home, dictionary);
+  const banner = home.banners[0];
+  const heroTitle = cleanCopy(banner?.title) ?? dictionary.home.heroFallbackTitle;
+  const heroDescription = cleanCopy(banner?.subtitle) ?? dictionary.home.heroFallbackDescription;
+  const desktopImage = banner?.image_url ?? null;
+  const mobileImage = banner?.mobile_image_url ?? desktopImage;
 
   return (
     <section {...attributes} className="relative overflow-hidden bg-slate-950 text-white">
+      {desktopImage === null ? null : (
+        <Image
+          className={
+            mobileImage === desktopImage
+              ? 'object-cover opacity-35'
+              : 'hidden object-cover opacity-35 sm:block'
+          }
+          src={desktopImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+        />
+      )}
+      {mobileImage === null || mobileImage === desktopImage ? null : (
+        <Image
+          className="object-cover opacity-35 sm:hidden"
+          src={mobileImage}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+        />
+      )}
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/45"
+        aria-hidden="true"
+      />
       <div className="technical-grid absolute inset-0 opacity-25" aria-hidden="true" />
       <div className="hero-glow absolute inset-0" aria-hidden="true" />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:py-24">
         <div>
           <p className="section-kicker text-cyan-300">{dictionary.layout.companyDescriptor}</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-[-0.035em] sm:text-5xl lg:text-6xl lg:leading-[1.05]">
-            {dictionary.home.heroFallbackTitle}
+            {heroTitle}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
-            {dictionary.home.heroFallbackDescription}
+            {heroDescription}
           </p>
-          <ProductSearchForm dictionary={dictionary} dark className="mt-8 max-w-2xl" />
-          {quickLinks.length === 0 ? null : (
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-300">
-              <span className="font-semibold text-white">
-                {dictionary.products.featuredApplications}:
-              </span>
-              {quickLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  className="rounded-full border border-white/15 px-3 py-1.5 text-slate-200 no-underline transition hover:border-cyan-300 hover:text-cyan-200"
-                  href={item.href}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
+          {banner?.button_label === null ||
+          banner?.button_label === undefined ||
+          banner.url === null ? null : (
+            <HeroBannerAction
+              label={banner.button_label}
+              url={banner.url}
+              openNewTab={banner.open_new_tab}
+            />
           )}
+          <ProductSearchForm dictionary={dictionary} dark className="mt-8 max-w-2xl" />
         </div>
 
         <div className="relative rounded-3xl border border-white/15 bg-white/[.07] p-6 shadow-2xl backdrop-blur sm:p-8">
           <div className="mb-8 flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
-                {dictionary.home.capabilitiesTitle}
+                {dictionary.home.chooseAreaTitle}
               </p>
-              <p className="mt-2 text-xl font-bold">{dictionary.home.companyIntroTitle}</p>
+              <p className="mt-2 text-xl font-bold">{dictionary.home.businessAreasTitle}</p>
             </div>
             <span className="grid size-14 place-items-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 font-black text-cyan-200">
               {dictionary.layout.brandShort.slice(0, 2).toUpperCase()}
             </span>
           </div>
           <ol className="space-y-3">
-            {[
-              dictionary.home.capabilityOne,
-              dictionary.home.capabilityTwo,
-              dictionary.home.capabilityThree,
-            ].map((item, index) => (
-              <li
-                key={item}
-                className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4"
-              >
-                <span className="text-sm font-black text-cyan-300">0{index + 1}</span>
-                <span className="font-semibold text-slate-100">{item}</span>
-                <span className="text-cyan-300" aria-hidden="true">
-                  &rarr;
-                </span>
+            {quickLinks.map((item, index) => (
+              <li key={item.href} className="rounded-2xl border border-white/10 bg-slate-950/50">
+                <Link
+                  className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 p-4 text-white no-underline"
+                  href={item.href}
+                >
+                  <span className="text-sm font-black text-cyan-300">0{index + 1}</span>
+                  <span>
+                    <strong className="block text-slate-100">{item.label}</strong>
+                    <span className="mt-1 block text-sm leading-5 text-slate-400">
+                      {item.description}
+                    </span>
+                  </span>
+                  <span className="text-cyan-300" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </Link>
               </li>
             ))}
           </ol>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6">
             <Link
               className="rounded-xl bg-cyan-300 px-5 py-3 font-bold text-slate-950 no-underline"
               href={routePath('products.landing')}
             >
               {dictionary.layout.productOverview}
             </Link>
-            <Link
-              className="rounded-xl border border-white/25 px-5 py-3 font-bold text-white no-underline"
-              href={routePath('contact', { locale: home.locale })}
-            >
-              {dictionary.home.contactAction}
-            </Link>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function BusinessAreasSection({
+  home,
+  dictionary,
+  limit,
+  ...attributes
+}: {
+  home: HomeView;
+  dictionary: Dictionary;
+  limit: number;
+  'data-section': string;
+  'data-order': number;
+}) {
+  const areas = businessAreas(home, dictionary).slice(0, Math.min(limit, 2));
+  return (
+    <section {...attributes} className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">
+        <SectionHeading
+          eyebrow={dictionary.home.chooseAreaTitle}
+          title={dictionary.home.businessAreasTitle}
+          description={dictionary.home.businessAreasDescription}
+          action={
+            <Link href={routePath('products.landing')}>{dictionary.layout.productOverview}</Link>
+          }
+        />
+        <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {areas.map((area, index) => (
+            <Link
+              key={area.href}
+              href={area.href}
+              className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 p-7 text-white no-underline shadow-sm transition hover:-translate-y-1 hover:border-cyan-300 hover:shadow-xl sm:p-9"
+            >
+              <div className="technical-grid absolute inset-0 opacity-20" aria-hidden="true" />
+              <div className="relative">
+                <span className="text-sm font-black text-cyan-300">0{index + 1}</span>
+                <h3 className="mt-8 text-2xl font-bold sm:text-3xl">{area.label}</h3>
+                <p className="mt-3 max-w-xl leading-7 text-slate-300">{area.description}</p>
+                <span className="mt-8 inline-flex items-center gap-2 font-bold text-cyan-300">
+                  {dictionary.common.viewDetails}
+                  <span className="transition group-hover:translate-x-1" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function businessAreas(home: HomeView, dictionary: Dictionary) {
+  const categories = new Map(home.featured_categories.map((item) => [item.slug, item]));
+  return [
+    {
+      label: categories.get('laboratory-analysis')?.name ?? dictionary.home.laboratoryTitle,
+      description: dictionary.home.laboratoryDescription,
+      href: routePath('products.category', { params: { slug: 'laboratory-analysis' } }),
+    },
+    {
+      label: categories.get('valves-flow-control')?.name ?? dictionary.home.valvesTitle,
+      description: dictionary.home.valvesDescription,
+      href: routePath('products.category', { params: { slug: 'valves-flow-control' } }),
+    },
+  ];
+}
+
+function HeroBannerAction({
+  label,
+  url,
+  openNewTab,
+}: {
+  label: string;
+  url: string;
+  openNewTab: boolean;
+}) {
+  const className =
+    'mt-7 inline-flex rounded-xl bg-cyan-300 px-5 py-3 font-bold text-slate-950 no-underline shadow-lg transition hover:-translate-y-0.5 hover:bg-cyan-200';
+  if (openNewTab || /^https?:\/\//i.test(url)) {
+    return (
+      <a
+        className={className}
+        href={url}
+        {...(openNewTab ? { target: '_blank', rel: 'noreferrer' } : {})}
+      >
+        {label}
+      </a>
+    );
+  }
+  return (
+    <Link className={className} href={url}>
+      {label}
+    </Link>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Page, Paged } from '../helpers.js';
+import type { AdminTaxonomyListFilter, AdminTaxonomyListRow } from '../admin-read-model.js';
 import type {
   CreateStandardInput,
   Standard,
@@ -17,6 +18,10 @@ export interface StandardDao {
   findManyByCodes(pairs: readonly { organization: string; code: string }[]): Promise<Standard[]>;
 
   list(filter: StandardFilter, page?: Partial<Page>): Promise<Paged<Standard>>;
+  listAdmin(
+    filter: AdminTaxonomyListFilter,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminTaxonomyListRow>>;
 
   /** Danh sach to chuc dang co, kem so luong — dung dung mat bo loc. */
   listOrganizations(): Promise<{ organization: string; count: number }[]>;

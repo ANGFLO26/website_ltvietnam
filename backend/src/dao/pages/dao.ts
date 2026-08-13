@@ -19,6 +19,12 @@ import type {
   UpsertPageTranslationInput,
 } from './object.js';
 import { toPage, toPageTranslation } from './mapper.js';
+import {
+  listAdminContent,
+  type AdminContentListFilter,
+  type AdminContentListRow,
+} from '../admin-read-model.js';
+import type { Page, Paged } from '../helpers.js';
 
 export class KyselyPageDao extends BaseDao implements PageDao {
   private readonly tr: TranslationSupport<never>;
@@ -63,6 +69,25 @@ export class KyselyPageDao extends BaseDao implements PageDao {
     if (!includeDeleted) query = query.where('deleted_at', 'is', null);
     const rows = await query.orderBy('display_order').orderBy('page_type').execute();
     return rows.map(toPage);
+  }
+
+  listAdmin(
+    filter: AdminContentListFilter<never>,
+    page?: Partial<Page>,
+  ): Promise<Paged<AdminContentListRow>> {
+    return listAdminContent(
+      this.db,
+      {
+        kind: 'page',
+        parentTable: 'pages',
+        translationTable: 'page_translations',
+        parentKey: 'page_id',
+        titleColumn: 'title',
+        allowedParentFilters: [],
+      },
+      filter,
+      page,
+    );
   }
 
   async insert(input: CreatePageInput): Promise<AppPage> {

@@ -1,4 +1,4 @@
-import { projectsListMetadata, renderProjectsList } from '@/lib/w4/projects';
+import { projectsListMetadata, renderProjectsList } from '@/page-views/projects';
 
 export const metadata = projectsListMetadata('vi');
 

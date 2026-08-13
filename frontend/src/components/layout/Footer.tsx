@@ -58,7 +58,11 @@ export function Footer({
                   <h2 id={`footer-${menu.code}`} className="font-semibold text-white">
                     {menu.name}
                   </h2>
-                  <MenuTree className="mt-4 space-y-2 text-sm text-slate-400" items={menu.items} />
+                  <MenuTree
+                    className="mt-4 space-y-2 text-sm text-slate-400"
+                    items={menu.items}
+                    dictionary={dictionary}
+                  />
                 </section>
               ))}
             </nav>

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -70,6 +70,42 @@ describe('F7 MediaService: cong public va tai lieu protected', () => {
       service.openPublic(pdfMedia.storagePath.replace(/^protected-documents\//, '')),
     ).rejects.toMatchObject({ code: 'MEDIA_NOT_FOUND' });
     expect(findAsset).not.toHaveBeenCalledWith(pdfMedia.storagePath);
+  });
+
+  it('A5 phuc vu an toan anh demo legacy public/ ben trong public-media', async () => {
+    const bytes = await sharp({
+      create: { width: 16, height: 16, channels: 3, background: '#0f3554' },
+    })
+      .jpeg()
+      .toBuffer();
+    await mkdir(join(root, 'public-media'), { recursive: true });
+    await writeFile(join(root, 'public-media', 'demo-image.jpg'), bytes);
+    const media = mediaOf({
+      fileName: 'demo-image.jpg',
+      originalName: 'demo-image.jpg',
+      storageClass: 'public',
+      storagePath: 'public/demo-image.jpg',
+      publicUrl: '/media/public/demo-image.jpg',
+      mimeType: 'image/jpeg',
+      fileExtension: 'jpg',
+      fileSize: bytes.length,
+      width: 16,
+      height: 16,
+      variants: {},
+    });
+    const findAsset = vi.fn(async (path: string) =>
+      path === 'public/demo-image.jpg' ? media : null,
+    );
+    const service = makeService(cfg, storage, {
+      findActiveByPublicAssetPath: findAsset,
+    });
+
+    const opened = await service.openPublic('public/demo-image.jpg');
+    expect(await readStream(opened.stream)).toEqual(bytes);
+    expect(findAsset.mock.calls.map(([path]) => path)).toEqual([
+      'public-media/public/demo-image.jpg',
+      'public/demo-image.jpg',
+    ]);
   });
 
   it('tai PDF qua document gate va tang download_count dung mot lan', async () => {

@@ -1,4 +1,10 @@
-import type { Banner, BannerFilter, CreateBannerInput, UpdateBannerInput } from './object.js';
+import type {
+  ActiveBanner,
+  Banner,
+  BannerFilter,
+  CreateBannerInput,
+  UpdateBannerInput,
+} from './object.js';
 
 export interface BannerDao {
   findById(id: string): Promise<Banner | null>;
@@ -15,7 +21,7 @@ export interface BannerDao {
    * co the lech gio nhau, va mot banner bat/tat khac nhau giua hai may chu
    * la loi khong the tai hien.
    */
-  findActive(): Promise<Banner[]>;
+  findActive(): Promise<ActiveBanner[]>;
 
   insert(input: CreateBannerInput): Promise<Banner>;
   update(id: string, input: UpdateBannerInput): Promise<Banner>;

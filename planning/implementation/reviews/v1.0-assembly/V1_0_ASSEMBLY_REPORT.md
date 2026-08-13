@@ -164,4 +164,4 @@ operation and are recoverable the same way. Their dispositions are normative in
 **Note on §9.** That section records "Gate B: NOT MET", which was correct at the
 time of assembly (2026-07-25). Gate B subsequently **PASSED** on 2026-07-26 at
 tested commit `151570b8d85cfdbd34fe66ab295750edaa2d99ae`. See
-`planning/implementation/GATE_STATUS.md`.
+`planning/implementation/history/GATE_STATUS_P0_2026-07-29.md`.
